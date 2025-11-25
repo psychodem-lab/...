@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Łączenie Punktów</title>
+    <title>Połącz 15 Punktów</title>
     <style>
-        /* CSS: Styling */
+        /* CSS: Ustawienia dla responsywności i wyglądu */
+        :root {
+            /* Zmienne CSS do ułatwienia zmian kolorów */
+            --color-primary: #007bff; /* Kolor linii i ramki */
+            --color-success: #28a745; /* Kolor połączonych punktów */
+            --color-default: #6c757d; /* Kolor niepołączonych punktów */
+        }
+
         body {
             display: flex;
             flex-direction: column;
@@ -13,33 +20,51 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             margin: 20px;
+            padding: 0;
+            text-align: center;
         }
 
         h1 {
             color: #333;
         }
 
+        /* Ustawienie płótna jako responsywnego */
         canvas {
-            border: 2px solid #007bff;
+            /* Maksymalny rozmiar na dużych ekranach */
+            max-width: 600px; 
+            max-height: 400px;
+            
+            /* Skalowanie na mniejszych ekranach */
+            width: 90vw; 
+            height: 60vw; /* 90vw * (400/600) = 60vw, aby zachować proporcje */
+
+            border: 2px solid var(--color-primary);
             background-color: white;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            /* Zapewnienie, że dotykanie jest łatwe na mobilnych */
+            touch-action: manipulation;
         }
 
         #info {
-            margin-top: 10px;
-            font-size: 1.2em;
-            color: #28a745;
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            color: var(--color-success);
             font-weight: bold;
+            background-color: #e2ffe8;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Połącz Punkty!</h1>
-    <p>Kolejność: 1 → A → 2 → B → 3 → C</p>
+    <h1>Połącz Kropki!</h1>
+    <p>Sekwencja: 1 → A → 2 → B → ... → 8</p>
+    
     <canvas id="gameCanvas" width="600" height="400"></canvas>
-    <div id="info">Kliknij punkt startowy (1), aby rozpocząć!</div>
+    
+    <div id="info">Kliknij punkt startowy (1)</div>
 
     <script>
         // JavaScript: Logika Gry
@@ -47,31 +72,58 @@
         const ctx = canvas.getContext('2d');
         const infoDiv = document.getElementById('info');
 
-        // Definicja punktów z unikalnymi współrzędnymi i etykietami
-        // Kolejność w tablicy MUSI odpowiadać kolejności łączenia
+        // Wewnętrzne wymiary Canvas (stałe, względem których zdefiniowano punkty)
+        const CANVAS_WIDTH = canvas.width;
+        const CANVAS_HEIGHT = canvas.height;
+
+        // Promień punktu (większy dla lepszej precyzji kliknięcia na urządzeniach mobilnych)
+        const POINT_RADIUS = 18;
+        const FONT_SIZE = '16px';
+
+        // Definicja 15 punktów (1, A, 2, B, ..., 7, G, 8)
         const points = [
-            // 1 A 2 B 3 C
-            { x: 100, y: 100, label: '1' },
-            { x: 500, y: 100, label: 'A' },
-            { x: 100, y: 300, label: '2' },
-            { x: 500, y: 300, label: 'B' },
-            { x: 300, y: 50,  label: '3' },
-            { x: 300, y: 350, label: 'C' }
+            // 1
+            { x: 100, y: 50, label: '1' },
+            // A
+            { x: 500, y: 50, label: 'A' },
+            // 2
+            { x: 550, y: 200, label: '2' },
+            // B
+            { x: 400, y: 350, label: 'B' },
+            // 3
+            { x: 200, y: 350, label: '3' },
+            // C
+            { x: 50, y: 200, label: 'C' },
+            // 4
+            { x: 150, y: 150, label: '4' },
+            // D
+            { x: 450, y: 150, label: 'D' },
+            // 5
+            { x: 450, y: 250, label: '5' },
+            // E
+            { x: 150, y: 250, label: 'E' },
+            // 6
+            { x: 300, y: 75, label: '6' },
+            // F
+            { x: 300, y: 325, label: 'F' },
+            // 7
+            { x: 225, y: 200, label: '7' },
+            // G
+            { x: 375, y: 200, label: 'G' },
+            // 8 (Centralny, ostatni)
+            { x: 300, y: 200, label: '8' }
         ];
 
-        let currentPointIndex = 0; // Oczekiwany punkt do kliknięcia (zgodnie z tablicą points)
+        let currentPointIndex = 0; // Oczekiwany punkt do kliknięcia
         let connections = [];      // Przechowuje narysowane połączenia
-
-        const POINT_RADIUS = 15;
 
         // Funkcja rysująca wszystkie elementy
         function draw() {
-            // Wyczyść canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
             // Rysuj połączenia (linie)
-            ctx.strokeStyle = '#007bff';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary');
+            ctx.lineWidth = 4;
             ctx.beginPath();
             connections.forEach(conn => {
                 ctx.moveTo(conn.start.x, conn.start.y);
@@ -82,11 +134,12 @@
 
             // Rysuj punkty i ich etykiety
             points.forEach((point, index) => {
-                const isNext = index === currentPointIndex;
                 const isConnected = index < currentPointIndex;
 
-                // Ustaw kolor punktu: połączony, następny, czy oczekujący
-                ctx.fillStyle = isConnected ? '#28a745' : (isNext ? '#ffc107' : '#6c757d');
+                // Ustaw kolor: Zielony jeśli połączony, Szary jeśli oczekujący
+                ctx.fillStyle = isConnected 
+                    ? getComputedStyle(document.documentElement).getPropertyValue('--color-success') 
+                    : getComputedStyle(document.documentElement).getPropertyValue('--color-default');
                 
                 // Rysuj okrąg
                 ctx.beginPath();
@@ -94,74 +147,120 @@
                 ctx.fill();
 
                 // Rysuj etykietę (tekst)
-                ctx.fillStyle = 'black';
-                ctx.font = '16px Arial';
+                ctx.fillStyle = 'white'; // Biały tekst na kolorowym kółku
+                ctx.font = `${FONT_SIZE} Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(point.label, point.x, point.y);
             });
         }
 
-        // Funkcja obsługująca kliknięcie
-        function handleClick(event) {
-            // Pobierz współrzędne kliknięcia względem canvas
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
+        // Funkcja obsługująca kliknięcie (dla myszy i dotyku)
+        function handleInteraction(event) {
+            // Zapobieganie domyślnym zdarzeniom dotyku, takim jak przewijanie
+            if (event.type === 'touchstart') {
+                event.preventDefault();
+            }
 
-            // Sprawdź, czy kliknięto w oczekiwany punkt
+            const rect = canvas.getBoundingClientRect();
+            // Używamy event.touches[0] dla dotyku i event dla myszy
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+
+            // Względne współrzędne kliknięcia/dotknięcia na widocznym canvasie
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
+
+            // Skalowanie współrzędnych do wewnętrznego systemu (600x400)
+            const scaleX = CANVAS_WIDTH / rect.width;
+            const scaleY = CANVAS_HEIGHT / rect.height;
+
+            const mouseX = clickX * scaleX;
+            const mouseY = clickY * scaleY;
+
+            // Sprawdź, czy gra jest już zakończona
+            if (currentPointIndex === points.length) {
+                return;
+            }
+
             const expectedPoint = points[currentPointIndex];
             
-            // Oblicz odległość od centrum oczekiwanego punktu
+            // Oblicz odległość od centrum oczekiwanego punktu w wewnętrznym systemie
             const distance = Math.sqrt(
                 Math.pow(mouseX - expectedPoint.x, 2) + Math.pow(mouseY - expectedPoint.y, 2)
             );
 
-            // Jeśli odległość jest mniejsza niż promień, punkt został trafiony
+            // Sprawdź trafienie
             if (distance < POINT_RADIUS) {
-                // Jeśli to nie jest pierwszy punkt (ma z czym się łączyć)
+                // Poprawne kliknięcie
                 if (currentPointIndex > 0) {
                     const previousPoint = points[currentPointIndex - 1];
-                    // Dodaj nowe połączenie do tablicy
                     connections.push({ start: previousPoint, end: expectedPoint });
                 }
 
-                // Przejdź do następnego punktu
                 currentPointIndex++;
 
-                // Sprawdź, czy gra została ukończona
+                // Warunek zwycięstwa
                 if (currentPointIndex === points.length) {
-                    infoDiv.textContent = 'Brawo! Wszystkie punkty połączone!';
-                    canvas.removeEventListener('click', handleClick); // Zakończ grę
-                    ctx.strokeStyle = '#dc3545'; // Zmień kolor linii na ostateczny
-                    ctx.lineWidth = 5;
-                    // Rysuj gotową figurę (dla ułatwienia, całość od nowa)
-                    ctx.beginPath();
-                    points.forEach((point, index) => {
-                        if (index === 0) {
-                            ctx.moveTo(point.x, point.y);
-                        } else {
-                            ctx.lineTo(point.x, point.y);
-                        }
-                    });
-                    ctx.stroke();
-                    // Zresetuj
-                    connections = [];
+                    infoDiv.textContent = 'GRATULACJE! Wszystkie 15 punktów połączone! 🥳';
+                    // Opcjonalne ponowne rysowanie w finalnym stylu
+                    drawFinalLine();
+                    
                 } else {
                     infoDiv.textContent = `Połączono! Następny: (${points[currentPointIndex].label})`;
                 }
 
-                // Przerysuj canvas
                 draw();
             } else {
-                // Niepoprawne kliknięcie (opcjonalnie: wibracja/dźwięk/komunikat błędu)
-                infoDiv.textContent = `Błąd! Kliknij punkt (${expectedPoint.label})`;
+                // Niepoprawne kliknięcie
+                infoDiv.textContent = `Nie ten punkt. Oczekiwany: (${expectedPoint.label})`;
             }
         }
 
-        // Inicjalizacja: Rysowanie początkowe i dodanie słuchacza zdarzeń
+        // Funkcja rysująca ostateczną figurę
+        function drawFinalLine() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Czyścimy przed finalnym rysowaniem
+            
+            // Rysujemy połączone punkty (zielone)
+            points.forEach(point => {
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-success');
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, POINT_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Etykiety
+                ctx.fillStyle = 'white';
+                ctx.font = `${FONT_SIZE} Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(point.label, point.x, point.y);
+            });
+
+            // Rysujemy finalną linię (np. czerwoną, grubszą)
+            ctx.strokeStyle = '#dc3545'; // Finalny, inny kolor
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            
+            points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            
+            ctx.stroke();
+        }
+
+
+        // INICJALIZACJA: Rysowanie początkowe i dodanie słuchaczy zdarzeń
         draw();
-        canvas.addEventListener('click', handleClick);
+        
+        // Obsługa kliknięcia myszy
+        canvas.addEventListener('click', handleInteraction);
+        
+        // Obsługa dotyku (dla urządzeń mobilnych)
+        canvas.addEventListener('touchstart', handleInteraction); 
     </script>
 
 </body>
