@@ -3,137 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Czasu Reakcji</title>
-    
+    <title>Łączenie Punktów</title>
     <style>
-        /* --- STYLIZACJA CSS --- */
+        /* CSS: Styling */
         body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             font-family: Arial, sans-serif;
-            text-align: center;
             background-color: #f4f4f9;
-            padding: 20px;
-        }
-
-        #game-area {
-            width: 350px;
-            height: 350px;
-            /* Kolor początkowy: niebieski */
-            background-color: #3498db; 
-            color: white;
-            text-align: center;
-            line-height: 350px; /* Wyśrodkowanie pionowe tekstu */
-            font-size: 1.8em;
-            font-weight: bold;
-            margin: 30px auto;
-            cursor: pointer;
-            border-radius: 20px;
-            user-select: none;
-            transition: background-color 0.2s; /* Płynna zmiana koloru */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Stan, gdy użytkownik powinien kliknąć (zielony) */
-        .ready {
-            background-color: #2ecc71 !important; 
-        }
-
-        /* Stan, gdy użytkownik kliknął za wcześnie (czerwony) */
-        .early {
-            background-color: #e74c3c !important; 
-        }
-
-        #result {
-            font-size: 1.2em;
-            margin-top: 20px;
-            color: #333;
+            margin: 20px;
         }
 
         h1 {
-            color: #2c3e50;
+            color: #333;
+        }
+
+        canvas {
+            border: 2px solid #007bff;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #info {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #28a745;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <h1>Sprawdź swój czas reakcji! ⏱️</h1>
-    <p>Gdy tło zmieni się na **zielone**, kliknij w pole jak najszybciej.</p>
-
-    <div id="game-area">
-        Kliknij, aby rozpocząć
-    </div>
-
-    <p id="result">Twój czas reakcji: -</p>
+    <h1>Połącz Punkty!</h1>
+    <p>Kolejność: 1 → A → 2 → B → 3 → C</p>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div id="info">Kliknij punkt startowy (1), aby rozpocząć!</div>
 
     <script>
-        /* --- LOGIKA JAVASCRIPT --- */
-        const gameArea = document.getElementById('game-area');
-        const resultDisplay = document.getElementById('result');
+        // JavaScript: Logika Gry
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const infoDiv = document.getElementById('info');
 
-        let startTime; 
-        let timeoutId; 
-        let isWaitingForClick = false; 
-        let isGameRunning = false; 
+        // Definicja punktów z unikalnymi współrzędnymi i etykietami
+        // Kolejność w tablicy MUSI odpowiadać kolejności łączenia
+        const points = [
+            // 1 A 2 B 3 C
+            { x: 100, y: 100, label: '1' },
+            { x: 500, y: 100, label: 'A' },
+            { x: 100, y: 300, label: '2' },
+            { x: 500, y: 300, label: 'B' },
+            { x: 300, y: 50,  label: '3' },
+            { x: 300, y: 350, label: 'C' }
+        ];
 
-        /**
-         * Ustawia stan gry na oczekiwanie i planuje zmianę koloru.
-         */
-        function prepareGame() {
-            isGameRunning = true;
-            isWaitingForClick = false;
-            gameArea.textContent = 'Czekaj na zielony...';
-            gameArea.className = ''; // Usuwamy klasy ready/early
-            resultDisplay.textContent = 'Przygotuj się...';
+        let currentPointIndex = 0; // Oczekiwany punkt do kliknięcia (zgodnie z tablicą points)
+        let connections = [];      // Przechowuje narysowane połączenia
 
-            // Losowe opóźnienie między 1000ms (1s) a 4000ms (4s)
-            const delay = Math.floor(Math.random() * 3000) + 1000;
+        const POINT_RADIUS = 15;
 
-            // Ustawiamy opóźnienie i po nim wywołujemy funkcję changeToGreen
-            timeoutId = setTimeout(changeToGreen, delay);
+        // Funkcja rysująca wszystkie elementy
+        function draw() {
+            // Wyczyść canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Rysuj połączenia (linie)
+            ctx.strokeStyle = '#007bff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            connections.forEach(conn => {
+                ctx.moveTo(conn.start.x, conn.start.y);
+                ctx.lineTo(conn.end.x, conn.end.y);
+            });
+            ctx.stroke();
+            ctx.closePath();
+
+            // Rysuj punkty i ich etykiety
+            points.forEach((point, index) => {
+                const isNext = index === currentPointIndex;
+                const isConnected = index < currentPointIndex;
+
+                // Ustaw kolor punktu: połączony, następny, czy oczekujący
+                ctx.fillStyle = isConnected ? '#28a745' : (isNext ? '#ffc107' : '#6c757d');
+                
+                // Rysuj okrąg
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, POINT_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Rysuj etykietę (tekst)
+                ctx.fillStyle = 'black';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(point.label, point.x, point.y);
+            });
         }
 
-        /**
-         * Zmienia kolor na zielony i zapisuje czas startu.
-         */
-        function changeToGreen() {
-            gameArea.textContent = 'KLIKNIJ TERAZ!';
-            gameArea.className = 'ready'; // Dodajemy klasę, która zmienia kolor na zielony
-            isWaitingForClick = true;
+        // Funkcja obsługująca kliknięcie
+        function handleClick(event) {
+            // Pobierz współrzędne kliknięcia względem canvas
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
 
-            // Zapisujemy dokładny czas, kiedy kolor się zmienił (w milisekundach)
-            startTime = new Date().getTime();
-        }
+            // Sprawdź, czy kliknięto w oczekiwany punkt
+            const expectedPoint = points[currentPointIndex];
+            
+            // Oblicz odległość od centrum oczekiwanego punktu
+            const distance = Math.sqrt(
+                Math.pow(mouseX - expectedPoint.x, 2) + Math.pow(mouseY - expectedPoint.y, 2)
+            );
 
-        /**
-         * Obsługa kliknięcia użytkownika w pole gry.
-         */
-        gameArea.addEventListener('click', function() {
-            if (!isGameRunning) {
-                // STAN 1: Kliknięcie na start
-                prepareGame();
-            } else if (isWaitingForClick) {
-                // STAN 2: Kliknięcie po zmianie na zielony (PRAWIDŁOWA REAKCJA)
-                const endTime = new Date().getTime();
-                const reactionTime = endTime - startTime;
-
-                gameArea.textContent = 'WYNIK: ' + reactionTime + ' ms. Kliknij, aby spróbować ponownie.';
-                resultDisplay.textContent = '🎉 Twój czas reakcji: ' + reactionTime + ' ms';
-
-                isWaitingForClick = false;
-                isGameRunning = false;
-                gameArea.className = ''; // Powrót do koloru początkowego
-
-            } else {
-                // STAN 3: Kliknięcie ZA WCZEŚNIE (Fałszywy start)
-                if (timeoutId) {
-                    clearTimeout(timeoutId); // Anulujemy zaplanowaną zmianę na zielony
+            // Jeśli odległość jest mniejsza niż promień, punkt został trafiony
+            if (distance < POINT_RADIUS) {
+                // Jeśli to nie jest pierwszy punkt (ma z czym się łączyć)
+                if (currentPointIndex > 0) {
+                    const previousPoint = points[currentPointIndex - 1];
+                    // Dodaj nowe połączenie do tablicy
+                    connections.push({ start: previousPoint, end: expectedPoint });
                 }
 
-                gameArea.textContent = 'ZA WCZEŚNIE! Fałszywy start. Kliknij, aby spróbować ponownie.';
-                resultDisplay.textContent = '❌ Błąd: Kliknięcie przed bodźcem. Spróbuj ponownie.';
-                gameArea.className = 'early'; // Zmiana koloru na czerwony
-                isGameRunning = false;
+                // Przejdź do następnego punktu
+                currentPointIndex++;
+
+                // Sprawdź, czy gra została ukończona
+                if (currentPointIndex === points.length) {
+                    infoDiv.textContent = 'Brawo! Wszystkie punkty połączone!';
+                    canvas.removeEventListener('click', handleClick); // Zakończ grę
+                    ctx.strokeStyle = '#dc3545'; // Zmień kolor linii na ostateczny
+                    ctx.lineWidth = 5;
+                    // Rysuj gotową figurę (dla ułatwienia, całość od nowa)
+                    ctx.beginPath();
+                    points.forEach((point, index) => {
+                        if (index === 0) {
+                            ctx.moveTo(point.x, point.y);
+                        } else {
+                            ctx.lineTo(point.x, point.y);
+                        }
+                    });
+                    ctx.stroke();
+                    // Zresetuj
+                    connections = [];
+                } else {
+                    infoDiv.textContent = `Połączono! Następny: (${points[currentPointIndex].label})`;
+                }
+
+                // Przerysuj canvas
+                draw();
+            } else {
+                // Niepoprawne kliknięcie (opcjonalnie: wibracja/dźwięk/komunikat błędu)
+                infoDiv.textContent = `Błąd! Kliknij punkt (${expectedPoint.label})`;
             }
-        });
+        }
+
+        // Inicjalizacja: Rysowanie początkowe i dodanie słuchacza zdarzeń
+        draw();
+        canvas.addEventListener('click', handleClick);
     </script>
+
 </body>
 </html>
