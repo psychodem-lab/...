@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symulator Maszyny Losującej BINGO (1-75)</title>
+    <style>
+        :root {
+            --primary-color: #ff5722; /* Pomarańczowy BINGO */
+            --secondary-color: #3f51b5; /* Niebieski */
+            --background-color: #fce4ec; /* Bardzo jasny róż */
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 2.5em;
+        }
+
+        /* Sekcja wyświetlająca wylosowaną liczbę */
+        #aktualnaLiczba {
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 6em;
+            font-weight: bold;
+            width: 150px;
+            height: 150px;
+            line-height: 150px;
+            border-radius: 50%; /* Kształt kuli BINGO */
+            margin: 20px auto;
+            border: 5px solid #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Animacja nowej liczby */
+        .wylosowana {
+            transform: scale(1.1);
+            background-color: var(--primary-color) !important;
+        }
+        
+        button {
+            padding: 15px 30px;
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #e64a19;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Lista wylosowanych liczb */
+        .historia {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .historia h2 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        #wylosowaneLiczby {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        #wylosowaneLiczby li {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        /* Oznaczanie nowo wylosowanej liczby w historii */
+        .nowa-historia {
+            background-color: var(--primary-color) !important;
+            color: white;
+        }
+        
+        .komunikat {
+            margin-top: 15px;
+            font-weight: bold;
+            color: green;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎰 Symulator BINGO (1 - 75)</h1>
+
+        <p>Wylosowano: <span id="licznik">0</span> / 75 liczb.</p>
+
+        <div id="aktualnaLiczba">B</div>
+        
+        <div id="komunikat" class="komunikat"></div>
+
+        <button id="losujPrzycisk" onclick="losujLiczbe()">Losuj Następną Liczbę</button>
+        
+        <button onclick="resetGry()">Zacznij od Nowa</button>
+
+        <div class="historia">
+            <h2>Historia Losowania:</h2>
+            <ul id="wylosowaneLiczby">
+                </ul>
+        </div>
+        
+    </div>
+
+    <script>
+        // Zakres BINGO
+        const MIN_LICZBA = 1;
+        const MAX_LICZBA = 75;
+
+        // Tablica przechowująca już wylosowane liczby
+        let wylosowane = [];
+
+        // Referencje do elementów DOM
+        const aktualnaLiczbaEl = document.getElementById('aktualnaLiczba');
+        const historiaListaEl = document.getElementById('wylosowaneLiczby');
+        const losujPrzycisk = document.getElementById('losujPrzycisk');
+        const komunikatEl = document.getElementById('komunikat');
+        const licznikEl = document.getElementById('licznik');
+
+        /**
+         * Generuje unikalną liczbę BINGO
+         */
+        function losujLiczbe() {
+            // Sprawdzenie, czy wszystkie liczby zostały już wylosowane
+            if (wylosowane.length >= (MAX_LICZBA - MIN_LICZBA + 1)) {
+                aktualnaLiczbaEl.textContent = 'STOP';
+                komunikatEl.textContent = "Gra zakończona! Wylosowano wszystkie liczby.";
+                losujPrzycisk.disabled = true;
+                return;
+            }
+
+            let nowaLiczba;
+            let proba = 0;
+            
+            // Pętla losuje dopóki nie znajdzie liczby, która jeszcze nie została wylosowana
+            do {
+                nowaLiczba = Math.floor(Math.random() * (MAX_LICZBA - MIN_LICZBA + 1)) + MIN_LICZBA;
+                proba++;
+            } while (wylosowane.includes(nowaLiczba) && proba < 100);
+
+            // Dodaj nową liczbę do tablicy wylosowanych
+            wylosowane.push(nowaLiczba);
+            
+            // Aktualizuj interfejs
+            aktualizujWyswietlacz(nowaLiczba);
+            aktualizujHistorie(nowaLiczba);
+            
+            licznikEl.textContent = wylosowane.length;
+            komunikatEl.textContent = "Wylosowano liczbę " + nowaLiczba + "!";
+        }
+
+        /**
+         * Uaktualnia duży wyświetlacz liczby z krótką animacją.
+         */
+        function aktualizujWyswietlacz(liczba) {
+            // Usuń klasę animacji, jeśli jest, aby móc ją ponownie dodać
+            aktualnaLiczbaEl.classList.remove('wylosowana'); 
+            
+            // Ustawienie liczby z odpowiednią literą BINGO
+            aktualnaLiczbaEl.textContent = przypiszLitereBingo(liczba) + liczba;
+
+            // Użycie setTimeout, aby przeglądarka mogła zarejestrować usunięcie klasy 
+            // i zastosować ją ponownie, co wywoła animację (flash)
+            setTimeout(() => {
+                aktualnaLiczbaEl.classList.add('wylosowana');
+            }, 50);
+        }
+
+        /**
+         * Dodaje wylosowaną liczbę do listy historii.
+         */
+        function aktualizujHistorie(liczba) {
+            // Usuń klasę 'nowa-historia' ze wszystkich elementów
+            document.querySelectorAll('#wylosowaneLiczby li').forEach(li => {
+                li.classList.remove('nowa-historia');
+            });
+            
+            // Stwórz nowy element listy (li)
+            const li = document.createElement('li');
+            li.textContent = liczba;
+            li.classList.add('nowa-historia'); // Podświetlenie nowej liczby
+            
+            // Dodaj element na początek listy (najnowsza na górze)
+            historiaListaEl.prepend(li);
+        }
+        
+        /**
+         * Przypisuje odpowiednią literę do liczby BINGO.
+         */
+        function przypiszLitereBingo(liczba) {
+            if (liczba >= 1 && liczba <= 15) return 'B';
+            if (liczba >= 16 && liczba <= 30) return 'I';
+            if (liczba >= 31 && liczba <= 45) return 'N';
+            if (liczba >= 46 && liczba <= 60) return 'G';
+            if (liczba >= 61 && liczba <= 75) return 'O';
+            return '';
+        }
+        
+        /**
+         * Resetuje stan gry.
+         */
+        function resetGry() {
+            if (!confirm("Czy na pewno chcesz zresetować grę i zacząć od nowa?")) {
+                return;
+            }
+            
+            wylosowane = [];
+            aktualnaLiczbaEl.textContent = 'B';
+            aktualnaLiczbaEl.classList.remove('wylosowana');
+            historiaListaEl.innerHTML = '';
+            losujPrzycisk.disabled = false;
+            licznikEl.textContent = 0;
+            komunikatEl.textContent = "Gra zresetowana! Zacznij losowanie.";
+        }
+        
+        // Inicjalizacja przy ładowaniu strony
+        document.addEventListener('DOMContentLoaded', () => {
+             aktualnaLiczbaEl.textContent = 'B';
+             komunikatEl.textContent = "Wciśnij 'Losuj', aby rozpocząć grę!";
+        });
+        
+    </script>
+
+</body>
+</html>
