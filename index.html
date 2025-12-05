@@ -3,380 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Połącz Kropki - Losowe Wyzwanie</title>
+    <title>Generator Liczb Losowych</title>
     <style>
-        /* CSS: Ustawienia dla responsywności i wyglądu */
-        :root {
-            --color-primary: #007bff; 
-            --color-success: #28a745; 
-            --color-default: #6c757d; 
-            --color-error: #dc3545;
-        }
-
+        /* Prosty Reset */
         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0; /* Jasne tło jak na zdjęciu */
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 20px 10px;
-            padding: 0;
+            padding: 20px;
+        }
+
+        /* Sekcja ustawień na górze */
+        .controls {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1.1em;
+        }
+
+        .setting-row span {
+            font-weight: bold;
+        }
+
+        .limit-row {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            padding: 15px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .limit-col {
             text-align: center;
         }
 
-        h1 {
-            color: #333;
+        .limit-col label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
         }
 
-        /* Sekcja Statystyk */
-        #stats {
-            display: flex;
-            justify-content: space-around;
-            width: 90vw;
-            max-width: 600px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-        }
-
-        .stat-item {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .stat-value {
-            color: var(--color-primary);
-        }
-
-        /* Ustawienie płótna jako responsywnego */
-        canvas {
-            max-width: 600px; 
-            max-height: 400px;
-            width: 90vw; 
-            height: 60vw; 
-            border: 2px solid var(--color-primary);
-            background-color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            touch-action: manipulation;
-        }
-
-        #info {
-            margin-top: 15px;
-            padding: 10px 20px;
-            font-size: 1.1em;
-            color: #333;
-            font-weight: bold;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        #resetButton {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: var(--color-primary);
-            color: white;
+        .limit-col input {
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.2s;
+            border-bottom: 2px solid #333;
+            text-align: center;
+            font-size: 1.2em;
+            width: 50px;
+            font-weight: bold;
+            padding: 2px 0;
         }
 
-        #resetButton:hover {
-            background-color: #0056b3;
+        /* Główne pole z liczbą */
+        .result-container {
+            width: 250px;
+            height: 250px;
+            background-color: white;
+            border-radius: 50%; /* Kształt koła */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Lekki cień */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            position: relative;
+        }
+
+        #randomNumber {
+            font-size: 100px; /* Duża liczba */
+            color: #555;
+            font-weight: 300; /* Lżejsza czcionka */
+        }
+
+        /* Przycisk odświeżania */
+        .refresh-button {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #007bff; /* Kolor przycisku */
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 24px;
+            /* Stylizacja ikony (tutaj użyjemy tekstu, ale lepiej użyć ikony) */
+            line-height: 1; 
+            transform: translate(0, 50%); /* Przesunięcie jak na zdjęciu */
         }
     </style>
 </head>
 <body>
 
-    <h1>Połącz Kropki!</h1>
-    <p>Sekwencja: 1 → A → 2 → B → ... → 8</p>
-    
-    <div id="stats">
-        <div class="stat-item">
-            Czas: <span id="timer" class="stat-value">00:00</span>
+    <div class="controls">
+        <div class="setting-row">
+            <span>Odliczanie:</span>
+            <span>1</span>
         </div>
-        <div class="stat-item">
-            Błędy: <span id="errors" class="stat-value" style="color: var(--color-error);">0</span>
+        <div class="setting-row">
+            <span>Bez powtórzeń:</span>
+            <span>1/75</span>
+        </div>
+        
+        <div class="limit-row">
+            <div class="limit-col">
+                <label for="minVal">Min.</label>
+                <input type="number" id="minVal" value="1">
+            </div>
+            <div class="limit-col">
+                <label for="maxVal">Max.</label>
+                <input type="number" id="maxVal" value="75">
+            </div>
+            <div class="limit-col">
+                <label for="count">Ilość</label>
+                <input type="number" id="count" value="1">
+            </div>
         </div>
     </div>
 
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div class="result-container">
+        <span id="randomNumber">51</span>
+    </div>
     
-    <div id="info">Kliknij punkt startowy (1), aby rozpocząć!</div>
-    <button id="resetButton" onclick="resetGame()">Zacznij nową grę (Losuj punkty)</button>
+    <div class="refresh-button" onclick="generateNumber()">
+        &#x21BB; </div>
 
     <script>
-        // JavaScript: Logika Gry
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const infoDiv = document.getElementById('info');
-        const timerSpan = document.getElementById('timer');
-        const errorsSpan = document.getElementById('errors');
-        const resetButton = document.getElementById('resetButton');
-
-        // Wewnętrzne wymiary Canvas
-        const CANVAS_WIDTH = canvas.width;
-        const CANVAS_HEIGHT = canvas.height;
-        const POINT_RADIUS = 18;
-        const FONT_SIZE = '16px';
-        const MIN_DISTANCE = 2 * POINT_RADIUS + 30; // Minimalna odległość między środkami punktów
-
-        // Definicje Etykiet dla 15 punktów
-        const LABELS = ['1', 'A', '2', 'B', '3', 'C', '4', 'D', '5', 'E', '6', 'F', '7', 'G', '8'];
-        const POINTS_COUNT = LABELS.length;
-
-        // --- Zmienne Stanu Gry ---
-        let timerInterval = null;
-        let startTime = null;
-        let errorCount = 0;
-        let currentPointIndex = 0; 
-        let connections = [];      
-        let points = []; // Tablica na losowo generowane punkty
-
-        // --- Funkcje Losowania ---
-
-        // Zwraca losową liczbę całkowitą w zakresie [min, max]
-        function getRandomInt(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        // Generuje losowe punkty, zapewniając minimalną odległość między nimi
-        function generateRandomPoints(count) {
-            const randomPoints = [];
+        // Funkcja generująca liczbę losową
+        function generateNumber() {
+            // Pobieranie wartości Min i Max
+            const min = parseInt(document.getElementById('minVal').value);
+            const max = parseInt(document.getElementById('maxVal').value);
             
-            // Ograniczamy zakres losowania, aby punkty nie były zbyt blisko krawędzi
-            const xMin = POINT_RADIUS;
-            const xMax = CANVAS_WIDTH - POINT_RADIUS;
-            const yMin = POINT_RADIUS;
-            const yMax = CANVAS_HEIGHT - POINT_RADIUS;
-
-            for (let i = 0; i < count; i++) {
-                let newPoint;
-                let isTooClose;
-
-                do {
-                    // Losowanie nowych współrzędnych
-                    const x = getRandomInt(xMin, xMax);
-                    const y = getRandomInt(yMin, yMax);
-                    
-                    newPoint = { x: x, y: y, label: LABELS[i] };
-                    isTooClose = false;
-                    
-                    // Sprawdzenie kolizji z istniejącymi punktami
-                    for (const existingPoint of randomPoints) {
-                        const distance = Math.sqrt(
-                            Math.pow(newPoint.x - existingPoint.x, 2) + 
-                            Math.pow(newPoint.y - existingPoint.y, 2)
-                        );
-                        
-                        // Jeśli odległość jest mniejsza niż wymagane minimum
-                        if (distance < MIN_DISTANCE) {
-                            isTooClose = true;
-                            break;
-                        }
-                    }
-                } while (isTooClose); // Powtarzaj, jeśli punkt jest za blisko innego
-
-                randomPoints.push(newPoint);
-            }
-            return randomPoints;
-        }
-
-        // --- Funkcje Mierzenia Czasu ---
-
-        function formatTime(totalSeconds) {
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function updateTimerDisplay() {
-            if (startTime) {
-                const currentTime = Math.floor((Date.now() - startTime) / 1000);
-                timerSpan.textContent = formatTime(currentTime);
-            }
-        }
-
-        function startTimer() {
-            if (timerInterval !== null) return;
-            startTime = Date.now();
-            timerInterval = setInterval(updateTimerDisplay, 1000);
-            infoDiv.textContent = `Start! Kliknij następny punkt: (${points[currentPointIndex].label})`;
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
-        // --- Funkcje Rysowania ---
-
-        function draw() {
-            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-            // Rysuj połączenia (linie)
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-primary');
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            connections.forEach(conn => {
-                ctx.moveTo(conn.start.x, conn.start.y);
-                ctx.lineTo(conn.end.x, conn.end.y);
-            });
-            ctx.stroke();
-            ctx.closePath();
-
-            // Rysuj punkty i ich etykiety
-            points.forEach((point, index) => {
-                const isConnected = index < currentPointIndex;
-
-                // Ustaw kolor: Zielony jeśli połączony, Szary jeśli oczekujący
-                ctx.fillStyle = isConnected 
-                    ? getComputedStyle(document.documentElement).getPropertyValue('--color-success') 
-                    : getComputedStyle(document.documentElement).getPropertyValue('--color-default');
-                
-                // Rysuj okrąg
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, POINT_RADIUS, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Rysuj etykietę (tekst)
-                ctx.fillStyle = 'white'; 
-                ctx.font = `${FONT_SIZE} Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(point.label, point.x, point.y);
-            });
-        }
-
-        // Rysowanie finalnej figury po wygranej
-        function drawFinalLine() {
-            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); 
-            draw(); 
-            
-            // Rysujemy finalną linię (grubszą i czerwoną)
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-error'); 
-            ctx.lineWidth = 6;
-            ctx.beginPath();
-            
-            points.forEach((point, index) => {
-                if (index === 0) {
-                    ctx.moveTo(point.x, point.y);
-                } else {
-                    ctx.lineTo(point.x, point.y);
-                }
-            });
-            
-            ctx.stroke();
-        }
-
-
-        // --- Obsługa Interakcji i Reset ---
-
-        function handleInteraction(event) {
-            if (event.type === 'touchstart') {
-                event.preventDefault();
+            // Walidacja, aby Min nie było większe niż Max
+            if (min > max) {
+                document.getElementById('randomNumber').textContent = 'Błąd!';
+                return;
             }
 
-            if (timerInterval === null && currentPointIndex === points.length) {
-                return; // Gra zakończona
-            }
-
-            const rect = canvas.getBoundingClientRect();
-            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
-
-            const clickX = clientX - rect.left;
-            const clickY = clientY - rect.top;
-
-            // Skalowanie współrzędnych do wewnętrznego systemu Canvas (600x400)
-            const scaleX = CANVAS_WIDTH / rect.width;
-            const scaleY = CANVAS_HEIGHT / rect.height;
-
-            const mouseX = clickX * scaleX;
-            const mouseY = clickY * scaleY;
-
-            const expectedPoint = points[currentPointIndex];
+            // Generowanie liczby całkowitej w zakresie [min, max]
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
             
-            // Oblicz odległość
-            const distance = Math.sqrt(
-                Math.pow(mouseX - expectedPoint.x, 2) + Math.pow(mouseY - expectedPoint.y, 2)
-            );
-
-            // Sprawdź trafienie
-            if (distance < POINT_RADIUS) {
-                // POPRAWNE KLIKNIĘCIE
-                if (currentPointIndex === 0 && timerInterval === null) {
-                    startTimer();
-                }
-
-                if (currentPointIndex > 0) {
-                    const previousPoint = points[currentPointIndex - 1];
-                    connections.push({ start: previousPoint, end: expectedPoint });
-                }
-
-                currentPointIndex++;
-
-                // Warunek zwycięstwa
-                if (currentPointIndex === points.length) {
-                    stopTimer();
-                    const finalTime = timerSpan.textContent;
-                    
-                    infoDiv.innerHTML = `
-                        <strong>GRATULACJE! Wszystkie punkty połączone! 🥳</strong><br>
-                        Twój czas: <span style="color: var(--color-primary);">${finalTime}</span> | 
-                        Liczba błędów: <span style="color: var(--color-error);">${errorCount}</span>
-                    `;
-                    
-                    drawFinalLine();
-                } else {
-                    infoDiv.textContent = `Połączono! Następny: (${points[currentPointIndex].label})`;
-                    draw();
-                }
-
-            } else if (currentPointIndex > 0 || timerInterval !== null) {
-                // NIEPOPRAWNE KLIKNIĘCIE (liczymy błędy tylko po starcie gry)
-                errorCount++;
-                errorsSpan.textContent = errorCount;
-                infoDiv.textContent = `Błąd! Oczekiwany: (${expectedPoint.label}). Błędy: ${errorCount}`;
-            }
+            // Wyświetlanie wyniku
+            document.getElementById('randomNumber').textContent = randomNumber;
         }
         
-        // Funkcja resetująca i rozpoczynająca nową grę
-        function resetGame() {
-            // Reset stanu
-            stopTimer();
-            startTime = null;
-            errorCount = 0;
-            currentPointIndex = 0;
-            connections = [];
-
-            // Losowanie nowych punktów
-            points = generateRandomPoints(POINTS_COUNT);
-
-            // Reset wyświetlania
-            timerSpan.textContent = '00:00';
-            errorsSpan.textContent = '0';
-            infoDiv.textContent = `Kliknij punkt startowy (${points[0].label}), aby rozpocząć!`;
-
-            // Przerysowanie
-            draw();
-            
-            // Ponowne włączenie słuchaczy (na wypadek, gdyby zostały usunięte w przyszłości)
-            canvas.removeEventListener('click', handleInteraction);
-            canvas.removeEventListener('touchstart', handleInteraction);
-            canvas.addEventListener('click', handleInteraction);
-            canvas.addEventListener('touchstart', handleInteraction);
-        }
-
-        // INICJALIZACJA
-        resetGame(); // Uruchomienie gry po raz pierwszy
+        // Wywołanie funkcji po załadowaniu strony, aby pokazać pierwszą liczbę (opcjonalnie)
+        document.addEventListener('DOMContentLoaded', generateNumber); 
     </script>
 
 </body>
