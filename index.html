@@ -5,171 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generator Liczb Losowych</title>
     <style>
-        /* Prosty Reset */
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0; /* Jasne tło jak na zdjęciu */
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
         }
-
-        /* Sekcja ustawień na górze */
-        .controls {
-            width: 100%;
-            max-width: 400px;
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
-            margin-bottom: 20px;
         }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            background-color: white;
+        input[type="number"] {
             padding: 10px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
+            margin: 5px;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1.1em;
-        }
-
-        .setting-row span {
-            font-weight: bold;
-        }
-
-        .limit-row {
-            display: flex;
-            justify-content: space-around;
-            background-color: white;
-            padding: 15px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-
-        .limit-col {
-            text-align: center;
-        }
-
-        .limit-col label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .limit-col input {
-            border: none;
-            border-bottom: 2px solid #333;
-            text-align: center;
-            font-size: 1.2em;
-            width: 50px;
-            font-weight: bold;
-            padding: 2px 0;
-        }
-
-        /* Główne pole z liczbą */
-        .result-container {
-            width: 250px;
-            height: 250px;
-            background-color: white;
-            border-radius: 50%; /* Kształt koła */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Lekki cień */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 30px;
-            position: relative;
-        }
-
-        #randomNumber {
-            font-size: 100px; /* Duża liczba */
-            color: #555;
-            font-weight: 300; /* Lżejsza czcionka */
-        }
-
-        /* Przycisk odświeżania */
-        .refresh-button {
-            position: absolute;
-            right: 20px;
-            bottom: 20px;
             width: 100px;
-            height: 100px;
-            background-color: #007bff; /* Kolor przycisku */
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 15px;
+            background-color: #007bff;
             color: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 24px;
-            /* Stylizacja ikony (tutaj użyjemy tekstu, ale lepiej użyć ikony) */
-            line-height: 1; 
-            transform: translate(0, 50%); /* Przesunięcie jak na zdjęciu */
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #wynik {
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <div class="setting-row">
-            <span>Odliczanie:</span>
-            <span>1</span>
-        </div>
-        <div class="setting-row">
-            <span>Bez powtórzeń:</span>
-            <span>1/75</span>
-        </div>
+    <div class="container">
+        <h1>🔢 Generator Liczb Losowych</h1>
         
-        <div class="limit-row">
-            <div class="limit-col">
-                <label for="minVal">Min.</label>
-                <input type="number" id="minVal" value="1">
-            </div>
-            <div class="limit-col">
-                <label for="maxVal">Max.</label>
-                <input type="number" id="maxVal" value="75">
-            </div>
-            <div class="limit-col">
-                <label for="count">Ilość</label>
-                <input type="number" id="count" value="1">
-            </div>
-        </div>
+        <p>Podaj zakres:</p>
+        
+        <label for="minInput">Minimum:</label>
+        <input type="number" id="minInput" value="1">
+        
+        <label for="maxInput">Maksimum:</label>
+        <input type="number" id="maxInput" value="100">
+        
+        <br>
+        
+        <button onclick="generujLiczbe()">Generuj Liczbę</button>
+        
+        <h2>Wygenerowana liczba:</h2>
+        <div id="wynik">---</div>
     </div>
-
-    <div class="result-container">
-        <span id="randomNumber">51</span>
-    </div>
-    
-    <div class="refresh-button" onclick="generateNumber()">
-        &#x21BB; </div>
 
     <script>
-        // Funkcja generująca liczbę losową
-        function generateNumber() {
-            // Pobieranie wartości Min i Max
-            const min = parseInt(document.getElementById('minVal').value);
-            const max = parseInt(document.getElementById('maxVal').value);
-            
-            // Walidacja, aby Min nie było większe niż Max
-            if (min > max) {
-                document.getElementById('randomNumber').textContent = 'Błąd!';
+        /**
+         * Funkcja generująca losową liczbę całkowitą w podanym zakresie (włącznie z min i max).
+         */
+        function generujLiczbe() {
+            // Pobieranie wartości z pól input i konwersja na liczby całkowite
+            const minStr = document.getElementById('minInput').value;
+            const maxStr = document.getElementById('maxInput').value;
+
+            // Sprawdzanie, czy wartości są poprawnymi liczbami
+            if (minStr === "" || maxStr === "") {
+                document.getElementById('wynik').textContent = "Wprowadź wartości min i max!";
                 return;
             }
 
-            // Generowanie liczby całkowitej w zakresie [min, max]
-            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            let min = parseInt(minStr);
+            let max = parseInt(maxStr);
+
+            // Walidacja: upewnienie się, że min jest mniejsze lub równe max
+            if (min > max) {
+                // Zamiana wartości, jeśli użytkownik je pomylił
+                [min, max] = [max, min]; 
+                
+                // Opcjonalnie: zaktualizuj pola, aby pokazać poprawione wartości
+                document.getElementById('minInput').value = min;
+                document.getElementById('maxInput').value = max;
+            }
+
+            // Właściwe generowanie losowej liczby całkowitej:
+            // Math.random() daje liczbę [0, 1)
+            // (max - min + 1) to wielkość zakresu
+            // Math.floor zaokrągla w dół do najbliższej liczby całkowitej
+            const losowaLiczba = Math.floor(Math.random() * (max - min + 1)) + min;
             
-            // Wyświetlanie wyniku
-            document.getElementById('randomNumber').textContent = randomNumber;
+            // Wyświetlenie wyniku
+            document.getElementById('wynik').textContent = losowaLiczba;
         }
-        
-        // Wywołanie funkcji po załadowaniu strony, aby pokazać pierwszą liczbę (opcjonalnie)
-        document.addEventListener('DOMContentLoaded', generateNumber); 
     </script>
 
 </body>
