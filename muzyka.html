@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moja Lista Piosenek</title>
     <style>
-        /* Minimalistyczny Styl CSS */
+        /* --- STYLY PODSTAWOWE (Desktop) --- */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -178,7 +178,7 @@
         /* Akordy wewnątrz tekstu */
         .inline-chord {
             font-weight: bold;
-            color: #e74c3c; /* Wyraźny, czerwony kolor */
+            color: #e74c3c;
             margin: 0 3px;
             white-space: nowrap;
         }
@@ -190,6 +190,52 @@
             font-style: italic;
         }
 
+        /* --- STYLY DLA URZĄDZEŃ MOBILNYCH --- */
+        @media (max-width: 768px) {
+            
+            body {
+                padding: 10px; /* Zmniejszenie ogólnego paddingu */
+            }
+
+            #app-container {
+                flex-direction: column; /* Ustawienie układu kolumnowego */
+                min-height: auto;
+                box-shadow: none; /* Uproszczenie wyglądu */
+            }
+
+            #sidebar {
+                width: 100%; /* Pasek boczny zajmuje całą szerokość */
+                max-height: 40vh; /* Ograniczenie wysokości listy */
+                border-right: none;
+                border-bottom: 1px solid #ddd; /* Dodanie separatora */
+                padding: 15px 10px;
+            }
+            
+            #main-content {
+                width: 100%; /* Zawartość główna zajmuje całą szerokość */
+                max-height: auto; /* Brak ograniczenia wysokości */
+                padding: 15px 10px;
+            }
+
+            /* Dostosowanie szerokości pól w sidebarze do 100% */
+            #search-input,
+            #vocal-type-select,
+            #genre-select {
+                width: 100%;
+            }
+            
+            /* Ukrywanie tytułu strony w widoku mobilnym, by zaoszczędzić miejsce */
+            h1 {
+                display: none;
+            }
+
+            /* Transpozycja na mobilnym: Stackowanie przycisków */
+            #transpose-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
     </style>
 </head>
 <body>
