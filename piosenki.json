@@ -13,41 +13,6 @@
     ]
   },
   {
-    "title": "Przybieżeli do Betlejem",
-    "artist": "Kolęda",
-    "originalKey": "G",
-    "stanzas": [
-      {
-        "lines": [
-          {"chords": "G                         C  G", "lyrics": "Przybieżeli do Betlejem pasterze" },
-          {"chords": "G                                C G", "lyrics": "Grając skocznie dzieciąteczku na lirze" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" }
-          {"chords": "G                       C G", "lyrics": "Oddawali swe ukłony w pokorze" },
-          {"chords": "G                          C G", "lyrics": "Tobie z serca ochotnego, o Boże" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" }
-          {"chords": "G                           C  G", "lyrics": "Anioł Pański sam ogłosił te dziwy" },
-          {"chords": "G                             C G", "lyrics": "Których oni nie słyszeli, jak żywi" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" }
-          {"chords": "G                           C G", "lyrics": "Dziwili się napowietrznej muzyce" },
-          {"chords": "G                          C   G", "lyrics": "i myśleli, co to będzie za dziecię" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" }
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi" },
-          {"chords": "G         C          Am        D", "lyrics": "Chwała na wysokości, chwała na wysokości" },
-          {"chords": "G D G      D  G", "lyrics": "A pokój na ziemi"}
-        ]
-      }
-    ]
-  },
-    {
     "title": "Letni Deszcz",
     "artist": "Samotny Bęben",
     "originalKey": "Am",
