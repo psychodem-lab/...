@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Lista Piosenek</title>
+    <style>
+        /* Minimalistyczny Styl CSS */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        #app-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 80vh;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 300px;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+            flex-shrink: 0;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        #main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+
+        /* Wyszukiwarka */
+        #search-input {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        /* Lista piosenek */
+        #song-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #song-list li {
+            padding: 10px 5px;
+            border-bottom: 1px dashed #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #song-list li:hover {
+            background-color: #ecf0f1;
+        }
+
+        #song-list li.selected {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .song-title {
+            font-weight: bold;
+        }
+
+        .song-artist {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        /* Detale piosenki */
+        #song-details h2 {
+            margin-top: 0;
+        }
+        
+        #song-details .detail-item {
+            margin-bottom: 15px;
+        }
+
+        #song-details .detail-label {
+            font-weight: bold;
+            color: #34495e;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #song-details .lyrics-content p, #song-details .lyrics-content div {
+            margin: 0 0 10px 0;
+            line-height: 1.6;
+        }
+        
+        #song-details .chords-content {
+            white-space: pre-wrap; /* Zachowuje formatowanie akordów */
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .placeholder {
+            padding: 40px;
+            text-align: center;
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <div id="sidebar">
+            <h1>Lista Piosenek</h1>
+            <input type="text" id="search-input" placeholder="Wyszukaj tytuł lub wykonawcę...">
+            <ul id="song-list">
+                <li class="placeholder">Ładowanie piosenek...</li>
+            </ul>
+        </div>
+
+        <div id="main-content">
+            <div id="song-details">
+                <div class="placeholder">
+                    Wybierz piosenkę z listy, aby zobaczyć szczegóły (tekst, akordy, itd.).
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let allSongs = [];
+        let currentSongs = [];
+        const songList = document.getElementById('song-list');
+        const searchInput = document.getElementById('search-input');
+        const songDetailsDiv = document.getElementById('song-details');
+
+        // Funkcja do wczytywania danych z pliku JSON
+        async function loadSongs() {
+            try {
+                // Ścieżka do Twojego pliku JSON
+                const response = await fetch('piosenki_export_2025-12-10.json');
+                if (!response.ok) {
+                    throw new Error(`Nie można wczytać pliku: ${response.statusText}`);
+                }
+                allSongs = await response.json();
+                
+                // Przypisanie unikalnego indeksu
+                allSongs = allSongs.map((song, index) => ({ ...song, id: index }));
+
+                currentSongs = allSongs;
+                renderSongs(currentSongs);
+            } catch (error) {
+                console.error("Błąd ładowania piosenek:", error);
+                songList.innerHTML = `<li style="color: red;">Błąd wczytywania pliku JSON. Upewnij się, że plik <strong>piosenki_export_2025-12-10.json</strong> znajduje się w tym samym folderze.</li>`;
+            }
+        }
+
+        // Funkcja renderująca listę piosenek
+        function renderSongs(songs) {
+            songList.innerHTML = ''; // Wyczyść listę
+            if (songs.length === 0) {
+                songList.innerHTML = `<li class="placeholder">Nie znaleziono piosenek pasujących do kryterium wyszukiwania.</li>`;
+                return;
+            }
+
+            songs.forEach(song => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="song-title">${song.title}</span> <span class="song-artist">(${song.artist})</span>`;
+                li.setAttribute('data-song-id', song.id);
+                songList.appendChild(li);
+            });
+        }
+
+        // Funkcja do wyświetlania detali wybranej piosenki
+        function showDetails(songId) {
+            const song = allSongs.find(s => s.id === songId);
+            if (!song) return;
+
+            // Oznaczanie wybranego elementu na liście
+            document.querySelectorAll('#song-list li').forEach(li => {
+                li.classList.remove('selected');
+                if (parseInt(li.getAttribute('data-song-id')) === songId) {
+                    li.classList.add('selected');
+                }
+            });
+
+            songDetailsDiv.innerHTML = `
+                <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Gatunek:</span>
+                    <span>${song.genre || 'brak danych'}</span>
+                </div>
+                
+                ${song.key ? `<div class="detail-item">
+                    <span class="detail-label">Tonacja:</span>
+                    <span>${song.key}</span>
+                </div>` : ''}
+
+                ${song.tempo ? `<div class="detail-item">
+                    <span class="detail-label">Tempo:</span>
+                    <span>${song.tempo}</span>
+                </div>` : ''}
+
+                ${song.vocal_type ? `<div class="detail-item">
+                    <span class="detail-label">Typ wokalu:</span>
+                    <span>${song.vocal_type}</span>
+                </div>` : ''}
+                
+                <div class="detail-item">
+                    <span class="detail-label">Tekst:</span>
+                    <div class="lyrics-content">${song.lyrics || 'brak danych'}</div>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Akordy/Chwyty:</span>
+                    <pre class="chords-content">${song.chords || 'brak danych'}</pre>
+                </div>
+                
+                ${song.notes ? `<div class="detail-item">
+                    <span class="detail-label">Notatki:</span>
+                    <span>${song.notes}</span>
+                </div>` : ''}
+            `;
+            
+            // Przewijanie do góry panelu z detalami
+            songDetailsDiv.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Nasłuchiwanie na kliknięcia w listę
+        songList.addEventListener('click', (event) => {
+            const li = event.target.closest('li');
+            if (li && li.hasAttribute('data-song-id')) {
+                const songId = parseInt(li.getAttribute('data-song-id'));
+                showDetails(songId);
+            }
+        });
+
+        // Funkcja filtrująca piosenki
+        searchInput.addEventListener('input', (event) => {
+            const searchTerm = event.target.value.toLowerCase().trim();
+            
+            currentSongs = allSongs.filter(song => 
+                song.title.toLowerCase().includes(searchTerm) || 
+                song.artist.toLowerCase().includes(searchTerm)
+            );
+
+            renderSongs(currentSongs);
+            
+            // Wyczyść panel detali po nowym wyszukiwaniu
+            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
+        });
+
+        // Uruchomienie ładowania piosenek po załadowaniu strony
+        loadSongs();
+    </script>
+
+</body>
+</html>
