@@ -1,28 +1,28 @@
 [
-  {
-    "title": "Gwiazda Północy",
-    "artist": "Zespół Transpozycyjny",
-    "originalKey": "G",
-    "stanzas": [
-      {
-        "lines": [
-          {"chords": "G          C", "lyrics": "Patrzę w górę, widzę noc,"},
-          {"chords": "D          G", "lyrics": "Droga długa, daj mi moc."}
-        ]
-      }
-    ]
-  },
-  {
-    "title": "Letni Deszcz",
-    "artist": "Samotny Bęben",
-    "originalKey": "Am",
-    "stanzas": [
-      {
-        "lines": [
-          {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
-          {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
-        ]
-      }
-    ]
-  }
+  {
+    "title": "Gwiazda Północy",
+    "artist": "Zespół Transpozycyjny",
+    "originalKey": "G",
+    "stanzas": [
+      {
+        "lines": [
+          {"chords": "G          C", "lyrics": "Patrzę w górę, widzę noc,"},
+          {"chords": "D          G", "lyrics": "Droga długa, daj mi moc."}
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Letni Deszcz",
+    "artist": "Samotny Bęben",
+    "originalKey": "Am",
+    "stanzas": [
+      {
+        "lines": [
+          {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
+          {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
+        ]
+      }
+    ]
+  }
 ]
