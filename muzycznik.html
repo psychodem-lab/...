@@ -16,19 +16,18 @@
         .container {
             max-width: 900px;
             margin: 0 auto;
-            display: flex; /* Używamy Flexboxa do układu Lista + Piosenka */
+            display: flex; 
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         
-        /* Styl dla listy piosenek */
         #song-list-container {
             width: 250px;
             padding-right: 20px;
             border-right: 1px solid #ddd;
-            flex-shrink: 0; /* Nie kurczy się */
+            flex-shrink: 0; 
         }
 
         #song-list-container h2 {
@@ -53,16 +52,14 @@
 
         #song-list li.active {
             font-weight: bold;
-            color: #d9534f; /* Kolor dla aktualnie wybranej piosenki */
+            color: #d9534f; 
         }
         
-        /* Styl dla obszaru piosenki */
         #song-content {
-            flex-grow: 1; /* Zajmuje resztę miejsca */
+            flex-grow: 1; 
             padding-left: 20px;
         }
 
-        /* Elementy piosenki (jak w poprzedniej wersji) */
         .song-title {
             font-size: 2em;
             margin-top: 0;
@@ -82,7 +79,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        /* ... reszta stylów dla akordów, przycisków i linii piosenki bez zmian ... */
+
         .controls button {
             padding: 8px 15px;
             font-size: 16px;
@@ -102,25 +99,38 @@
             background-color: #dc3545;
             color: white;
         }
-        .akord {
-            color: #007bff; 
-            font-weight: bold;
-            display: inline-block;
-            white-space: pre; 
-            margin-bottom: -5px; 
-            margin-top: 5px;
-        }
         
-        .piosenka-linia {
-            margin-top: 10px;
-            line-height: 1.5;
-        }
+        /* --- KLUCZOWE ZMIANY DLA UKŁADU AKORD NAD TEKSTEM --- */
         .stanza {
             margin-bottom: 20px;
             border-left: 3px solid #ccc;
             padding-left: 10px;
         }
+        
+        .line-wrapper {
+            margin-top: 15px; /* Przestrzeń między zwrotkami */
+            line-height: 1.2;
+        }
 
+        .chord-line {
+            white-space: pre; /* KLUCZOWE: Zachowuje spacje, pozycjonując akordy */
+            font-family: monospace; /* Opcjonalnie: stała szerokość czcionki dla lepszego wyrównania */
+            font-size: 1.1em;
+            color: #007bff; /* Kolor akordów w tej linii */
+            font-weight: bold;
+        }
+        
+        .lyric-line {
+            margin-top: 5px;
+            font-family: Arial, sans-serif;
+            /* Akordy są w osobnej linii, więc tutaj jest sam tekst */
+        }
+        
+        .akord {
+            /* Spany z akordami wewnątrz linii akordów */
+            display: inline-block;
+            /* Usunięto marginesy, bo white-space: pre; załatwia pozycjonowanie */
+        }
 
     </style>
 </head>
@@ -162,7 +172,7 @@
         
         let originalChords = []; 
         let currentNoteIndex = 0;
-        let allSongs = []; // Nowa zmienna do przechowywania wszystkich piosenek
+        let allSongs = []; 
         
         // --- FUNKCJE LOGICZNE (Transpozycja - bez zmian) ---
         function transposeChord(chord, steps) {
@@ -196,18 +206,20 @@
             const akordElements = document.querySelectorAll('#piosenka .akord');
             
             akordElements.forEach((span, index) => {
-                const originalChord = originalChords[index]; 
+                // Używamy oryginalnego akordu zapisanego w data-original, jeśli istnieje
+                const originalChord = span.getAttribute('data-original') || originalChords[index]; 
+                
                 const newChord = transposeChord(originalChord, currentNoteIndex);
-                span.textContent = newChord + ' ';
+                span.textContent = newChord; // Usuwamy spację na końcu, bo white-space:pre ją zachowa
             });
         }
         
-        // --- RENDEROWANIE TREŚCI PIOSENKI (bez zmian) ---
+        // --- RENDEROWANIE TREŚCI PIOSENKI (ZMODYFIKOWANA) ---
         function renderSongContent(songData) {
             const piosenkaDiv = document.getElementById('piosenka');
             piosenkaDiv.innerHTML = ''; 
-            originalChords = []; 
-
+            originalChords = []; // Resetujemy listę oryginalnych akordów
+            
             document.getElementById('song-title').textContent = songData.title;
             document.getElementById('song-artist').textContent = songData.artist;
 
@@ -216,24 +228,39 @@
                 stanzaDiv.className = 'stanza';
 
                 stanza.lines.forEach(line => {
-                    const lineDiv = document.createElement('div');
-                    lineDiv.className = 'piosenka-linia';
-
-                    const chords = line.chords.split(/\s+/).filter(c => c.length > 0);
-                    let chordHTML = '';
                     
-                    chords.forEach(chord => {
-                        chordHTML += `<span class="akord">${chord}</span>`;
-                        originalChords.push(chord); 
+                    // 1. Kontener dla pary Akordy + Tekst
+                    const lineWrapperDiv = document.createElement('div');
+                    lineWrapperDiv.className = 'line-wrapper';
+
+                    // 2. Linia na same akordy (wykorzystuje white-space: pre;)
+                    const chordLineDiv = document.createElement('div');
+                    chordLineDiv.className = 'chord-line';
+
+                    // 3. Linia na sam tekst
+                    const lyricLineDiv = document.createElement('div');
+                    lyricLineDiv.className = 'lyric-line';
+                    lyricLineDiv.textContent = line.lyrics;
+
+                    // Otagowanie akordów w stringu i zapisanie oryginalnych akordów
+                    chordLineDiv.innerHTML = line.chords.replace(/([A-H][#b]?m?(sus|add)?\d*(\/\w+)?)/g, (match) => {
+                        // Zapisujemy oryginalne akordy do globalnej tablicy do transpozycji
+                        originalChords.push(match);
+                        
+                        // Zwracamy akord w tagu span
+                        return `<span class="akord" data-original="${match}">${match}</span>`;
                     });
                     
-                    lineDiv.innerHTML = chordHTML + '\n' + line.lyrics;
-                    stanzaDiv.appendChild(lineDiv);
+                    // Wklejamy akordy i tekst do głównego kontenera linii
+                    lineWrapperDiv.appendChild(chordLineDiv);
+                    lineWrapperDiv.appendChild(lyricLineDiv);
+                    
+                    stanzaDiv.appendChild(lineWrapperDiv);
                 });
                 piosenkaDiv.appendChild(stanzaDiv);
             });
             
-            // Inicjalizacja transpozycji dla nowej piosenki
+            // Inicjalizacja transpozycji
             const originalKey = songData.originalKey || 'C';
             const initialIndex = NOTES.indexOf(originalKey.toUpperCase());
             currentNoteIndex = initialIndex !== -1 ? initialIndex : 0;
@@ -244,40 +271,35 @@
             document.getElementById('transpose-down').disabled = false;
         }
 
-        // --- NOWA FUNKCJA: RENDEROWANIE LISTY PIOSENEK ---
+        // --- RENDEROWANIE LISTY PIOSENEK (bez zmian) ---
         function renderSongList(songs) {
             const listUl = document.getElementById('song-list');
-            listUl.innerHTML = ''; // Czyścimy "Ładowanie..."
+            listUl.innerHTML = ''; 
 
             songs.forEach((song, index) => {
                 const listItem = document.createElement('li');
                 listItem.textContent = song.title;
-                listItem.setAttribute('data-index', index); // Zapisujemy indeks piosenki
+                listItem.setAttribute('data-index', index); 
                 
-                // Dodajemy nasłuchiwanie kliknięcia
                 listItem.addEventListener('click', () => {
-                    // Wyłączamy klasę 'active' u wszystkich elementów
                     document.querySelectorAll('#song-list li').forEach(li => {
                         li.classList.remove('active');
                     });
-                    // Włączamy klasę 'active' u klikniętego elementu
                     listItem.classList.add('active');
                     
-                    // Ładujemy i renderujemy wybraną piosenkę
                     renderSongContent(allSongs[index]);
                 });
 
                 listUl.appendChild(listItem);
             });
             
-            // Opcjonalnie: Załaduj pierwszą piosenkę po wczytaniu listy
             if (songs.length > 0) {
                 listUl.firstChild.classList.add('active');
                 renderSongContent(songs[0]);
             }
         }
 
-        // --- GŁÓWNA LOGIKA ŁADOWANIA Z PLIKU JSON ---
+        // --- GŁÓWNA LOGIKA ŁADOWANIA Z PLIKU JSON (bez zmian) ---
         function loadSongsFromFile(filename = 'piosenki.json') {
             fetch(filename)
                 .then(response => {
@@ -288,8 +310,8 @@
                 })
                 .then(songs => {
                     if (songs.length > 0) {
-                        allSongs = songs; // Zapisujemy wszystkie piosenki globalnie
-                        renderSongList(allSongs); // Tworzymy listę
+                        allSongs = songs; 
+                        renderSongList(allSongs); 
                     } else {
                         throw new Error('Plik JSON jest pusty lub nie zawiera piosenek.');
                     }
@@ -297,7 +319,7 @@
                 .catch(error => {
                     console.error('Wystąpił błąd podczas ładowania danych:', error);
                     document.getElementById('song-title').textContent = 'Błąd: Nie udało się wczytać danych.';
-                    document.getElementById('piosenka').innerHTML = '<p>Sprawdź konsolę, czy plik JSON jest poprawny i czy strona działa na serwerze.</p>';
+                    document.getElementById('piosenka').innerHTML = '<p>Sprawdź konsolę, czy plik JSON jest poprawny i czy strona działa na serwerze (Live Server).</p>';
                     document.getElementById('transpose-up').disabled = true;
                     document.getElementById('transpose-down').disabled = true;
                 });
@@ -306,7 +328,6 @@
         // --- START APLIKACJI ---
         loadSongsFromFile();
 
-        // Dodanie słuchaczy zdarzeń do przycisków
         document.getElementById('transpose-up').addEventListener('click', () => {
             transposeSong(1); 
         });
