@@ -59,14 +59,28 @@
             font-size: 1.5em;
         }
 
-        /* Wyszukiwarka */
-        #search-input {
-            width: 95%;
-            padding: 10px;
+        /* Wyszukiwarka i Filtry */
+        .filter-group {
             margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #34495e;
+        }
+
+        #search-input,
+        #vocal-type-select,
+        #genre-select {
+            width: 95%;
+            padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 1em;
+            box-sizing: border-box; /* Ważne, aby padding nie powiększał pola */
         }
 
         /* Lista piosenek */
@@ -125,7 +139,7 @@
         }
         
         #song-details .chords-content {
-            white-space: pre-wrap; /* Zachowuje formatowanie akordów */
+            white-space: pre-wrap;
             font-family: 'Courier New', Courier, monospace;
             background-color: #f9f9f9;
             padding: 10px;
@@ -148,7 +162,26 @@
         
         <div id="sidebar">
             <h1>Lista Piosenek</h1>
-            <input type="text" id="search-input" placeholder="Wyszukaj tytuł lub wykonawcę...">
+            
+            <div class="filter-group">
+                <label for="search-input">Wyszukaj (Tytuł/Wykonawca):</label>
+                <input type="text" id="search-input" placeholder="Wyszukaj...">
+            </div>
+
+            <div class="filter-group">
+                <label for="vocal-type-select">Typ Wokalu:</label>
+                <select id="vocal-type-select">
+                    <option value="">-- Wszystkie --</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="genre-select">Gatunek:</label>
+                <select id="genre-select">
+                    <option value="">-- Wszystkie --</option>
+                </select>
+            </div>
+
             <ul id="song-list">
                 <li class="placeholder">Ładowanie piosenek...</li>
             </ul>
@@ -157,7 +190,7 @@
         <div id="main-content">
             <div id="song-details">
                 <div class="placeholder">
-                    Wybierz piosenkę z listy, aby zobaczyć szczegóły (tekst, akordy, itd.).
+                    Wybierz piosenkę z listy, aby zobaczyć szczegóły.
                 </div>
             </div>
         </div>
@@ -166,46 +199,111 @@
 
     <script>
         let allSongs = [];
-        let currentSongs = [];
+        let currentFilters = {
+            searchTerm: '',
+            vocalType: '',
+            genre: ''
+        };
+        
         const songList = document.getElementById('song-list');
         const searchInput = document.getElementById('search-input');
+        const vocalTypeSelect = document.getElementById('vocal-type-select');
+        const genreSelect = document.getElementById('genre-select');
         const songDetailsDiv = document.getElementById('song-details');
 
         // Funkcja do wczytywania danych z pliku JSON
         async function loadSongs() {
             try {
-                // Ścieżka do Twojego pliku JSON
                 const response = await fetch('piosenki_export_2025-12-10.json');
                 if (!response.ok) {
                     throw new Error(`Nie można wczytać pliku: ${response.statusText}`);
                 }
                 allSongs = await response.json();
                 
-                // Przypisanie unikalnego indeksu
-                allSongs = allSongs.map((song, index) => ({ ...song, id: index }));
+                // Przypisanie unikalnego indeksu i normalizacja danych
+                allSongs = allSongs.map((song, index) => ({
+                    ...song,
+                    id: index,
+                    // Normalizacja pól do małych liter dla łatwiejszego filtrowania
+                    titleLower: (song.title || '').toLowerCase(),
+                    artistLower: (song.artist || '').toLowerCase(),
+                    genreLower: (song.genre || '').toLowerCase(),
+                    vocalTypeLower: (song.vocal_type || '').toLowerCase()
+                }));
 
-                currentSongs = allSongs;
-                renderSongs(currentSongs);
+                populateFilterOptions();
+                filterAndRenderSongs(); // Renderowanie początkowej listy
             } catch (error) {
                 console.error("Błąd ładowania piosenek:", error);
                 songList.innerHTML = `<li style="color: red;">Błąd wczytywania pliku JSON. Upewnij się, że plik <strong>piosenki_export_2025-12-10.json</strong> znajduje się w tym samym folderze.</li>`;
             }
         }
 
-        // Funkcja renderująca listę piosenek
-        function renderSongs(songs) {
-            songList.innerHTML = ''; // Wyczyść listę
-            if (songs.length === 0) {
-                songList.innerHTML = `<li class="placeholder">Nie znaleziono piosenek pasujących do kryterium wyszukiwania.</li>`;
-                return;
-            }
+        // Funkcja do wypełniania opcji w listach rozwijanych
+        function populateFilterOptions() {
+            // Zbiory unikalnych wartości
+            const uniqueVocalTypes = new Set();
+            const uniqueGenres = new Set();
 
-            songs.forEach(song => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span class="song-title">${song.title}</span> <span class="song-artist">(${song.artist})</span>`;
-                li.setAttribute('data-song-id', song.id);
-                songList.appendChild(li);
+            allSongs.forEach(song => {
+                if (song.vocal_type && song.vocal_type.trim() !== '') {
+                    uniqueVocalTypes.add(song.vocal_type.trim());
+                }
+                if (song.genre && song.genre.trim() !== '') {
+                    uniqueGenres.add(song.genre.trim());
+                }
             });
+
+            // Wypełnianie listy Typ Wokalu
+            Array.from(uniqueVocalTypes).sort().forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.toLowerCase();
+                option.textContent = type;
+                vocalTypeSelect.appendChild(option);
+            });
+
+            // Wypełnianie listy Gatunek
+            Array.from(uniqueGenres).sort().forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre.toLowerCase();
+                option.textContent = genre;
+                genreSelect.appendChild(option);
+            });
+        }
+
+        // Główna funkcja filtrująca i renderująca listę
+        function filterAndRenderSongs() {
+            const { searchTerm, vocalType, genre } = currentFilters;
+            
+            const filteredSongs = allSongs.filter(song => {
+                // 1. Filtr wyszukiwania tekstowego (tytuł/wykonawca)
+                const textMatch = song.titleLower.includes(searchTerm) || 
+                                  song.artistLower.includes(searchTerm);
+
+                // 2. Filtr Typ Wokalu
+                const vocalMatch = vocalType === '' || song.vocalTypeLower === vocalType;
+
+                // 3. Filtr Gatunek
+                const genreMatch = genre === '' || song.genreLower === genre;
+
+                return textMatch && vocalMatch && genreMatch;
+            });
+
+            // Renderowanie listy
+            songList.innerHTML = ''; // Wyczyść listę
+            if (filteredSongs.length === 0) {
+                songList.innerHTML = `<li class="placeholder">Nie znaleziono piosenek spełniających kryteria.</li>`;
+            } else {
+                filteredSongs.forEach(song => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="song-title">${song.title}</span> <span class="song-artist">(${song.artist})</span>`;
+                    li.setAttribute('data-song-id', song.id);
+                    songList.appendChild(li);
+                });
+            }
+            
+            // Wyczyść panel detali po filtrowaniu
+            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
         }
 
         // Funkcja do wyświetlania detali wybranej piosenki
@@ -264,6 +362,8 @@
             songDetailsDiv.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // --- Obsługa Zdarzeń Filtrów ---
+
         // Nasłuchiwanie na kliknięcia w listę
         songList.addEventListener('click', (event) => {
             const li = event.target.closest('li');
@@ -273,19 +373,22 @@
             }
         });
 
-        // Funkcja filtrująca piosenki
+        // Wyszukiwanie tekstowe (Tytuł/Wykonawca)
         searchInput.addEventListener('input', (event) => {
-            const searchTerm = event.target.value.toLowerCase().trim();
-            
-            currentSongs = allSongs.filter(song => 
-                song.title.toLowerCase().includes(searchTerm) || 
-                song.artist.toLowerCase().includes(searchTerm)
-            );
+            currentFilters.searchTerm = event.target.value.toLowerCase().trim();
+            filterAndRenderSongs();
+        });
 
-            renderSongs(currentSongs);
-            
-            // Wyczyść panel detali po nowym wyszukiwaniu
-            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
+        // Filtrowanie po Typie Wokalu
+        vocalTypeSelect.addEventListener('change', (event) => {
+            currentFilters.vocalType = event.target.value;
+            filterAndRenderSongs();
+        });
+
+        // Filtrowanie po Gatunku
+        genreSelect.addEventListener('change', (event) => {
+            currentFilters.genre = event.target.value;
+            filterAndRenderSongs();
         });
 
         // Uruchomienie ładowania piosenek po załadowaniu strony
