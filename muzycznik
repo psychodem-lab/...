@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piosenki i Akordy z Transpozycją</title>
+    <style>
+        /* --- CSS: Stylizacja --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls button {
+            padding: 8px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+
+        .controls button:hover {
+            opacity: 0.8;
+        }
+
+        #transpose-up {
+            background-color: #28a745; /* Zielony */
+            color: white;
+        }
+
+        #transpose-down {
+            background-color: #dc3545; /* Czerwony */
+            color: white;
+        }
+
+        /* Styl dla akordów */
+        .akord {
+            color: #007bff; /* Niebieski */
+            font-weight: bold;
+            display: inline-block;
+            white-space: pre; /* Zachowuje spacje, aby akordy były nad słowami */
+            /* Dodajemy mały margines, aby oddzielić je od tekstu piosenki */
+            margin-bottom: -5px; 
+            margin-top: 5px;
+            /* Akordy wewnątrz piosenki, aby były widoczne */
+        }
+        
+        .piosenka-linia {
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Moja Piosenka Transpozycyjna</h1>
+        
+        <div class="controls">
+            <label>Aktualna Tonacja: <span id="current-key">C</span></label>
+            <div>
+                <button id="transpose-down" data-step="-1">♭ Niżej</button>
+                <button id="transpose-up" data-step="1">♯ Wyżej</button>
+            </div>
+        </div>
+
+        <div id="piosenka">
+            <div class="piosenka-linia">
+                <span class="akord">C</span>    <span class="akord">G</span>
+                Wczorajszy dzień, minął już.
+            </div>
+            <div class="piosenka-linia">
+                <span class="akord">Am</span>   <span class="akord">F</span>
+                A ja wciąż gram, ten stary blues.
+            </div>
+            
+            <div class="piosenka-linia" style="margin-top: 20px;">
+                <span class="akord">C</span>    <span class="akord">G</span>
+                Świeci słońce, serce bije,
+            </div>
+            <div class="piosenka-linia">
+                <span class="akord">Dm</span>   <span class="akord">G</span>
+                Dziś zaczynam żyć!
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        /* --- JAVASCRIPT: Logika Transpozycji --- */
+
+        // Lista wszystkich 12 półtonów w cyklu kwintowym/kwartowym.
+        // Używamy symboli '#/b' zamiast 'is/es' dla uproszczenia kodu.
+        const NOTES = [
+            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+        ];
+        
+        // Tablica dla transpozycji (np. z C na B)
+        const CHORD_MAP = {};
+        
+        // Akordy w systemie "niemieckim" (H = B, B = Bb/A#)
+        // Jeśli chcesz, aby H było jako B, a B jako Bb, zmień ostatni element NOTES na "H", a przedostatni na "B".
+        // W tym kodzie (bardziej popularnym w US/UK): A# to Bb, B to H.
+
+        const akordElements = document.querySelectorAll('.akord');
+        const currentKeyElement = document.getElementById('current-key');
+        let currentNoteIndex = 0; // Zaczynamy od C
+
+        // Funkcja do transponowania pojedynczego akordu
+        function transposeChord(chord, steps) {
+            // Dzielimy akord na nutę bazową i resztę modyfikatorów (moll, 7, sus4, /Bas, itp.)
+            let baseNote = chord;
+            let modifiers = "";
+
+            // Iterujemy przez NOTES, aby znaleźć najdłuższą pasującą nutę bazową (np. G# zamiast G)
+            for (const note of NOTES) {
+                if (chord.startsWith(note)) {
+                    baseNote = note;
+                    modifiers = chord.substring(note.length);
+                    break;
+                }
+            }
+
+            // Znajdź indeks nuty bazowej
+            let noteIndex = NOTES.indexOf(baseNote);
+            if (noteIndex === -1) {
+                // Jeśli akord nie jest rozpoznany (np. slash chord, który nie jest w tablicy)
+                return chord;
+            }
+
+            // Oblicz nowy indeks z uwzględnieniem cyklu 12-półtonowego
+            let newIndex = (noteIndex + steps) % 12;
+            if (newIndex < 0) {
+                newIndex += 12;
+            }
+
+            // Zwróć nową nutę i oryginalne modyfikatory
+            return NOTES[newIndex] + modifiers;
+        }
+
+        // Funkcja główna do transponowania całej piosenki
+        function transposeSong(steps) {
+            currentNoteIndex = (currentNoteIndex + steps) % 12;
+            if (currentNoteIndex < 0) {
+                currentNoteIndex += 12;
+            }
+
+            currentKeyElement.textContent = NOTES[currentNoteIndex];
+
+            // Przechodzimy przez wszystkie akordy na stronie
+            akordElements.forEach(span => {
+                const originalChord = span.getAttribute('data-original') || span.textContent.trim();
+                
+                // Zapisz oryginalny akord, jeśli to pierwszy raz
+                if (!span.hasAttribute('data-original')) {
+                    span.setAttribute('data-original', originalChord);
+                }
+
+                // Transponuj
+                const newChord = transposeChord(originalChord, currentNoteIndex);
+                span.textContent = newChord + ' '; // Dodajemy spację dla formatowania
+            });
+        }
+        
+        // Dodaj słuchaczy zdarzeń do przycisków
+        document.getElementById('transpose-up').addEventListener('click', () => {
+            // Transpozycja o 1 półton w górę
+            transposeSong(1); 
+        });
+
+        document.getElementById('transpose-down').addEventListener('click', () => {
+            // Transpozycja o 1 półton w dół (w górę o -1)
+            transposeSong(-1); 
+        });
+
+        // Inicjalizacja transpozycji, aby ustawić początkową tonację C
+        transposeSong(0); 
+    </script>
+
+</body>
+</html>
