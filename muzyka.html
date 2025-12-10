@@ -159,6 +159,17 @@
         }
         
         /* Tekst piosenki */
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #34495e;
+            display: block;
+            margin-bottom: 5px;
+        }
+
         #song-details .lyrics-content p, #song-details .lyrics-content div {
             margin: 0 0 10px 0;
             line-height: 1.6;
@@ -169,7 +180,7 @@
             font-weight: bold;
             color: #e74c3c; /* Wyraźny, czerwony kolor */
             margin: 0 3px;
-            white-space: nowrap; /* Zapobiega łamaniu akordu */
+            white-space: nowrap;
         }
 
         .placeholder {
@@ -194,14 +205,14 @@
             </div>
 
             <div class="filter-group">
-                <label for="vocal-type-select">Typ Wokalu:</label>
+                <label for="vocal-type-select">Typ Wokalu (Filtr):</label>
                 <select id="vocal-type-select">
                     <option value="">-- Wszystkie --</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label for="genre-select">Gatunek:</label>
+                <label for="genre-select">Gatunek (Filtr):</label>
                 <select id="genre-select">
                     <option value="">-- Wszystkie --</option>
                 </select>
@@ -232,12 +243,10 @@
         // --- ZMIENNE GLOBALNE I DANE ---
         let allSongs = [];
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
-        let currentTranspose = 0; // 0 = bez transpozycji
+        let currentTranspose = 0;
         let currentSongId = null; 
 
-        // Skala chromatyczna do obliczeń
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        // Skala do wyświetlania (preferowanie płaskich nut np. Db zamiast C#)
         const displayScale = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
         // Elementy DOM
@@ -252,11 +261,9 @@
         
         // --- LOGIKA TRANSPOZYCJI ---
 
-        // Funkcja pomocnicza do znalezienia indeksu nuty w skali
         function getScaleIndex(note) {
             let index = chromaticScale.indexOf(note);
             if (index === -1) {
-                // Próba dopasowania popularnych płaskich nut do skali #
                 const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
                 const sharpEquivalent = flatMap[note];
                 if (sharpEquivalent) {
@@ -266,9 +273,7 @@
             return index;
         }
 
-        // Rdzeń transpozycji: transponuje jeden akord (np. "Am7" lub "G#m/B")
         function transposeChordString(chordString, semitones) {
-            // Regex: Złap nutę (A-G, opcjonalnie # lub b) [grupa 1] i resztę modyfikatora [grupa 2]
             const chordPattern = /([A-G][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
             
@@ -284,7 +289,6 @@
             }
 
             let newIndex = (baseNoteIndex + semitones);
-            // Zapewnienie, że indeks mieści się w zakresie 0-11
             newIndex = (newIndex % 12 + 12) % 12;
 
             const newBaseNote = displayScale[newIndex]; 
@@ -292,40 +296,28 @@
             return newBaseNote + (modifier || '');
         }
 
-        // 1. Funkcja przetwarzająca cały tekst akordów (dla sekcji na górze)
         function transposeChordsText(text, semitones) {
             if (!text || semitones === 0) return text;
-            
-            // Regex: Złap cały akord (litera + opcjonalne modyfikatory)
             const chordPattern = /([A-G][b#]?[\w\d\/#\-]*)/g; 
             
             const transposedText = text.replace(chordPattern, (match) => {
                 return transposeChordString(match, semitones);
             });
-            
             return transposedText;
         }
 
-        // 2. Funkcja przetwarzająca tekst piosenki z akordami w nawiasach kwadratowych
         function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
             if (!lyricsHtml) return '';
-            
-            // Regex do znalezienia akordu w nawiasach: [AKORD]
-            // ([A-G][b#]?[\w\d\/#\-]*) -> Grupa 1: Akord
             const inlineChordPattern = /\[([A-G][b#]?[\w\d\/#\-]*)\]/g; 
 
-            // Zamiana: [AKORD] -> <span class="inline-chord">TRANSPOZYCJA(AKORD)</span>
             const transposedLyricsHtml = lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
                 const transposedChord = transposeChordString(chordInsideBrackets, semitones);
-                
-                // Zawijamy w span ze specjalnym stylem
                 return `<span class="inline-chord">${transposedChord}</span>`;
             });
             
             return transposedLyricsHtml;
         }
 
-        // Funkcja do ponownego rysowania akordów i tekstu po zmianie transpozycji
         function redrawChords() {
             if (currentSongId === null) return;
             
@@ -362,7 +354,6 @@
                 }
                 allSongs = await response.json();
                 
-                // Przypisanie unikalnego indeksu i normalizacja danych
                 allSongs = allSongs.map((song, index) => ({
                     ...song,
                     id: index,
@@ -381,7 +372,6 @@
             }
         }
         
-        // Funkcja wypełniająca opcje transpozycji (-6 do +6 półtonów)
         function populateTransposeOptions() {
             transposeSelect.innerHTML = '';
             for (let i = -6; i <= 6; i++) {
@@ -464,7 +454,6 @@
                 }
             });
             
-            // Kontrolki transpozycji są widoczne, jeśli piosenka ma akordy lub tekst
             const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-G][b#]?[\w\d\/#\-]*\]/));
             transposeControlsDiv.style.display = hasChordsOrLyrics ? 'flex' : 'none';
 
@@ -484,11 +473,6 @@
                 
                 ${chordsSection}
 
-                <div class="detail-item">
-                    <span class="detail-label">Gatunek:</span>
-                    <span>${song.genre || 'brak danych'}</span>
-                </div>
-                
                 ${song.key ? `<div class="detail-item">
                     <span class="detail-label">Tonacja (Oryginał):</span>
                     <span>${song.key}</span>
@@ -497,11 +481,6 @@
                 ${song.tempo ? `<div class="detail-item">
                     <span class="detail-label">Tempo:</span>
                     <span>${song.tempo}</span>
-                </div>` : ''}
-
-                ${song.vocal_type ? `<div class="detail-item">
-                    <span class="detail-label">Typ wokalu:</span>
-                    <span>${song.vocal_type}</span>
                 </div>` : ''}
                 
                 <div class="detail-item">
@@ -515,10 +494,8 @@
                 </div>` : ''}
             `;
             
-            // Upewnij się, że transpozycja jest poprawnie wyświetlona
             redrawChords();
             
-            // Przewijanie do góry panelu z detalami
             songDetailsDiv.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -547,7 +524,6 @@
             filterAndRenderSongs();
         });
         
-        // Transpozycja: aktualizuje wartość i przerysowuje akordy (zarówno górny blok, jak i inline)
         transposeSelect.addEventListener('change', (event) => {
             currentTranspose = parseInt(event.target.value);
             redrawChords();
