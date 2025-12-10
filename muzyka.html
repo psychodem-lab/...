@@ -111,9 +111,6 @@
             border-bottom: 1px dashed #eee;
             cursor: pointer;
             transition: background-color 0.2s;
-            display: flex; /* Użyte do wyrównania ikony */
-            justify-content: space-between;
-            align-items: center;
         }
 
         #song-list li:hover {
@@ -136,19 +133,6 @@
             margin-left: 10px;
         }
 
-        /* Ikony i przyciski mobilne */
-        .icon-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2em;
-            color: #3498db;
-            padding: 0 5px;
-            margin-left: 10px;
-            display: none; /* Domyślnie ukryte na desktopie */
-            flex-shrink: 0;
-        }
-        
         /* Akordy - sekcja na górze */
         .chords-container {
             margin-bottom: 20px;
@@ -233,11 +217,6 @@
 
             #app-container:not(.mobile-details-active) #main-content {
                 display: none; /* Ukryj szczegóły w widoku listy */
-            }
-
-            /* Pokaż ikonę "view song" na liście */
-            .view-song-button {
-                display: inline-block;
             }
             
             /* Pokaż przycisk "back to list" w szczegółach */
@@ -337,7 +316,7 @@
         const songDetailsDiv = document.getElementById('song-details');
         const transposeControlsDiv = document.getElementById('transpose-controls');
         const transposeSelect = document.getElementById('transpose-select');
-        const backToListButton = document.getElementById('back-to-list-button'); // Nowy przycisk
+        const backToListButton = document.getElementById('back-to-list-button');
 
         
         // --- LOGIKA WIDOKU MOBILNEGO ---
@@ -359,6 +338,7 @@
                     document.getElementById('sidebar').scrollTop = 0;
                 }
             }
+            // Na desktopie obie kolumny są zawsze widoczne
         }
 
 
@@ -444,7 +424,7 @@
             }
         }
 
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE (Zmiana w renderSongs) ---
+        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE ---
 
         async function loadSongs() {
             try {
@@ -528,15 +508,13 @@
             } else {
                 filteredSongs.forEach(song => {
                     const li = document.createElement('li');
-                    li.setAttribute('data-song-id', song.id); // Dodano data-song-id dla obsługi kliknięcia na desktopie
+                    li.setAttribute('data-song-id', song.id);
+                    // Usunięto ikonę powiększenia. Cały wiersz jest teraz klikalny.
                     li.innerHTML = `
                         <div>
                             <span class="song-title">${song.title}</span> 
                             <span class="song-artist">(${song.artist})</span>
                         </div>
-                        <button class="icon-button view-song-button" data-song-id="${song.id}" title="Pokaż piosenkę">
-                            &#x1F50D; 
-                        </button>
                     `;
                     songList.appendChild(li);
                 });
@@ -546,8 +524,8 @@
             transposeControlsDiv.style.display = 'none';
             currentSongId = null;
             
-            // W widoku desktopowym zawsze aktywna jest lista. W mobilnym - zależy od klasy.
-            if (!isMobileView()) {
+            // Upewnij się, że jesteśmy w widoku listy po filtracji
+            if (isMobileView()) {
                 setMobileView('list');
             }
         }
@@ -613,17 +591,12 @@
 
         // --- OBSŁUGA ZDARZEŃ ---
 
-        // 1. Obsługa kliknięcia na listę/ikonę powiększenia
+        // 1. Obsługa kliknięcia na listę (cały wiersz <li>)
         songList.addEventListener('click', (event) => {
             const li = event.target.closest('li');
-            const viewButton = event.target.closest('.view-song-button');
             
-            if (viewButton) {
-                // Kliknięcie w ikonę (działa na mobile)
-                const songId = parseInt(viewButton.getAttribute('data-song-id'));
-                showDetails(songId);
-            } else if (li && li.hasAttribute('data-song-id') && !isMobileView()) {
-                // Kliknięcie w wiersz (działa tylko na desktopie)
+            // Kliknięcie w dowolne miejsce wiersza
+            if (li && li.hasAttribute('data-song-id')) {
                 const songId = parseInt(li.getAttribute('data-song-id'));
                 showDetails(songId);
             }
@@ -655,9 +628,8 @@
             redrawChords();
         });
         
-        // 4. Reset widoku po zmianie rozmiaru okna (np. obrót telefonu)
+        // 4. Reset widoku po zmianie rozmiaru okna
         window.addEventListener('resize', () => {
-             // Jeśli wracamy do widoku desktopowego, usuń klasę
              if (!isMobileView()) {
                  appContainer.classList.remove('mobile-details-active');
              }
