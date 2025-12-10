@@ -1,246 +1,28 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piosenki i Akordy z Transpozycją (Ładowanie z Pliku JSON)</title>
-    <style>
-        /* --- CSS: Stylizacja (Utrzymana z poprzedniej odpowiedzi) --- */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #007bff;
-            text-align: center;
-        }
-
-        .controls {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .controls button {
-            padding: 8px 15px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            margin: 0 5px;
-            transition: background-color 0.3s;
-        }
-
-        .controls button:hover {
-            opacity: 0.8;
-        }
-
-        #transpose-up {
-            background-color: #28a745; /* Zielony */
-            color: white;
-        }
-
-        #transpose-down {
-            background-color: #dc3545; /* Czerwony */
-            color: white;
-        }
-
-        .akord {
-            color: #007bff; 
-            font-weight: bold;
-            display: inline-block;
-            white-space: pre; 
-            margin-bottom: -5px; 
-            margin-top: 5px;
-        }
-        
-        .piosenka-linia {
-            margin-top: 10px;
-            line-height: 1.5;
-        }
-        
-        .song-title {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
-        .song-artist {
-            font-style: italic;
-            margin-bottom: 20px;
-            display: block;
-            text-align: center;
-        }
-        .stanza {
-            margin-bottom: 20px;
-            border-left: 3px solid #ccc;
-            padding-left: 10px;
-        }
-
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1 class="song-title" id="song-title">Ładowanie...</h1>
-        <span class="song-artist" id="song-artist"></span>
-        
-        <div class="controls">
-            <label>Aktualna Tonacja: <span id="current-key">?</span></label>
-            <div>
-                <button id="transpose-down" data-step="-1" disabled>♭ Niżej</button>
-                <button id="transpose-up" data-step="1" disabled>♯ Wyżej</button>
-            </div>
-        </div>
-
-        <div id="piosenka">
-            </div>
-
-    </div>
-
-    <script>
-        // --- STAŁE I FUNKCJE LOGICZNE (Transpozycja) ---
-        const NOTES = [
-            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-        ];
-        
-        let originalChords = []; 
-        let currentNoteIndex = 0; 
-        
-        function transposeChord(chord, steps) {
-            let baseNote = chord;
-            let modifiers = "";
-
-            for (const note of NOTES) {
-                if (chord.startsWith(note)) {
-                    baseNote = note;
-                    modifiers = chord.substring(note.length);
-                    break;
-                }
-            }
-
-            let noteIndex = NOTES.indexOf(baseNote);
-            if (noteIndex === -1) { return chord; }
-
-            let newIndex = (noteIndex + steps) % 12;
-            if (newIndex < 0) { newIndex += 12; }
-
-            return NOTES[newIndex] + modifiers;
-        }
-
-        function transposeSong(steps) {
-            currentNoteIndex = (currentNoteIndex + steps) % 12;
-            if (currentNoteIndex < 0) { currentNoteIndex += 12; }
-
-            const currentKey = NOTES[currentNoteIndex];
-            document.getElementById('current-key').textContent = currentKey;
-
-            const akordElements = document.querySelectorAll('#piosenka .akord');
-            
-            akordElements.forEach((span, index) => {
-                const originalChord = originalChords[index]; 
-                const newChord = transposeChord(originalChord, currentNoteIndex);
-                span.textContent = newChord + ' ';
-            });
-        }
-        
-        // --- RENDEROWANIE PIOSENKI ---
-        function renderSongFromJSON(songData) {
-            const piosenkaDiv = document.getElementById('piosenka');
-            piosenkaDiv.innerHTML = ''; 
-            originalChords = []; 
-
-            document.getElementById('song-title').textContent = songData.title;
-            document.getElementById('song-artist').textContent = songData.artist;
-
-            songData.stanzas.forEach(stanza => {
-                const stanzaDiv = document.createElement('div');
-                stanzaDiv.className = 'stanza';
-
-                stanza.lines.forEach(line => {
-                    const lineDiv = document.createElement('div');
-                    lineDiv.className = 'piosenka-linia';
-
-                    // 1. Dodajemy akordy i zbieramy ich oryginalne wersje
-                    const chords = line.chords.split(/\s+/).filter(c => c.length > 0);
-                    let chordHTML = '';
-                    
-                    chords.forEach(chord => {
-                        chordHTML += `<span class="akord">${chord}</span>`;
-                        originalChords.push(chord); 
-                    });
-                    
-                    lineDiv.innerHTML = chordHTML + '\n' + line.lyrics;
-                    stanzaDiv.appendChild(lineDiv);
-                });
-                piosenkaDiv.appendChild(stanzaDiv);
-            });
-            
-            // Ustawienie początkowej tonacji i włączenie przycisków
-            const originalKey = songData.originalKey || 'C';
-            const initialIndex = NOTES.indexOf(originalKey.toUpperCase());
-            currentNoteIndex = initialIndex !== -1 ? initialIndex : 0;
-            transposeSong(0); 
-
-            document.getElementById('transpose-up').disabled = false;
-            document.getElementById('transpose-down').disabled = false;
-        }
-
-        // --- GŁÓWNA LOGIKA ŁADOWANIA Z PLIKU JSON ---
-        function loadSongsFromFile(filename = 'piosenki.json') {
-            fetch(filename)
-                .then(response => {
-                    if (!response.ok) {
-                        // Jeśli plik nie istnieje lub jest błąd serwera
-                        throw new Error(`Błąd ładowania pliku ${filename}: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(songs => {
-                    if (songs.length > 0) {
-                        // Wyświetlamy pierwszą piosenkę z listy
-                        renderSongFromJSON(songs[0]); 
-                    } else {
-                        throw new Error('Plik JSON jest pusty lub nie zawiera piosenek.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Wystąpił błąd podczas ładowania danych:', error);
-                    document.getElementById('song-title').textContent = 'Błąd: Nie udało się wczytać piosenki.';
-                    document.getElementById('piosenka').textContent = 'Upewnij się, że plik piosenki.json istnieje i uruchomiono stronę na serwerze (np. Live Server).';
-                    document.getElementById('transpose-up').disabled = true;
-                    document.getElementById('transpose-down').disabled = true;
-                });
-        }
-
-        // --- START APLIKACJI ---
-        loadSongsFromFile();
-
-        // Dodanie słuchaczy zdarzeń do przycisków (po wczytaniu kodu)
-        document.getElementById('transpose-up').addEventListener('click', () => {
-            transposeSong(1); 
-        });
-
-        document.getElementById('transpose-down').addEventListener('click', () => {
-            transposeSong(-1); 
-        });
-
-    </script>
-
-</body>
-</html>
+[
+  {
+    "title": "Gwiazda Północy",
+    "artist": "Zespół Transpozycyjny",
+    "originalKey": "G",
+    "stanzas": [
+      {
+        "lines": [
+          {"chords": "G          C", "lyrics": "Patrzę w górę, widzę noc,"},
+          {"chords": "D          G", "lyrics": "Droga długa, daj mi moc."}
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Letni Deszcz",
+    "artist": "Samotny Bęben",
+    "originalKey": "Am",
+    "stanzas": [
+      {
+        "lines": [
+          {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
+          {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
+        ]
+      }
+    ]
+  }
+]
