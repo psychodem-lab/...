@@ -1,0 +1,21 @@
+[
+  {
+    "title": "Gwiazda Północy",
+    "artist": "Zespół Transpozycyjny",
+    "originalKey": "G",
+    "stanzas": [
+      {
+        "lines": [
+          {"chords": "G          C", "lyrics": "Patrzę w górę, widzę noc,"},
+          {"chords": "D          G", "lyrics": "Droga długa, daj mi moc."}
+        ]
+      },
+      {
+        "lines": [
+          {"chords": "Em         C", "lyrics": "Gwiazda świeci, czeka już,"},
+          {"chords": "G          D", "lyrics": "Żaden akord mi nie straszny jest!"}
+        ]
+      }
+    ]
+  }
+]
