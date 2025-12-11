@@ -3,139 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moja Lista Piosenek</title>
+    <title>Śpiewnik Akordowy</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
     <style>
-        /* --- STYLY PODSTAWOWE (Desktop) --- */
+        /* Globalne style i reset */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: #f4f4f4;
             color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
         }
 
+        /* --- UKŁAD GŁÓWNY (DESKTOP) --- */
         #app-container {
             display: flex;
-            width: 100%;
-            max-width: 1200px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            min-height: 80vh;
-            border-radius: 8px;
+            height: 100vh;
             overflow: hidden;
         }
 
         #sidebar {
-            width: 300px;
-            padding: 20px;
-            border-right: 1px solid #ddd;
+            width: 350px;
             flex-shrink: 0;
-            max-height: 80vh;
             overflow-y: auto;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
         }
 
         #main-content {
             flex-grow: 1;
-            padding: 20px;
             overflow-y: auto;
-            max-height: 80vh;
+            padding: 20px;
+            background-color: #fff;
         }
 
-        h1 {
-            color: #2c3e50;
-            margin-top: 0;
-            font-size: 1.8em;
+        /* --- KONTROLKI I FILTRY --- */
+        .header {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
         }
         
-        h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
-            margin-top: 20px;
-            font-size: 1.5em;
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Pozwala na zawijanie elementów na mniejszych ekranach */
         }
-
-        /* Wyszukiwarka i Filtry */
-        .filter-group {
-            margin-bottom: 15px;
-        }
-
-        .filter-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            font-size: 0.9em;
-            color: #34495e;
-        }
-
-        #search-input,
-        #vocal-type-select,
-        #genre-select,
-        #collection-select { 
-            width: 95%;
+        
+        .filter-controls input, 
+        .filter-controls select {
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1em;
-            box-sizing: border-box;
+            flex-grow: 1;
         }
 
-        /* Transpozycja i Kontrolki */
-        #controls-bar { 
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #ecf0f1;
-            border-radius: 4px;
-            display: flex;
-            flex-wrap: wrap; 
-            align-items: center;
-            gap: 10px; 
-        }
-        
-        #transpose-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-right: 15px;
-        }
-
-        #transpose-select {
-            padding: 5px;
-            border-radius: 4px;
-        }
-        
-        #toggle-chords-button, #back-to-list-button {
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-
-        #toggle-chords-button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-        }
-        #toggle-chords-button:hover {
-            background-color: #2980b9;
-        }
-        
-        #back-to-list-button {
-            /* Domyślne ukrycie na desktopie */
-            display: none; 
-            border: 1px solid #ccc;
-            background-color: #f7f7f7;
-            color: #2c3e50;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        /* Lista piosenek */
+        /* --- LISTA PIOSENEK --- */
         #song-list {
             list-style: none;
             padding: 0;
@@ -143,149 +69,209 @@
         }
 
         #song-list li {
-            padding: 10px 5px;
-            border-bottom: 1px dashed #eee;
+            padding: 10px;
             cursor: pointer;
+            border-bottom: 1px solid #eee;
             transition: background-color 0.2s;
         }
 
         #song-list li:hover {
-            background-color: #ecf0f1;
+            background-color: #f0f0f0;
         }
 
         #song-list li.selected {
-            background-color: #3498db;
-            color: white;
+            background-color: #e0e0e0;
             font-weight: bold;
         }
-
-        .song-title {
-            font-weight: bold;
+        
+        .placeholder {
+            padding: 10px;
+            color: #888;
+            text-align: center;
         }
 
-        .song-artist {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-left: 10px;
+        /* --- WIDOK SZCZEGÓŁÓW --- */
+        #song-details {
+            padding-top: 20px;
         }
 
-        /* Akordy - sekcja na górze */
-        .chords-container {
+        #song-details h2 {
+            margin-top: 0;
+            color: #0056b3;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
             margin-bottom: 20px;
+        }
+        
+        .song-artist {
+            color: #555;
+            font-weight: normal;
+            font-size: 0.9em;
+        }
+        
+        .detail-item {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #555;
+        }
+
+        /* Akordy w sekcji pre */
+        .chords-container {
+            margin: 20px 0;
+            padding: 15px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
+            background-color: #fffaf0; /* Jasnożółty/kremowy dla wyróżnienia */
+            border-radius: 5px;
+            overflow-x: auto; /* Umożliwia przewijanie długich linii akordów */
         }
         
         .chords-header {
             font-weight: bold;
-            color: #34495e;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            background-color: #e8eef2;
+            color: #a0522d; /* Brązowy kolor */
+            margin-bottom: 10px;
         }
 
         #active-chords-content {
-            white-space: pre-wrap;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.5;
             margin: 0;
+            padding: 0;
+            /* ZMIANA: Wymuszenie zawijania akordów w PRE */
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         
-        /* Tekst piosenki i inne detale */
+        /* Akordy w tekście (inline) */
         .inline-chord {
             font-weight: bold;
-            color: #e74c3c;
-            margin: 0 3px;
-            white-space: nowrap;
+            color: #a0522d; 
+            margin-right: 4px;
+            display: inline-block; /* Zapewnia, że akordy nie są łamane w pół */
         }
         
-        /* KLASY DO UKRYWANIA AKORDÓW */
-        .chords-hidden .inline-chord {
-            display: none;
-        }
-        
-        .chords-hidden .chords-container {
-            display: none;
-        }
-        
-        .placeholder {
-            padding: 40px;
-            text-align: center;
-            color: #95a5a6;
-            font-style: italic;
+        .lyrics-content {
+            white-space: pre-wrap; /* Zachowuje białe znaki i łamanie linii */
+            font-size: 16px;
+            line-height: 1.6;
         }
 
-        /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (max 768px) --- */
+        /* --- KONTROLKI NAD AKORDAMI/W TEKŚCIE --- */
+        #controls-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        #controls-bar label {
+            font-weight: bold;
+        }
+        
+        #controls-bar select, 
+        #controls-bar button {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        
+        #controls-bar button:hover {
+            background-color: #eee;
+        }
+        
+        /* Ukrywanie sekcji akordów */
+        .chords-hidden .chords-container,
+        .chords-hidden .inline-chord {
+            display: none !important;
+        }
+        
+        /* --- MEDIA QUERY: WIDOK MOBILNY (PONIŻEJ 768PX) --- */
         @media (max-width: 768px) {
             
-            body {
-                padding: 10px;
-            }
-
             #app-container {
-                flex-direction: column;
-                min-height: auto;
-                box-shadow: none;
+                flex-direction: column; 
+                position: relative;
+                height: 100vh; /* Ważne dla poprawnego działania widoku detali */
             }
-
-            #sidebar {
-                width: 100%;
-                max-height: 80vh; 
+            
+            #sidebar, #main-content {
+                width: 100%; 
+                height: 100vh;
+                padding: 10px;
+                overflow-y: visible;
                 border-right: none;
-                border-bottom: 1px solid #ddd;
-                padding: 15px 10px;
-                order: 1; /* Ustawienie kolejności */
             }
             
+            /* Domyślnie ukrywamy #main-content na małym ekranie */
             #main-content {
-                width: 100%;
-                max-height: auto;
-                padding: 15px 10px;
-                order: 2; /* Ustawienie kolejności */
-            }
-
-            /* Dostosowanie szerokości pól */
-            #search-input,
-            #vocal-type-select,
-            #genre-select,
-            #collection-select { 
-                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 10;
+                background: white; 
+                transform: translateX(100%); /* Przesuń poza ekran */
+                transition: transform 0.3s ease-out;
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                padding-top: 60px; /* Miejsce na mobilne kontrolki */
             }
             
-            /* Ukrycie tytułu strony, by zaoszczędzić miejsce */
-            h1 {
-                display: none;
+            /* Klasa aktywująca widok detali */
+            #app-container.mobile-details-active #main-content {
+                transform: translateX(0); /* Wsuń na ekran */
             }
-
-            /* Przełączanie widoków na mobilnym */
-            /* WAŻNE: To ukrywa listę, gdy aktywne są detale */
+            
+            /* Ukrywamy listę, gdy detale są aktywne */
             #app-container.mobile-details-active #sidebar {
-                display: none; 
+                 display: none; 
+            }
+            
+            /* Mobilny Pasek Kontrolek (Fixowany na górze) */
+            #controls-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 20;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+                justify-content: space-between; /* Lepszy rozkład elementów */
             }
 
-            /* WAŻNE: To ukrywa detale, gdy aktywne jest lista */
-            #app-container:not(.mobile-details-active) #main-content {
-                display: none; 
+            #back-to-list-button {
+                display: block !important; /* Pokaż przycisk powrotu na mobilnym */
+                order: -1; /* Przenieś na początek */
+            }
+
+            /* Wymuszamy przewijanie treści wewnątrz sekcji detali */
+            #song-details {
+                overflow-y: auto;
+                height: calc(100vh - 60px); 
+                padding-bottom: 20px;
             }
             
-            /* Pokaż przycisk "back to list" w widoku szczegółów */
-            #app-container.mobile-details-active #back-to-list-button {
-                display: inline-flex; /* Wymuszamy widoczność na mobilnym */
-                font-size: 1em;
-                margin-bottom: 15px;
+            /* Dopasowanie filtrów do kolumny */
+            .filter-controls {
+                flex-direction: column;
+                gap: 5px;
             }
             
-            /* Upewnienie się, że kontrolki zawijają się na mobilnym */
-            #controls-bar {
-                justify-content: space-between;
-                align-items: flex-start;
-            }
-            
-            #transpose-controls {
-                flex-basis: 100%; /* Zajmij całą szerokość dla lepszej czytelności */
-                justify-content: space-between;
-                margin-right: 0;
+            .filter-controls input, 
+            .filter-controls select {
+                width: 100%;
+                box-sizing: border-box; /* Utrzymuje szerokość w granicach 100% */
             }
         }
     </style>
@@ -293,90 +279,70 @@
 <body>
 
     <div id="app-container">
-        
+
         <div id="sidebar">
-            <h1>Lista Piosenek</h1>
-            
-            <div class="filter-group">
-                <label for="collection-select">Wybierz Zbiór Piosenek:</label>
-                <select id="collection-select">
-                    </select>
+            <div class="header">
+                <h3>🎸 Śpiewnik</h3>
+                <select id="collection-select"></select>
             </div>
 
-            <div class="filter-group">
-                <label for="search-input">Wyszukaj (Tytuł/Wykonawca):</label>
-                <input type="text" id="search-input" placeholder="Wyszukaj...">
-            </div>
-
-            <div class="filter-group">
-                <label for="vocal-type-select">Typ Wokalu (Filtr):</label>
+            <div class="filter-controls">
+                <input type="text" id="search-input" placeholder="Szukaj (Tytuł / Artysta)">
                 <select id="vocal-type-select">
-                    <option value="">-- Wszystkie --</option>
+                    <option value="">-- Typ Wokalu --</option>
+                </select>
+                <select id="genre-select">
+                    <option value="">-- Gatunek --</option>
                 </select>
             </div>
             
-            <div class="filter-group">
-                <label for="genre-select">Gatunek (Filtr):</label>
-                <select id="genre-select">
-                    <option value="">-- Wszystkie --</option>
-                </select>
-            </div>
-
             <ul id="song-list">
-                <li class="placeholder">Ładowanie zbiorów...</li>
+                <li class="placeholder">Ładowanie...</li>
             </ul>
         </div>
 
         <div id="main-content">
             
-            <button id="back-to-list-button" title="Wróć do wyszukiwania">
-                <span style="font-size: 1.2em;">&#x1F50D;</span> Wyszukaj
-            </button>
-            
-            <div id="controls-bar" style="display: none;"> 
-                
-                <div id="transpose-controls">
-                    <label for="transpose-select" style="font-weight: bold;">Transpozycja:</label>
-                    <select id="transpose-select"></select>
-                </div>
-                
-                <button id="toggle-chords-button">
-                    Ukryj Akordy
+            <div id="controls-bar" style="display: none;">
+                <button id="back-to-list-button" style="display: none;">
+                    <i class="fas fa-search"></i> Wróć
                 </button>
                 
+                <label for="transpose-select">Transpozycja:</label>
+                <select id="transpose-select"></select>
+                
+                <button id="toggle-chords-button">Ukryj Akordy</button>
             </div>
-
-            <div id="song-details"> 
-                <div class="placeholder">
-                    Wybierz piosenkę z listy, aby zobaczyć szczegóły.
-                </div>
+            
+            <div id="song-details">
+                <div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>
             </div>
         </div>
 
     </div>
-<script>
+
+    <script>
         // --- ZMIENNE GLOBALNE I DANE ---
         let allSongs = [];
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
         let currentTranspose = 0;
         let currentSongId = null; 
         
-        // Zmienna stanu dla widoczności WSZYSTKICH akordów
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
+            // PRZYKŁADOWA DANA: PAMIĘTAJ O DODANIU SWOICH PLIKÓW JSON!
             { name: "Główny Zbiór", file: 'piosenki.json' },
             { name: "Kolędy", file: 'koledy.json' },
-            { name: "Hymny", file: 'lukasz.json' }
+            { name: "Inne", file: 'lukasz.json' }
         ];
         let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
 
-        // ZMIANA: Skala do indeksowania pozostaje w notacji US (chromaticScale),
-        // ale skala wyjściowa (displayScale) jest zmieniona na notację B/H (polsko-niemiecką)
-        // oraz faworyzuje krzyżyki (#) zgodnie z Twoim życzeniem.
-        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; // Skala referencyjna (US A# / B)
-        const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; // Skala wyjściowa (Polish/German B / H)
+        // ZMIANA: Skala do indeksowania (US notacja)
+        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; 
+        // ZMIANA: Skala wyjściowa (Polish/German B / H) z zachowaniem krzyżyków
+        const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; 
 
         // Elementy DOM
         const appContainer = document.getElementById('app-container');
@@ -394,7 +360,7 @@
 
 
         
-        // --- LOGIKA WIDOKU MOBILNEGO (Bez zmian) ---
+        // --- LOGIKA WIDOKU MOBILNEGO ---
         function isMobileView() {
              return window.innerWidth <= 768;
         }
@@ -402,11 +368,12 @@
         function setMobileView(view) {
             if (isMobileView()) {
                 if (view === 'details') {
-                    // DODANIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW
+                    // Aktywacja widoku szczegółów poprzez klasę CSS
                     appContainer.classList.add('mobile-details-active');
+                    // Przewiń na górę (aby zobaczyć akordy/tekst)
                     document.getElementById('main-content').scrollTop = 0;
                 } else {
-                    // USUNIĘCIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW (POWRÓT DO LISTY)
+                    // Powrót do widoku listy
                     appContainer.classList.remove('mobile-details-active');
                     document.getElementById('sidebar').scrollTop = 0;
                 }
@@ -414,11 +381,9 @@
         }
 
 
-        // --- LOGIKA TRANSPOZYCJI (ZMIANA NA B/H i Case-Sensitive) ---
+        // --- LOGIKA TRANSPOZYCJI (W/G TWOICH WYMAGAŃ) ---
         
-        // ZMIANA: Funkcja mapuje nutę wejściową (Major/Minor/Flat/B/H) na indeks z chromaticScale (A#, B)
         function getScaleIndex(note) {
-            // Normalizujemy nutę do wielkiej litery, aby ją zindeksować
             let baseNote = note.toUpperCase(); 
 
             // Obsługa polskiej notacji B/H jako wejścia (jeśli taka jest w plikach JSON)
@@ -433,8 +398,7 @@
             let index = chromaticScale.indexOf(baseNote);
 
             if (index === -1) {
-                // Obsługa nut z notacji płaskiej (jeśli takie są w plikach wejściowych)
-                // (Normalizacja do C# przed sprawdzeniem indexu)
+                // Obsługa nut z notacji płaskiej (Db, Eb, itp.)
                 const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
                 const sharpEquivalent = flatMap[baseNote];
                 if (sharpEquivalent) {
@@ -444,9 +408,8 @@
             return index;
         }
 
-        // ZMIANA: Funkcja transponująca akordy z zachowaniem wielkości liter
         function transposeChordString(chordString, semitones) {
-            // ZMIANA: Ulepszony RegEx, aby dopasować A-G / a-g oraz H / h, opcjonalne b/# oraz modyfikatory
+            // Wyszukanie nuty bazowej (A-G, H, małe/wielkie litery, opcjonalny b/#) i reszty modyfikatora
             const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
             
@@ -455,27 +418,26 @@
             const originalBaseNote = match[1];
             const modifier = match[2];
             
-            // KROK 1: Sprawdzenie wielkości liter (Major vs Minor)
+            // 1. Sprawdzenie wielkości liter (Major vs Minor)
             const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
             
-            // KROK 2: Wyszukanie indeksu nuty bazowej w skali chromatycznej
-            let baseNoteForIndex = originalBaseNote;
-            let baseNoteIndex = getScaleIndex(baseNoteForIndex);
+            // 2. Wyszukanie indeksu nuty bazowej 
+            let baseNoteIndex = getScaleIndex(originalBaseNote);
             
             if (baseNoteIndex === -1) {
-                return chordString; // Nieznana nuta
+                return chordString; 
             }
 
-            // KROK 3: Obliczenie nowego indeksu
+            // 3. Obliczenie nowego indeksu
             let newIndex = (baseNoteIndex + semitones);
             newIndex = (newIndex % 12 + 12) % 12;
 
-            // KROK 4: Pobranie nowej nuty bazowej z preferowanej przez użytkownika skali (B/H)
+            // 4. Pobranie nowej nuty bazowej z preferowanej przez użytkownika skali (B/H)
             let newBaseNote = displayScale[newIndex];
             
-            // KROK 5: Zastosowanie odpowiedniej wielkości litery (Major/Minor)
+            // 5. Zastosowanie odpowiedniej wielkości litery (Major/Minor)
             if (isMinor) {
-                newBaseNote = newBaseNote.toLowerCase(); // np. C -> c, H -> h
+                newBaseNote = newBaseNote.toLowerCase(); 
             }
             
             return newBaseNote + (modifier || '');
@@ -483,7 +445,7 @@
 
         function transposeChordsText(text, semitones) {
             if (!text || semitones === 0) return text;
-            const chordPattern = /([A-GHa-gh][b#]?[\w\d\/#\-]*)/g; // ZMIANA: Zaktualizowany Regex
+            const chordPattern = /([A-GHa-gh][b#]?[\w\d\/#\-]*)/g; 
             
             const transposedText = text.replace(chordPattern, (match) => {
                 return transposeChordString(match, semitones);
@@ -493,7 +455,7 @@
 
         function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
             if (!lyricsHtml) return '';
-            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; // ZMIANA: Zaktualizowany Regex
+            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; 
 
             const transposedLyricsHtml = lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
                 const transposedChord = transposeChordString(chordInsideBrackets, semitones);
@@ -503,14 +465,13 @@
             return transposedLyricsHtml;
         }
         
-        // ZMIANA: Funkcja redrawChords musi teraz zaktualizować też akordy w tekście
         function redrawChords() {
             if (currentSongId === null) return;
             
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
-            // 1. Transpozycja akordów w sekcji CHORDS-CONTAINER
+            // 1. Transpozycja akordów w sekcji CHORDS-CONTAINER (sekcja PRE)
             if (song.chords) {
                 const originalChords = song.chords;
                 const transposedChords = transposeChordsText(originalChords, currentTranspose);
@@ -520,7 +481,7 @@
                 }
             }
             
-            // 2. Transpozycja akordów w sekcji LYRICS-CONTENT
+            // 2. Transpozycja akordów w sekcji LYRICS-CONTENT (akordy inline)
             if (song.lyrics) {
                 const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
                 const lyricsContentDiv = document.getElementById('active-lyrics-content');
@@ -531,7 +492,6 @@
 
             updateChordsVisibility();
         }
-        // ... (reszta kodu bez zmian w logice) ...
 
 
         function updateChordsVisibility() {
@@ -545,7 +505,7 @@
         }
 
 
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE (Bez zmian w logice) ---
+        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE ---
         
         function populateCollectionOptions() {
             collectionSelect.innerHTML = '';
@@ -587,7 +547,7 @@
                 filterAndRenderSongs();
             } catch (error) {
                 console.error("Błąd ładowania piosenek:", error);
-                songList.innerHTML = `<li style="color: red;">Błąd wczytywania zbioru <strong>${file}</strong>. Upewnij się, że plik znajduje się w tym samym folderze.</li>`;
+                songList.innerHTML = `<li style="color: red;">Błąd wczytywania zbioru <strong>${file}</strong>. Upewnij się, że plik JSON znajduje się w tym samym folderze.</li>`;
             }
         }
         
@@ -671,13 +631,11 @@
             controlsBar.style.display = 'none'; 
             currentSongId = null;
             
-            // Po filtrowaniu zawsze wracamy do widoku listy
             if (isMobileView()) {
                 setMobileView('list');
             }
         }
 
-        // ZMODYFIKOWANA FUNKCJA: UŻYWA NOWEJ LOGIKI TRANSPOZYCJI
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
@@ -691,7 +649,8 @@
                 }
             });
             
-            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); // ZMIANA: Użycie nowego RegEx do sprawdzenia akordów inline
+            // Sprawdzenie, czy są akordy (w sekcji chords lub inline w lyrics)
+            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); 
             controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
 
             const chordsSection = song.chords ? `
@@ -703,7 +662,6 @@
             
             areChordsSectionsVisible = true;
             
-            // ZMIANA: Użycie nowej logiki transpozycji dla akordów inline w tekście
             const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
             
             songDetailsDiv.innerHTML = `
@@ -733,8 +691,6 @@
             `;
             
             redrawChords();
-            
-            // KLUCZOWY ELEMENT: Aktywacja widoku detali na mobilnym
             setMobileView('details'); 
         }
 
@@ -745,14 +701,11 @@
             updateChordsVisibility();
         });
 
-
-        // 0. Obsługa zmiany zbioru 
         collectionSelect.addEventListener('change', (event) => {
             currentCollectionFile = event.target.value;
             loadSongs(currentCollectionFile);
         });
 
-        // 1. Obsługa kliknięcia na listę (cały wiersz <li>)
         songList.addEventListener('click', (event) => {
             const li = event.target.closest('li');
             
@@ -762,12 +715,10 @@
             }
         });
 
-        // 2. Obsługa przycisku "Wróć do wyszukiwania" (ikona lupy)
         backToListButton.addEventListener('click', () => {
             setMobileView('list');
         });
 
-        // 3. Filtry 
         searchInput.addEventListener('input', (event) => {
             currentFilters.searchTerm = event.target.value.toLowerCase().trim();
             filterAndRenderSongs();
@@ -783,21 +734,15 @@
             filterAndRenderSongs();
         });
         
-        // ZMIANA: Po zmianie transpozycji, odświeżamy akordy w obu miejscach (poprawione)
         transposeSelect.addEventListener('change', (event) => {
             currentTranspose = parseInt(event.target.value);
             redrawChords();
         });
         
-        // 4. Reset widoku po zmianie rozmiaru okna
         window.addEventListener('resize', () => {
-             // Upewniamy się, że po zmianie rozmiaru (np. obrócenie tabletu)
-             // widok jest poprawnie resetowany
              if (!isMobileView()) {
                  appContainer.classList.remove('mobile-details-active');
              } else if (currentSongId !== null) {
-                 // Jeśli jesteśmy na mobilnym i mamy wybraną piosenkę,
-                 // upewniamy się, że widok detali jest aktywny po obróceniu
                  setMobileView('details');
              } else {
                  setMobileView('list');
@@ -808,6 +753,5 @@
         populateCollectionOptions();
         loadSongs(currentCollectionFile);
     </script>
-
 </body>
 </html>
