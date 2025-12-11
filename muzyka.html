@@ -50,7 +50,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
-            flex-wrap: wrap; /* Pozwala na zawijanie elementów na mniejszych ekranach */
+            flex-wrap: wrap; 
         }
         
         .filter-controls input, 
@@ -125,14 +125,14 @@
             margin: 20px 0;
             padding: 15px;
             border: 1px solid #ddd;
-            background-color: #fffaf0; /* Jasnożółty/kremowy dla wyróżnienia */
+            background-color: #fffaf0; 
             border-radius: 5px;
-            overflow-x: auto; /* Umożliwia przewijanie długich linii akordów */
+            overflow-x: auto; 
         }
         
         .chords-header {
             font-weight: bold;
-            color: #a0522d; /* Brązowy kolor */
+            color: #a0522d; 
             margin-bottom: 10px;
         }
 
@@ -142,7 +142,6 @@
             line-height: 1.5;
             margin: 0;
             padding: 0;
-            /* ZMIANA: Wymuszenie zawijania akordów w PRE */
             white-space: pre-wrap;
             word-wrap: break-word;
         }
@@ -152,11 +151,11 @@
             font-weight: bold;
             color: #a0522d; 
             margin-right: 4px;
-            display: inline-block; /* Zapewnia, że akordy nie są łamane w pół */
+            display: inline-block; 
         }
         
         .lyrics-content {
-            white-space: pre-wrap; /* Zachowuje białe znaki i łamanie linii */
+            white-space: pre-wrap; 
             font-size: 16px;
             line-height: 1.6;
         }
@@ -202,40 +201,38 @@
             #app-container {
                 flex-direction: column; 
                 position: relative;
-                height: 100vh; /* Ważne dla poprawnego działania widoku detali */
+                height: auto; /* Zmiana: Pozwalamy na naturalną wysokość listy */
+                min-height: 100vh;
             }
             
             #sidebar, #main-content {
                 width: 100%; 
-                height: 100vh;
+                height: auto; /* Zmiana: Usuwamy sztywną wysokość 100vh */
                 padding: 10px;
                 overflow-y: visible;
                 border-right: none;
             }
             
-            /* Domyślnie ukrywamy #main-content na małym ekranie */
+            /* Widok szczegółów (po kliknięciu) */
             #main-content {
-                position: absolute;
+                position: fixed; /* Zmiana: Używamy fixed, by zasłonić całą listę */
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
                 z-index: 10;
                 background: white; 
-                transform: translateX(100%); /* Przesuń poza ekran */
+                transform: translateX(100%); 
                 transition: transform 0.3s ease-out;
                 box-shadow: 0 0 10px rgba(0,0,0,0.2);
-                padding-top: 60px; /* Miejsce na mobilne kontrolki */
+                padding-top: 60px; 
+                height: 100vh; /* Zapewniamy pełną wysokość dla widoku fixed */
+                overflow-y: auto; /* Włączamy przewijanie treści piosenki */
             }
             
             /* Klasa aktywująca widok detali */
             #app-container.mobile-details-active #main-content {
-                transform: translateX(0); /* Wsuń na ekran */
-            }
-            
-            /* Ukrywamy listę, gdy detale są aktywne */
-            #app-container.mobile-details-active #sidebar {
-                 display: none; 
+                transform: translateX(0); 
             }
             
             /* Mobilny Pasek Kontrolek (Fixowany na górze) */
@@ -247,18 +244,16 @@
                 z-index: 20;
                 padding: 10px;
                 border-bottom: 1px solid #ccc;
-                justify-content: space-between; /* Lepszy rozkład elementów */
+                justify-content: space-between; 
             }
 
             #back-to-list-button {
-                display: block !important; /* Pokaż przycisk powrotu na mobilnym */
-                order: -1; /* Przenieś na początek */
+                display: block !important; 
+                order: -1; 
             }
 
-            /* Wymuszamy przewijanie treści wewnątrz sekcji detali */
             #song-details {
-                overflow-y: auto;
-                height: calc(100vh - 60px); 
+                height: auto; 
                 padding-bottom: 20px;
             }
             
@@ -271,7 +266,7 @@
             .filter-controls input, 
             .filter-controls select {
                 width: 100%;
-                box-sizing: border-box; /* Utrzymuje szerokość w granicach 100% */
+                box-sizing: border-box; 
             }
         }
     </style>
@@ -331,7 +326,7 @@
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
-            // PRZYKŁADOWA DANA: PAMIĘTAJ O DODANIU SWOICH PLIKÓW JSON!
+            // PAMIĘTAJ O DODANIU SWOICH PLIKÓW JSON!
             { name: "Główny Zbiór", file: 'piosenki.json' },
             { name: "Kolędy", file: 'koledy.json' },
             { name: "Inne", file: 'lukasz.json' }
@@ -458,7 +453,6 @@
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
-            // 1. Transpozycja akordów w sekcji CHORDS-CONTAINER (sekcja PRE)
             if (song.chords) {
                 const originalChords = song.chords;
                 const transposedChords = transposeChordsText(originalChords, currentTranspose);
@@ -468,7 +462,6 @@
                 }
             }
             
-            // 2. Transpozycja akordów w sekcji LYRICS-CONTENT (akordy inline)
             if (song.lyrics) {
                 const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
                 const lyricsContentDiv = document.getElementById('active-lyrics-content');
@@ -600,7 +593,7 @@
         function filterAndRenderSongs() {
             const { searchTerm, vocalType, genre } = currentFilters;
             
-            // UWAGA: Sortowanie odbywa się już w loadSongs, tutaj tylko filtrujemy.
+            // Lista jest już posortowana w loadSongs
             const filteredSongs = allSongs.filter(song => {
                 const textMatch = song.titleLower.includes(searchTerm) || 
                                    song.artistLower.includes(searchTerm);
