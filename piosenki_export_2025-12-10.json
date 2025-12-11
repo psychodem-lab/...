@@ -1,218 +1,104 @@
 [
   {
     "title": "Dzisiaj w Betlejem",
-    "artist": "Kolędy",
-    "originalKey": "C",
     "stanzas": [
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                            C", "lyrics": "Dzisiaj w Betlejem, dzisiaj w Betlejem,"},
-          {"chords": "G", "lyrics": "Wesoła nowina"},
-          {"chords": "C                          C", "lyrics": "Że Panna czysta, że Panna czysta"},
-          {"chords": "G", "lyrics": "Porodziła Syna"}
-        ]
+        "type": 1,
+        "content": "C                            C\nDzisiaj w Betlejem, dzisiaj w Betlejem,\nG\nWesoła nowina\nC                          C\nŻe Panna czysta, że Panna czysta\nG\nPorodziła Syna"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
-          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
-          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
-          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
-        ]
+        "type": 1,
+        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
       },
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                      C", "lyrics": "Maryja Panna, Maryja Panna"},
-          {"chords": "G", "lyrics": "Dzieciątko piastuje"},
-          {"chords": "C                      C", "lyrics": "I Józef święty i Józef święty"},
-          {"chords": "G", "lyrics": "On ją pielęgnuje"}
-        ]
+        "type": 1,
+        "content": "C                      C\nMaryja Panna, Maryja Panna\nG\nDzieciątko piastuje\nC                      C\nI Józef święty i Józef święty\nG\nOn ją pielęgnuje"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
-          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
-          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
-          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
-        ]
+        "type": 1,
+        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
       },
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                           C", "lyrics": "Choć w stajence, Choć w stajence"},
-          {"chords": "G", "lyrics": "Panna Syna rodzi"},
-          {"chords": "C                                C", "lyrics": "Przecież on wkrótce, przecież on wkrótce"},
-          {"chords": "G", "lyrics": "ludzi oswobodzi"}
-        ]
+        "type": 1,
+        "content": "C                           C\nChoć w stajence, Choć w stajence\nG\nPanna Syna rodzi\nC                                C\nPrzecież on wkrótce, przecież on wkrótce\nG\nludzi oswobodzi"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
-          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
-          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
-          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
-        ]
+        "type": 1,
+        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
       },
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                        C", "lyrics": "I Trzej królowie, i trzej królowie"},
-          {"chords": "G", "lyrics": "od wschodu przybyli"},
-          {"chords": "C                 C", "lyrics": "I dary Panu, i dary Panu"},
-          {"chords": "G", "lyrics": "kosztowne złożyli"}
-        ]
+        "type": 1,
+        "content": "C                        C\nI Trzej królowie, i trzej królowie\nG\nod wschodu przybyli\nC                 C\nI dary Panu, i dary Panu\nG\nkosztowne złożyli"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
-          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
-          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
-          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
-        ]
+        "type": 1,
+        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
       },
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                          C", "lyrics": "Pójdźmy też i my, pójdźmy też i my"},
-          {"chords": "G", "lyrics": "przywitać Jezusa"},
-          {"chords": "C                            C", "lyrics": "Króla nad królami, Króla nad królami"},
-          {"chords": "G", "lyrics": "uwielbić Jezusa"}
-        ]
+        "type": 1,
+        "content": "C                          C\nPójdźmy też i my, pójdźmy też i my\nG\nprzywitać Jezusa\nC                            C\nKróla nad królami, Króla nad królami\nG\nuwielbić Jezusa"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
-          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
-          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
-          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
-        ]
+        "type": 1,
+        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
       }
     ]
   },
 
   {
     "title": "Przybieżeli do Betlejem",
-    "artist": "Kolędy",
-    "originalKey": "C",
     "stanzas": [
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C                                          F C", "lyrics": "Przybieżeli do Betlejem pasterze,"},
-          {"chords": "C                                                 F C", "lyrics": "Grając skocznie Dzieciąteczku na lirze."},
-          {"chords": "C               F                                  G", "lyrics": "Chwała na wysokości, chwała na wysokości,"},
-          {"chords": "C F C      G   C", "lyrics": "A pokój na ziemi."}
-        ]
+        "type": 1,
+        "content": "C                                          F C\nPrzybieżeli do Betlejem pasterze,\nC                                                 F C\nGrając skocznie Dzieciąteczku na lirze.\nC               F                                  G\nChwała na wysokości, chwała na wysokości,\nC F C      G   C\nA pokój na ziemi."
       }
     ]
   },
 
   {
     "title": "Letni Deszcz",
-    "artist": "Samotny Bęben",
-    "originalKey": "Am",
     "stanzas": [
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
-          {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
-        ]
+        "type": 1,
+        "content": "Am         E\nCichy deszcz, lato minęło,\nC          G\nTylko cisza i echo gra."
       }
     ]
   },
 
   {
     "title": "Gdy się Chrystus rodzi",
-    "artist": "Kolędy",
-    "originalKey": "C",
     "stanzas": [
       {
-        "type": "verse",
-        "lines": [
-          {"chords": "C           F             C      a     d       G7 C", "lyrics": "Gdy się Chrystus rodzi I na świat przychodzi"},
-          {"chords": "C           F         C                 a         d          G7 C", "lyrics": "Ciemna noc w jasnościach Promienistych brodzi"},
-          {"chords": "G              C              G                   C", "lyrics": "Aniołowie się radują Pod niebiosa wyśpiewują"}
-        ]
+        "type": 1,
+        "content": "C           F             C      a     d       G7 C\nGdy się Chrystus rodzi I na świat przychodzi\nC           F         C                 a         d          G7 C\nCiemna noc w jasnościach Promienistych brodzi\nG              C              G                   C\nAniołowie się radują Pod niebiosa wyśpiewują"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "C         F        G7      C F C         G7 C", "lyrics": "Gloria, gloria, gloria In excelsis De-o"}
-        ]
-      },
-
-      {
-        "type": "verse",
-        "lines": [
-          {"chords": "C         F   C", "lyrics": "Mówią do pasterzy"},
-          {"chords": "a          d                 G7   C", "lyrics": "Którzy trzód swych strzegli"},
-          {"chords": "C     F   C", "lyrics": "Aby do Betlejem"},
-          {"chords": "a        d           G7 C", "lyrics": "Czym prędzej pobiegli"},
-          {"chords": "G                      C", "lyrics": "Bo się narodził Zbawiciel"},
-          {"chords": "G                       C", "lyrics": "Wszego świata Odkupiciel"}
-        ]
+        "type": 1,
+        "content": "C         F        G7      C F C         G7 C\nGloria, gloria, gloria In excelsis De-o"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "C         F        G7", "lyrics": "Gloria, gloria, gloria"},
-          {"chords": "C F C          G7 C", "lyrics": "In excelsis Deo"}
-        ]
-      },
-
-      {
-        "type": "verse",
-        "lines": [
-          {"chords": "C   F              C", "lyrics": "O niebieskie duchy"},
-          {"chords": "a      d       G7 C", "lyrics": "I posłowie nieba"},
-          {"chords": "C          F       C", "lyrics": "Powiedzcież wyraźniej"},
-          {"chords": "a            d         G7 C", "lyrics": "Co nam czynić trzeba"},
-          {"chords": "G                    C", "lyrics": "Bo my nic nie pojmujemy"},
-          {"chords": "G                           C", "lyrics": "Ledwo od strachu żyjemy"}
-        ]
+        "type": 1,
+        "content": "C         F   C\nMówią do pasterzy\na          d                 G7   C\nKtórzy trzód swych strzegli\nC     F   C\nAby do Betlejem\na        d           G7 C\nCzym prędzej pobiegli\nG                      C\nBo się narodził Zbawiciel\nG                       C\nWszego świata Odkupiciel"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "C         F        G7", "lyrics": "Gloria, gloria, gloria"},
-          {"chords": "C F C           G7 C", "lyrics": "In excelsis Deo"}
-        ]
-      },
-
-      {
-        "type": "verse",
-        "lines": [
-          {"chords": "C         F   C", "lyrics": "Idźcie do Betlejem"},
-          {"chords": "a          d        G7      C", "lyrics": "Gdzie Dziecię zrodzone"},
-          {"chords": "C             F C", "lyrics": "W pieluszki powite"},
-          {"chords": "a             d G7 C", "lyrics": "W żłobie położone"},
-          {"chords": "G             C", "lyrics": "Oddajcie Mu pokłon boski"},
-          {"chords": "G               C", "lyrics": "On osłodzi wasze troski"}
-        ]
+        "type": 1,
+        "content": "C         F        G7\nGloria, gloria, gloria\nC F C          G7 C\nIn excelsis Deo"
       },
       {
-        "type": "chorus",
-        "style": { "color": "red" },
-        "lines": [
-          {"chords": "C         F         G7", "lyrics": "Gloria, gloria, gloria"},
-          {"chords": "C F C          G7 C", "lyrics": "In excelsis Deo"}
-        ]
+        "type": 1,
+        "content": "C   F              C\nO niebieskie duchy\na      d       G7 C\nI posłowie nieba\nC          F       C\nPowiedzcież wyraźniej\na            d         G7 C\nCo nam czynić trzeba\nG                    C\nBo my nic nie pojmujemy\nG                           C\nLedwo od strachu żyjemy"
+      },
+      {
+        "type": 1,
+        "content": "C         F        G7\nGloria, gloria, gloria\nC F C           G7 C\nIn excelsis Deo"
+      },
+      {
+        "type": 1,
+        "content": "C         F   C\nIdźcie do Betlejem\na          d        G7      C\nGdzie Dziecię zrodzone\nC             F C\nW pieluszki powite\na             d G7 C\nW żłobie położone\nG             C\nOddajcie Mu pokłon boski\nG               C\nOn osłodzi wasze troski"
+      },
+      {
+        "type": 1,
+        "content": "C         F         G7\nGloria, gloria, gloria\nC F C          G7 C\nIn excelsis Deo"
       }
     ]
   }
