@@ -6,7 +6,6 @@
     <title>Moja Lista Piosenek</title>
     <style>
         /* --- STYLY PODSTAWOWE (Desktop) --- */
-        /* ... (Inne style bez zmian) ... */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -60,7 +59,7 @@
             font-size: 1.5em;
         }
 
-        /* Wyszukiwarka i Filtry (Bez zmian) */
+        /* Wyszukiwarka i Filtry */
         .filter-group {
             margin-bottom: 15px;
         }
@@ -85,7 +84,7 @@
             box-sizing: border-box;
         }
 
-        /* Transpozycja i Kontrolki (Bez zmian) */
+        /* Transpozycja i Kontrolki */
         #controls-bar { 
             margin-bottom: 20px;
             padding: 10px;
@@ -109,23 +108,68 @@
             border-radius: 4px;
         }
         
-        #toggle-chords-button {
+        #toggle-chords-button, #back-to-list-button {
             padding: 5px 10px;
             cursor: pointer;
-            background-color: #3498db;
-            color: white;
-            border: none;
             border-radius: 4px;
             font-weight: bold;
             transition: background-color 0.2s;
         }
 
+        #toggle-chords-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
         #toggle-chords-button:hover {
             background-color: #2980b9;
         }
+        
+        #back-to-list-button {
+            /* Domyślne ukrycie na desktopie */
+            display: none; 
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+            color: #2c3e50;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Lista piosenek */
+        #song-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
+        #song-list li {
+            padding: 10px 5px;
+            border-bottom: 1px dashed #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-        /* Akordy - sekcja na górze (Bez zmian) */
+        #song-list li:hover {
+            background-color: #ecf0f1;
+        }
+
+        #song-list li.selected {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .song-title {
+            font-weight: bold;
+        }
+
+        .song-artist {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        /* Akordy - sekcja na górze */
         .chords-container {
             margin-bottom: 20px;
             border: 1px solid #ddd;
@@ -156,13 +200,11 @@
             white-space: nowrap;
         }
         
-        /* NOWE / ZMIENIONE: Ukrycie wiersza bez spacji */
-        /* Ten styl ukrywa inline akordy, gdy kontener (np. #song-details) ma klasę 'chords-hidden' */
+        /* KLASY DO UKRYWANIA AKORDÓW */
         .chords-hidden .inline-chord {
             display: none;
         }
         
-        /* ZMIENIONE: Usuwa również sekcję Akordów/Chwytów (<pre>) */
         .chords-hidden .chords-container {
             display: none;
         }
@@ -177,12 +219,73 @@
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (max 768px) --- */
         @media (max-width: 768px) {
             
-            /* ... (Inne style mobilne bez zmian) ... */
+            body {
+                padding: 10px;
+            }
 
+            #app-container {
+                flex-direction: column;
+                min-height: auto;
+                box-shadow: none;
+            }
+
+            #sidebar {
+                width: 100%;
+                max-height: 80vh; 
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                padding: 15px 10px;
+                order: 1; /* Ustawienie kolejności */
+            }
+            
+            #main-content {
+                width: 100%;
+                max-height: auto;
+                padding: 15px 10px;
+                order: 2; /* Ustawienie kolejności */
+            }
+
+            /* Dostosowanie szerokości pól */
+            #search-input,
+            #vocal-type-select,
+            #genre-select,
+            #collection-select { 
+                width: 100%;
+            }
+            
+            /* Ukrycie tytułu strony, by zaoszczędzić miejsce */
+            h1 {
+                display: none;
+            }
+
+            /* Przełączanie widoków na mobilnym */
+            /* WAŻNE: To ukrywa listę, gdy aktywne są detale */
+            #app-container.mobile-details-active #sidebar {
+                display: none; 
+            }
+
+            /* WAŻNE: To ukrywa detale, gdy aktywne jest lista */
+            #app-container:not(.mobile-details-active) #main-content {
+                display: none; 
+            }
+            
+            /* Pokaż przycisk "back to list" w widoku szczegółów */
+            #app-container.mobile-details-active #back-to-list-button {
+                display: inline-flex; /* Wymuszamy widoczność na mobilnym */
+                font-size: 1em;
+                margin-bottom: 15px;
+            }
+            
+            /* Upewnienie się, że kontrolki zawijają się na mobilnym */
             #controls-bar {
-                /* Upewnienie się, że kontrolki zawijają się na mobilnym */
                 justify-content: space-between;
                 align-items: flex-start;
+            }
+            
+            #transpose-controls {
+                flex-basis: 100%; /* Zajmij całą szerokość dla lepszej czytelności */
+                justify-content: space-between;
+                margin-right: 0;
             }
         }
     </style>
@@ -259,7 +362,7 @@
         let currentTranspose = 0;
         let currentSongId = null; 
         
-        // ZMIENIONE: Zmienna stanu dla widoczności WSZYSTKICH akordów
+        // Zmienna stanu dla widoczności WSZYSTKICH akordów
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
@@ -289,7 +392,7 @@
 
 
         
-        // --- LOGIKA WIDOKU MOBILNEGO (Bez zmian) ---
+        // --- LOGIKA WIDOKU MOBILNEGO (NAPRAWIONE) ---
         function isMobileView() {
              return window.innerWidth <= 768;
         }
@@ -297,9 +400,11 @@
         function setMobileView(view) {
             if (isMobileView()) {
                 if (view === 'details') {
+                    // DODANIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW
                     appContainer.classList.add('mobile-details-active');
                     document.getElementById('main-content').scrollTop = 0;
                 } else {
+                    // USUNIĘCIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW (POWRÓT DO LISTY)
                     appContainer.classList.remove('mobile-details-active');
                     document.getElementById('sidebar').scrollTop = 0;
                 }
@@ -311,7 +416,7 @@
         function getScaleIndex(note) {
             let index = chromaticScale.indexOf(note);
             if (index === -1) {
-                const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'A#', 'Bb': 'A#' }; // Poprawka: Ab: G#, Bb: A#
+                const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
                 const sharpEquivalent = flatMap[note];
                 if (sharpEquivalent) {
                     index = chromaticScale.indexOf(sharpEquivalent);
@@ -365,14 +470,12 @@
             return transposedLyricsHtml;
         }
         
-        // ZMODYFIKOWANA FUNKCJA: Wystarczy teraz wywołać tylko raz updateChordsVisibility
         function redrawChords() {
             if (currentSongId === null) return;
             
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
-            // 1. Akordy w sekcji <pre> - musimy je transponować
             if (song.chords) {
                 const originalChords = song.chords;
                 const transposedChords = transposeChordsText(originalChords, currentTranspose);
@@ -382,11 +485,9 @@
                 }
             }
             
-            // 2. Zarządzanie widocznością całości
             updateChordsVisibility();
         }
 
-        // NOWA/ZMODYFIKOWANA FUNKCJA: Przełącza klasę 'chords-hidden' na głównym kontenerze detali
         function updateChordsVisibility() {
             if (areChordsSectionsVisible) {
                 songDetailsDiv.classList.remove('chords-hidden');
@@ -524,12 +625,13 @@
             controlsBar.style.display = 'none'; 
             currentSongId = null;
             
+            // Po filtrowaniu zawsze wracamy do widoku listy
             if (isMobileView()) {
                 setMobileView('list');
             }
         }
 
-        // ZMODYFIKOWANA FUNKCJA: Dodaje akordy i ustawia widoczność początkową
+        // ZMODYFIKOWANA FUNKCJA: WYNOSI POKAZYWANIE DETALI NA KOŃCU
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
@@ -553,7 +655,6 @@
                 </div>
             ` : '';
             
-            // Zresetuj stan widoczności akordów przy wyborze nowej piosenki (zawsze pokazujemy na starcie)
             areChordsSectionsVisible = true;
             
             const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
@@ -585,12 +686,13 @@
             `;
             
             redrawChords();
-            setMobileView('details');
+            
+            // KLUCZOWY ELEMENT: Aktywacja widoku detali na mobilnym
+            setMobileView('details'); 
         }
 
         // --- OBSŁUGA ZDARZEŃ ---
 
-        // ZMIENIONE: Teraz przełączamy klasę na kontenerze #song-details
         toggleChordsButton.addEventListener('click', () => {
             areChordsSectionsVisible = !areChordsSectionsVisible;
             updateChordsVisibility();
@@ -641,8 +743,16 @@
         
         // 4. Reset widoku po zmianie rozmiaru okna
         window.addEventListener('resize', () => {
+             // Upewniamy się, że po zmianie rozmiaru (np. obrócenie tabletu)
+             // widok jest poprawnie resetowany
              if (!isMobileView()) {
                  appContainer.classList.remove('mobile-details-active');
+             } else if (currentSongId !== null) {
+                 // Jeśli jesteśmy na mobilnym i mamy wybraną piosenkę,
+                 // upewniamy się, że widok detali jest aktywny po obróceniu
+                 setMobileView('details');
+             } else {
+                 setMobileView('list');
              }
         });
 
