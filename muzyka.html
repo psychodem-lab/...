@@ -114,7 +114,6 @@
             border-radius: 4px;
             font-weight: bold;
             transition: background-color 0.2s;
-            flex-shrink: 0; /* DODANE: nie pozwól na zmniejszanie przycisku */
         }
 
         #toggle-chords-button {
@@ -127,14 +126,13 @@
         }
         
         #back-to-list-button {
-            display: none; /* Domyślne ukrycie na desktopie */
+            /* Domyślne ukrycie na desktopie */
+            display: none; 
             border: 1px solid #ccc;
             background-color: #f7f7f7;
             color: #2c3e50;
             align-items: center;
             gap: 5px;
-            font-size: 1em; /* Styl z poprzedniej wersji mobilnej */
-            margin-bottom: 15px;
         }
         
         /* Lista piosenek */
@@ -147,33 +145,8 @@
         #song-list li {
             padding: 10px 5px;
             border-bottom: 1px dashed #eee;
-            cursor: pointer; /* Kursor dla desktopu (kliknięcie na cały wiersz) */
-            transition: background-color 0.2s;
-            display: flex; /* Aby ustawić przycisk w prawo */
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .song-info { /* NOWY ELEMENT: Kontener na tytuł i wykonawcę */
-            flex-grow: 1;
-            padding-right: 10px;
-        }
-        
-        /* NOWY: Styl dla przycisku lupy w liście */
-        .view-song-button {
-            display: none; /* Ukryty domyślnie na desktopie */
-            background: none;
-            border: none;
-            color: #3498db;
-            font-size: 1.5em;
             cursor: pointer;
-            padding: 0 5px;
-            flex-shrink: 0;
-            transition: color 0.2s;
-        }
-        
-        .view-song-button:hover {
-            color: #2980b9;
+            transition: background-color 0.2s;
         }
 
         #song-list li:hover {
@@ -185,20 +158,57 @@
             color: white;
             font-weight: bold;
         }
+
+        .song-title {
+            font-weight: bold;
+        }
+
+        .song-artist {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        /* Akordy - sekcja na górze */
+        .chords-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
         
-        /* Akordy, Tekst, Ukrywanie (Bez zmian) */
+        .chords-header {
+            font-weight: bold;
+            color: #34495e;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background-color: #e8eef2;
+        }
+
+        #active-chords-content {
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 10px;
+            margin: 0;
+        }
+        
+        /* Tekst piosenki i inne detale */
         .inline-chord {
             font-weight: bold;
             color: #e74c3c;
             margin: 0 3px;
             white-space: nowrap;
         }
+        
+        /* KLASY DO UKRYWANIA AKORDÓW */
         .chords-hidden .inline-chord {
             display: none;
         }
+        
         .chords-hidden .chords-container {
             display: none;
         }
+        
         .placeholder {
             padding: 40px;
             text-align: center;
@@ -209,67 +219,73 @@
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (max 768px) --- */
         @media (max-width: 768px) {
             
-            body { padding: 10px; }
+            body {
+                padding: 10px;
+            }
+
             #app-container {
                 flex-direction: column;
                 min-height: auto;
                 box-shadow: none;
             }
+
             #sidebar {
                 width: 100%;
                 max-height: 80vh; 
                 border-right: none;
                 border-bottom: 1px solid #ddd;
                 padding: 15px 10px;
+                order: 1; /* Ustawienie kolejności */
             }
+            
             #main-content {
                 width: 100%;
                 max-height: auto;
                 padding: 15px 10px;
+                order: 2; /* Ustawienie kolejności */
             }
 
             /* Dostosowanie szerokości pól */
-            #search-input, #vocal-type-select, #genre-select, #collection-select { width: 100%; }
-            h1 { display: none; }
+            #search-input,
+            #vocal-type-select,
+            #genre-select,
+            #collection-select { 
+                width: 100%;
+            }
+            
+            /* Ukrycie tytułu strony, by zaoszczędzić miejsce */
+            h1 {
+                display: none;
+            }
 
-            /* LOGIKA PRZEŁĄCZANIA WIDOKU MOBILNEGO (NAPRAWIONE) */
-            /* 1. Ukryj listę (sidebar), gdy aktywne są detale */
+            /* Przełączanie widoków na mobilnym */
+            /* WAŻNE: To ukrywa listę, gdy aktywne są detale */
             #app-container.mobile-details-active #sidebar {
                 display: none; 
             }
-            /* 2. Ukryj detale (main-content), gdy aktywna jest lista */
+
+            /* WAŻNE: To ukrywa detale, gdy aktywne jest lista */
             #app-container:not(.mobile-details-active) #main-content {
                 display: none; 
             }
             
-            /* 3. Pokaż przycisk powrotu w widoku detali */
+            /* Pokaż przycisk "back to list" w widoku szczegółów */
             #app-container.mobile-details-active #back-to-list-button {
-                display: inline-flex; 
+                display: inline-flex; /* Wymuszamy widoczność na mobilnym */
+                font-size: 1em;
+                margin-bottom: 15px;
             }
             
-            /* 4. NAJWAŻNIEJSZE: Zmień zachowanie elementu listy */
-            #song-list li {
-                 cursor: default; /* Wyłącz klikanie na cały wiersz */
-            }
-            /* 5. Pokaż przycisk lupy w każdym wierszu */
-            .view-song-button {
-                display: inline-block; 
-            }
-
-            /* Kontrolki na mobilnym */
+            /* Upewnienie się, że kontrolki zawijają się na mobilnym */
             #controls-bar {
                 justify-content: space-between;
                 align-items: flex-start;
             }
+            
             #transpose-controls {
-                flex-basis: 100%; 
+                flex-basis: 100%; /* Zajmij całą szerokość dla lepszej czytelności */
                 justify-content: space-between;
                 margin-right: 0;
-                order: 1; /* Transpozycja na górze */
-            }
-            #toggle-chords-button {
-                flex-grow: 1;
-                order: 2; /* Przycisk na dole */
             }
         }
     </style>
@@ -313,7 +329,7 @@
 
         <div id="main-content">
             
-            <button id="back-to-list-button">
+            <button id="back-to-list-button" title="Wróć do wyszukiwania">
                 <span style="font-size: 1.2em;">&#x1F50D;</span> Wyszukaj
             </button>
             
@@ -345,6 +361,8 @@
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
         let currentTranspose = 0;
         let currentSongId = null; 
+        
+        // Zmienna stanu dla widoczności WSZYSTKICH akordów
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
@@ -374,7 +392,7 @@
 
 
         
-        // --- LOGIKA WIDOKU MOBILNEGO ---
+        // --- LOGIKA WIDOKU MOBILNEGO (NAPRAWIONE) ---
         function isMobileView() {
              return window.innerWidth <= 768;
         }
@@ -382,9 +400,11 @@
         function setMobileView(view) {
             if (isMobileView()) {
                 if (view === 'details') {
+                    // DODANIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW
                     appContainer.classList.add('mobile-details-active');
                     document.getElementById('main-content').scrollTop = 0;
                 } else {
+                    // USUNIĘCIE KLASY AKTYWUJĄCEJ WIDOK SZCZEGÓŁÓW (POWRÓT DO LISTY)
                     appContainer.classList.remove('mobile-details-active');
                     document.getElementById('sidebar').scrollTop = 0;
                 }
@@ -392,7 +412,7 @@
         }
 
 
-        // --- LOGIKA TRANSPOZYCJI I AKORDÓW (Bez zmian) ---
+        // --- LOGIKA TRANSPOZYCJI (Bez zmian) ---
         function getScaleIndex(note) {
             let index = chromaticScale.indexOf(note);
             if (index === -1) {
@@ -479,7 +499,7 @@
         }
 
 
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE ---
+        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE (Bez zmian) ---
         
         function populateCollectionOptions() {
             collectionSelect.innerHTML = '';
@@ -572,7 +592,6 @@
             });
         }
         
-        // ZMODYFIKOWANA FUNKCJA: DODAWANIE IKONY LUPY
         function filterAndRenderSongs() {
             const { searchTerm, vocalType, genre } = currentFilters;
             
@@ -592,16 +611,11 @@
                 filteredSongs.forEach(song => {
                     const li = document.createElement('li');
                     li.setAttribute('data-song-id', song.id);
-                    
-                    // Zawartość li: Tytuł/Wykonawca + Przycisk Lupy
                     li.innerHTML = `
-                        <div class="song-info">
+                        <div>
                             <span class="song-title">${song.title}</span> 
                             <span class="song-artist">(${song.artist})</span>
                         </div>
-                        <button class="view-song-button" data-song-id="${song.id}">
-                            <span style="font-size: 1em;">&#x1F50D;</span>
-                        </button>
                     `;
                     songList.appendChild(li);
                 });
@@ -611,11 +625,13 @@
             controlsBar.style.display = 'none'; 
             currentSongId = null;
             
+            // Po filtrowaniu zawsze wracamy do widoku listy
             if (isMobileView()) {
                 setMobileView('list');
             }
         }
 
+        // ZMODYFIKOWANA FUNKCJA: WYNOSI POKAZYWANIE DETALI NA KOŃCU
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
@@ -689,30 +705,17 @@
             loadSongs(currentCollectionFile);
         });
 
-        // 1. ZMODYFIKOWANA OBSŁUGA KLIKNIĘCIA NA LIŚCIE: Różna logika dla desktopu i mobilnego
+        // 1. Obsługa kliknięcia na listę (cały wiersz <li>)
         songList.addEventListener('click', (event) => {
-            let songId = null;
+            const li = event.target.closest('li');
             
-            if (isMobileView()) {
-                // TRYB MOBILNY: Kliknięcie działa tylko na przycisku lupy
-                const button = event.target.closest('.view-song-button');
-                if (button) {
-                    songId = parseInt(button.getAttribute('data-song-id'));
-                }
-            } else {
-                // TRYB DESKTOP: Kliknięcie działa na całym elemencie <li>
-                const li = event.target.closest('li');
-                if (li && li.hasAttribute('data-song-id')) {
-                    songId = parseInt(li.getAttribute('data-song-id'));
-                }
-            }
-
-            if (songId !== null) {
+            if (li && li.hasAttribute('data-song-id')) {
+                const songId = parseInt(li.getAttribute('data-song-id'));
                 showDetails(songId);
             }
         });
 
-        // 2. Obsługa przycisku "Wróć do wyszukiwania"
+        // 2. Obsługa przycisku "Wróć do wyszukiwania" (ikona lupy)
         backToListButton.addEventListener('click', () => {
             setMobileView('list');
         });
@@ -740,9 +743,13 @@
         
         // 4. Reset widoku po zmianie rozmiaru okna
         window.addEventListener('resize', () => {
+             // Upewniamy się, że po zmianie rozmiaru (np. obrócenie tabletu)
+             // widok jest poprawnie resetowany
              if (!isMobileView()) {
                  appContainer.classList.remove('mobile-details-active');
              } else if (currentSongId !== null) {
+                 // Jeśli jesteśmy na mobilnym i mamy wybraną piosenkę,
+                 // upewniamy się, że widok detali jest aktywny po obróceniu
                  setMobileView('details');
              } else {
                  setMobileView('list');
