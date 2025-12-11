@@ -1,23 +1,37 @@
 [
   {
-    "title": "Gwiazda Północy",
-    "artist": "Zespół Transpozycyjny",
-    "originalKey": "G",
+    "title": "Dzisiaj w Betlejem",
+    "artist": "Kolędy",
+    "originalKey": "C",
     "stanzas": [
       {
+        "type": "verse",
         "lines": [
-          {"chords": "G          C", "lyrics": "Patrzę w górę, widzę noc,"},
-          {"chords": "D          G", "lyrics": "Droga długa, daj mi moc."}
+          {"chords": "C                            C", "lyrics": "Dzisiaj w Betlejem, dzisiaj w Betlejem,"},
+          {"chords": "G", "lyrics": "Wesoła nowina"},
+          {"chords": "C                          C", "lyrics": "Że Panna czysta, że Panna czysta"},
+          {"chords": "G", "lyrics": "Porodziła Syna"}
+        ]
+      },
+      {
+        "type": "chorus",
+        "style": { "color": "red" },
+        "lines": [
+          {"chords": "G                           C", "lyrics": "Chrystus się rodzi Nas oswobodzi"},
+          {"chords": "G                 C", "lyrics": "Anieli grają, Króle witają"},
+          {"chords": "G                           C", "lyrics": "Pasterz śpiewają, Bydlęta klękają"},
+          {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
         ]
       }
     ]
   },
-    {
+  {
     "title": "Przybieżeli do Betlejem",
     "artist": "Kolędy",
     "originalKey": "C",
     "stanzas": [
       {
+        "type": "verse",
         "lines": [
           {"chords": "C                                          F C", "lyrics": "Przybieżeli do Betlejem pasterze,"},
           {"chords": "C                                                 F C", "lyrics": "Grając skocznie Dzieciąteczku na lirze."},
@@ -33,6 +47,7 @@
     "originalKey": "Am",
     "stanzas": [
       {
+        "type": "verse",
         "lines": [
           {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
           {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
