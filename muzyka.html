@@ -354,8 +354,7 @@
         </div>
 
     </div>
-
-    <script>
+<script>
         // --- ZMIENNE GLOBALNE I DANE ---
         let allSongs = [];
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
@@ -373,8 +372,11 @@
         let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
 
-        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        const displayScale = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+        // ZMIANA: Skala do indeksowania pozostaje w notacji US (chromaticScale),
+        // ale skala wyjściowa (displayScale) jest zmieniona na notację B/H (polsko-niemiecką)
+        // oraz faworyzuje krzyżyki (#) zgodnie z Twoim życzeniem.
+        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; // Skala referencyjna (US A# / B)
+        const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; // Skala wyjściowa (Polish/German B / H)
 
         // Elementy DOM
         const appContainer = document.getElementById('app-container');
@@ -392,7 +394,7 @@
 
 
         
-        // --- LOGIKA WIDOKU MOBILNEGO (NAPRAWIONE) ---
+        // --- LOGIKA WIDOKU MOBILNEGO (Bez zmian) ---
         function isMobileView() {
              return window.innerWidth <= 768;
         }
@@ -412,12 +414,29 @@
         }
 
 
-        // --- LOGIKA TRANSPOZYCJI (Bez zmian) ---
+        // --- LOGIKA TRANSPOZYCJI (ZMIANA NA B/H i Case-Sensitive) ---
+        
+        // ZMIANA: Funkcja mapuje nutę wejściową (Major/Minor/Flat/B/H) na indeks z chromaticScale (A#, B)
         function getScaleIndex(note) {
-            let index = chromaticScale.indexOf(note);
+            // Normalizujemy nutę do wielkiej litery, aby ją zindeksować
+            let baseNote = note.toUpperCase(); 
+
+            // Obsługa polskiej notacji B/H jako wejścia (jeśli taka jest w plikach JSON)
+            // B (nowe) = A# (stare) [indeks 10]
+            // H (nowe) = B (stare) [indeks 11]
+            if (baseNote === 'H') {
+                baseNote = 'B'; 
+            } else if (baseNote === 'B') {
+                baseNote = 'A#'; 
+            }
+
+            let index = chromaticScale.indexOf(baseNote);
+
             if (index === -1) {
-                const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
-                const sharpEquivalent = flatMap[note];
+                // Obsługa nut z notacji płaskiej (jeśli takie są w plikach wejściowych)
+                // (Normalizacja do C# przed sprawdzeniem indexu)
+                const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
+                const sharpEquivalent = flatMap[baseNote];
                 if (sharpEquivalent) {
                     index = chromaticScale.indexOf(sharpEquivalent);
                 }
@@ -425,32 +444,46 @@
             return index;
         }
 
+        // ZMIANA: Funkcja transponująca akordy z zachowaniem wielkości liter
         function transposeChordString(chordString, semitones) {
-            const chordPattern = /([A-G][b#]?)([\w\d\/#\-]*)?/; 
+            // ZMIANA: Ulepszony RegEx, aby dopasować A-G / a-g oraz H / h, opcjonalne b/# oraz modyfikatory
+            const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
             
             if (!match) return chordString;
             
-            const baseNote = match[1];
+            const originalBaseNote = match[1];
             const modifier = match[2];
             
-            let baseNoteIndex = getScaleIndex(baseNote);
+            // KROK 1: Sprawdzenie wielkości liter (Major vs Minor)
+            const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
+            
+            // KROK 2: Wyszukanie indeksu nuty bazowej w skali chromatycznej
+            let baseNoteForIndex = originalBaseNote;
+            let baseNoteIndex = getScaleIndex(baseNoteForIndex);
             
             if (baseNoteIndex === -1) {
-                return chordString;
+                return chordString; // Nieznana nuta
             }
 
+            // KROK 3: Obliczenie nowego indeksu
             let newIndex = (baseNoteIndex + semitones);
             newIndex = (newIndex % 12 + 12) % 12;
 
-            const newBaseNote = displayScale[newIndex]; 
-
+            // KROK 4: Pobranie nowej nuty bazowej z preferowanej przez użytkownika skali (B/H)
+            let newBaseNote = displayScale[newIndex];
+            
+            // KROK 5: Zastosowanie odpowiedniej wielkości litery (Major/Minor)
+            if (isMinor) {
+                newBaseNote = newBaseNote.toLowerCase(); // np. C -> c, H -> h
+            }
+            
             return newBaseNote + (modifier || '');
         }
 
         function transposeChordsText(text, semitones) {
             if (!text || semitones === 0) return text;
-            const chordPattern = /([A-G][b#]?[\w\d\/#\-]*)/g; 
+            const chordPattern = /([A-GHa-gh][b#]?[\w\d\/#\-]*)/g; // ZMIANA: Zaktualizowany Regex
             
             const transposedText = text.replace(chordPattern, (match) => {
                 return transposeChordString(match, semitones);
@@ -460,7 +493,7 @@
 
         function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
             if (!lyricsHtml) return '';
-            const inlineChordPattern = /\[([A-G][b#]?[\w\d\/#\-]*)\]/g; 
+            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; // ZMIANA: Zaktualizowany Regex
 
             const transposedLyricsHtml = lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
                 const transposedChord = transposeChordString(chordInsideBrackets, semitones);
@@ -470,12 +503,14 @@
             return transposedLyricsHtml;
         }
         
+        // ZMIANA: Funkcja redrawChords musi teraz zaktualizować też akordy w tekście
         function redrawChords() {
             if (currentSongId === null) return;
             
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
+            // 1. Transpozycja akordów w sekcji CHORDS-CONTAINER
             if (song.chords) {
                 const originalChords = song.chords;
                 const transposedChords = transposeChordsText(originalChords, currentTranspose);
@@ -485,8 +520,19 @@
                 }
             }
             
+            // 2. Transpozycja akordów w sekcji LYRICS-CONTENT
+            if (song.lyrics) {
+                const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
+                const lyricsContentDiv = document.getElementById('active-lyrics-content');
+                if (lyricsContentDiv) {
+                    lyricsContentDiv.innerHTML = processedLyrics;
+                }
+            }
+
             updateChordsVisibility();
         }
+        // ... (reszta kodu bez zmian w logice) ...
+
 
         function updateChordsVisibility() {
             if (areChordsSectionsVisible) {
@@ -499,7 +545,7 @@
         }
 
 
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE (Bez zmian) ---
+        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE (Bez zmian w logice) ---
         
         function populateCollectionOptions() {
             collectionSelect.innerHTML = '';
@@ -597,7 +643,7 @@
             
             const filteredSongs = allSongs.filter(song => {
                 const textMatch = song.titleLower.includes(searchTerm) || 
-                                     song.artistLower.includes(searchTerm);
+                                   song.artistLower.includes(searchTerm);
                 const vocalMatch = vocalType === '' || song.vocalTypeLower === vocalType;
                 const genreMatch = genre === '' || song.genreLower === genre;
 
@@ -631,7 +677,7 @@
             }
         }
 
-        // ZMODYFIKOWANA FUNKCJA: WYNOSI POKAZYWANIE DETALI NA KOŃCU
+        // ZMODYFIKOWANA FUNKCJA: UŻYWA NOWEJ LOGIKI TRANSPOZYCJI
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
@@ -645,7 +691,7 @@
                 }
             });
             
-            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-G][b#]?[\w\d\/#\-]*\]/));
+            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); // ZMIANA: Użycie nowego RegEx do sprawdzenia akordów inline
             controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
 
             const chordsSection = song.chords ? `
@@ -657,6 +703,7 @@
             
             areChordsSectionsVisible = true;
             
+            // ZMIANA: Użycie nowej logiki transpozycji dla akordów inline w tekście
             const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
             
             songDetailsDiv.innerHTML = `
@@ -736,6 +783,7 @@
             filterAndRenderSongs();
         });
         
+        // ZMIANA: Po zmianie transpozycji, odświeżamy akordy w obu miejscach (poprawione)
         transposeSelect.addEventListener('change', (event) => {
             currentTranspose = parseInt(event.target.value);
             redrawChords();
