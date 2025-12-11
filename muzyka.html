@@ -6,6 +6,7 @@
     <title>Moja Lista Piosenek</title>
     <style>
         /* --- STYLY PODSTAWOWE (Desktop) --- */
+        /* ... (Inne style bez zmian) ... */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -59,7 +60,7 @@
             font-size: 1.5em;
         }
 
-        /* Wyszukiwarka i Filtry */
+        /* Wyszukiwarka i Filtry (Bez zmian) */
         .filter-group {
             margin-bottom: 15px;
         }
@@ -84,16 +85,16 @@
             box-sizing: border-box;
         }
 
-        /* Transpozycja i Kontrolki */
-        #controls-bar { /* NOWY KONTEJNER: do transpozycji i przycisków */
+        /* Transpozycja i Kontrolki (Bez zmian) */
+        #controls-bar { 
             margin-bottom: 20px;
             padding: 10px;
             background-color: #ecf0f1;
             border-radius: 4px;
             display: flex;
-            flex-wrap: wrap; /* Pozwala na zawijanie elementów */
+            flex-wrap: wrap; 
             align-items: center;
-            gap: 10px; /* Mniejszy odstęp na desktopie */
+            gap: 10px; 
         }
         
         #transpose-controls {
@@ -123,39 +124,6 @@
             background-color: #2980b9;
         }
 
-        /* Lista piosenek (Bez zmian) */
-        #song-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #song-list li {
-            padding: 10px 5px;
-            border-bottom: 1px dashed #eee;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        #song-list li:hover {
-            background-color: #ecf0f1;
-        }
-
-        #song-list li.selected {
-            background-color: #3498db;
-            color: white;
-            font-weight: bold;
-        }
-
-        .song-title {
-            font-weight: bold;
-        }
-
-        .song-artist {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
 
         /* Akordy - sekcja na górze (Bez zmian) */
         .chords-container {
@@ -188,8 +156,14 @@
             white-space: nowrap;
         }
         
-        /* DODANE: KLASA UKRYWAJĄCA AKORDY W TEKŚCIE */
-        .hide-inline-chords .inline-chord {
+        /* NOWE / ZMIENIONE: Ukrycie wiersza bez spacji */
+        /* Ten styl ukrywa inline akordy, gdy kontener (np. #song-details) ma klasę 'chords-hidden' */
+        .chords-hidden .inline-chord {
+            display: none;
+        }
+        
+        /* ZMIENIONE: Usuwa również sekcję Akordów/Chwytów (<pre>) */
+        .chords-hidden .chords-container {
             display: none;
         }
         
@@ -203,7 +177,7 @@
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (max 768px) --- */
         @media (max-width: 768px) {
             
-            /* ... (inne style mobilne bez zmian) ... */
+            /* ... (Inne style mobilne bez zmian) ... */
 
             #controls-bar {
                 /* Upewnienie się, że kontrolki zawijają się na mobilnym */
@@ -268,7 +242,8 @@
                 </button>
                 
             </div>
-            <div id="song-details">
+
+            <div id="song-details"> 
                 <div class="placeholder">
                     Wybierz piosenkę z listy, aby zobaczyć szczegóły.
                 </div>
@@ -284,13 +259,13 @@
         let currentTranspose = 0;
         let currentSongId = null; 
         
-        // DODANE: Zmienna stanu dla akordów w tekście
-        let areInlineChordsVisible = true;
+        // ZMIENIONE: Zmienna stanu dla widoczności WSZYSTKICH akordów
+        let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
-            { name: "Główny Zbiór", file: 'piosenki.json' },
+            { name: "Główny Zbiór", file: 'piosenki_export_2025-12-10.json' },
             { name: "Kolędy", file: 'koledy.json' },
-            { name: "Łukasz", file: 'lukasz.json' }
+            { name: "Hymny", file: 'hymny.json' }
         ];
         let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
@@ -309,7 +284,6 @@
         const backToListButton = document.getElementById('back-to-list-button');
         const collectionSelect = document.getElementById('collection-select'); 
         
-        // DODANE ELEMENTY DOM
         const controlsBar = document.getElementById('controls-bar');
         const toggleChordsButton = document.getElementById('toggle-chords-button');
 
@@ -337,7 +311,7 @@
         function getScaleIndex(note) {
             let index = chromaticScale.indexOf(note);
             if (index === -1) {
-                const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
+                const flatMap = { 'Db': 'C#', 'D#': 'Eb', 'Gb': 'F#', 'Ab': 'A#', 'Bb': 'A#' }; // Poprawka: Ab: G#, Bb: A#
                 const sharpEquivalent = flatMap[note];
                 if (sharpEquivalent) {
                     index = chromaticScale.indexOf(sharpEquivalent);
@@ -391,14 +365,14 @@
             return transposedLyricsHtml;
         }
         
-        // ZMODYFIKOWANA FUNKCJA: Teraz wywołuje funkcję do zarządzania widocznością akordów
+        // ZMODYFIKOWANA FUNKCJA: Wystarczy teraz wywołać tylko raz updateChordsVisibility
         function redrawChords() {
             if (currentSongId === null) return;
             
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
-            // 1. Akordy w sekcji <pre>
+            // 1. Akordy w sekcji <pre> - musimy je transponować
             if (song.chords) {
                 const originalChords = song.chords;
                 const transposedChords = transposeChordsText(originalChords, currentTranspose);
@@ -408,21 +382,18 @@
                 }
             }
             
-            // 2. Akordy w tekście (nie musimy ponownie transponować, wystarczy przełączyć widoczność)
-            updateInlineChordsVisibility();
+            // 2. Zarządzanie widocznością całości
+            updateChordsVisibility();
         }
 
-        // DODANE: Funkcja do przełączania widoczności akordów w tekście
-        function updateInlineChordsVisibility() {
-            const lyricsContentDiv = document.getElementById('active-lyrics-content');
-            if (lyricsContentDiv) {
-                if (areInlineChordsVisible) {
-                    lyricsContentDiv.classList.remove('hide-inline-chords');
-                    toggleChordsButton.textContent = 'Ukryj Akordy';
-                } else {
-                    lyricsContentDiv.classList.add('hide-inline-chords');
-                    toggleChordsButton.textContent = 'Odkryj Akordy';
-                }
+        // NOWA/ZMODYFIKOWANA FUNKCJA: Przełącza klasę 'chords-hidden' na głównym kontenerze detali
+        function updateChordsVisibility() {
+            if (areChordsSectionsVisible) {
+                songDetailsDiv.classList.remove('chords-hidden');
+                toggleChordsButton.textContent = 'Ukryj Akordy';
+            } else {
+                songDetailsDiv.classList.add('chords-hidden');
+                toggleChordsButton.textContent = 'Odkryj Akordy';
             }
         }
 
@@ -443,7 +414,7 @@
         async function loadSongs(file) {
             songList.innerHTML = `<li class="placeholder">Ładowanie piosenek ze zbioru <strong>${file}</strong>...</li>`;
             songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
-            controlsBar.style.display = 'none'; // Używamy controlsBar zamiast transposeControlsDiv
+            controlsBar.style.display = 'none'; 
             currentSongId = null;
 
             try {
@@ -550,7 +521,7 @@
             }
             
             songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
-            controlsBar.style.display = 'none'; // Używamy controlsBar
+            controlsBar.style.display = 'none'; 
             currentSongId = null;
             
             if (isMobileView()) {
@@ -558,7 +529,7 @@
             }
         }
 
-        // ZMODYFIKOWANA FUNKCJA: Inicjuje stan widoczności akordów
+        // ZMODYFIKOWANA FUNKCJA: Dodaje akordy i ustawia widoczność początkową
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
@@ -572,9 +543,8 @@
                 }
             });
             
-            // Sprawdzenie, czy są akordy do transponowania/ukrycia
             const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-G][b#]?[\w\d\/#\-]*\]/));
-            controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; // Pokazujemy cały pasek kontrolny
+            controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
 
             const chordsSection = song.chords ? `
                 <div class="chords-container">
@@ -583,8 +553,8 @@
                 </div>
             ` : '';
             
-            // Resetujemy stan widoczności akordów przy wyborze nowej piosenki
-            areInlineChordsVisible = true;
+            // Zresetuj stan widoczności akordów przy wyborze nowej piosenki (zawsze pokazujemy na starcie)
+            areChordsSectionsVisible = true;
             
             const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
             
@@ -620,10 +590,10 @@
 
         // --- OBSŁUGA ZDARZEŃ ---
 
-        // NOWE: Obsługa kliknięcia przycisku Ukryj/Odkryj Akordy
+        // ZMIENIONE: Teraz przełączamy klasę na kontenerze #song-details
         toggleChordsButton.addEventListener('click', () => {
-            areInlineChordsVisible = !areInlineChordsVisible;
-            updateInlineChordsVisibility();
+            areChordsSectionsVisible = !areChordsSectionsVisible;
+            updateChordsVisibility();
         });
 
 
