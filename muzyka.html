@@ -171,11 +171,6 @@
             border-bottom: 1px solid #ddd;
         }
         
-        #controls-bar label {
-            font-weight: bold;
-        }
-        
-        #controls-bar select, 
         #controls-bar button {
             padding: 8px 12px;
             border: 1px solid #ccc;
@@ -189,6 +184,42 @@
             background-color: #eee;
         }
         
+        /* NOWE: Grupa kontrolek transpozycji */
+        #transpose-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px; 
+        }
+        
+        #transpose-controls label {
+            margin-right: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        #transpose-controls button,
+        #current-transpose-value {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            line-height: 1; 
+        }
+        
+        #current-transpose-value {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            min-width: 25px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        #transpose-controls button:active {
+            background-color: #ddd;
+        }
+
         /* Ukrywanie sekcji akordów */
         .chords-hidden .chords-container,
         .chords-hidden .inline-chord {
@@ -201,13 +232,13 @@
             #app-container {
                 flex-direction: column; 
                 position: relative;
-                height: auto; /* Zmiana: Pozwalamy na naturalną wysokość listy */
+                height: auto; 
                 min-height: 100vh;
             }
             
             #sidebar, #main-content {
                 width: 100%; 
-                height: auto; /* Zmiana: Usuwamy sztywną wysokość 100vh */
+                height: auto; 
                 padding: 10px;
                 overflow-y: visible;
                 border-right: none;
@@ -215,7 +246,7 @@
             
             /* Widok szczegółów (po kliknięciu) */
             #main-content {
-                position: fixed; /* Zmiana: Używamy fixed, by zasłonić całą listę */
+                position: fixed; 
                 top: 0;
                 left: 0;
                 right: 0;
@@ -226,8 +257,8 @@
                 transition: transform 0.3s ease-out;
                 box-shadow: 0 0 10px rgba(0,0,0,0.2);
                 padding-top: 60px; 
-                height: 100vh; /* Zapewniamy pełną wysokość dla widoku fixed */
-                overflow-y: auto; /* Włączamy przewijanie treści piosenki */
+                height: 100vh; 
+                overflow-y: auto; 
             }
             
             /* Klasa aktywująca widok detali */
@@ -245,6 +276,7 @@
                 padding: 10px;
                 border-bottom: 1px solid #ccc;
                 justify-content: space-between; 
+                flex-wrap: nowrap; /* ZMIANA: zapobiega zawijaniu kontrolek */
             }
 
             #back-to-list-button {
@@ -257,6 +289,18 @@
                 padding-bottom: 20px;
             }
             
+            /* ZMIANA: Dostosowanie przycisków transpozycji na mobile */
+            #transpose-controls {
+                gap: 3px;
+            }
+            #transpose-controls button,
+            #current-transpose-value {
+                padding: 4px 8px; 
+            }
+            #transpose-controls label {
+                 display: none; /* Ukryj napis, by zaoszczędzić miejsce */
+            }
+
             /* Dopasowanie filtrów do kolumny */
             .filter-controls {
                 flex-direction: column;
@@ -303,9 +347,19 @@
                     <i class="fas fa-search"></i> Wróć
                 </button>
                 
-                <label for="transpose-select">Transpozycja:</label>
-                <select id="transpose-select"></select>
-                
+                <div id="transpose-controls">
+                    <label>Transpozycja:</label>
+                    <button id="transpose-down-button" title="Półton w dół">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <span id="current-transpose-value">0</span>
+                    <button id="transpose-up-button" title="Półton w górę">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button id="transpose-reset-button" title="Reset do oryginału (0)">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
                 <button id="toggle-chords-button">Ukryj Akordy</button>
             </div>
             
@@ -334,9 +388,7 @@
         let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
 
-        // ZMIANA: Skala do indeksowania (US notacja)
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; 
-        // ZMIANA: Skala wyjściowa (Polish/German B / H) z zachowaniem krzyżyków
         const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; 
 
         // Elementy DOM
@@ -346,12 +398,17 @@
         const vocalTypeSelect = document.getElementById('vocal-type-select');
         const genreSelect = document.getElementById('genre-select');
         const songDetailsDiv = document.getElementById('song-details');
-        const transposeSelect = document.getElementById('transpose-select');
         const backToListButton = document.getElementById('back-to-list-button');
         const collectionSelect = document.getElementById('collection-select'); 
         
         const controlsBar = document.getElementById('controls-bar');
         const toggleChordsButton = document.getElementById('toggle-chords-button');
+        
+        // NOWE: Elementy DOM dla transpozycji
+        const transposeDownButton = document.getElementById('transpose-down-button');
+        const transposeUpButton = document.getElementById('transpose-up-button');
+        const transposeResetButton = document.getElementById('transpose-reset-button');
+        const currentTransposeValue = document.getElementById('current-transpose-value');
 
 
         
@@ -522,7 +579,7 @@
                     vocalTypeLower: (song.vocal_type || '').toLowerCase()
                 }));
 
-                // ZMIANA: Sortowanie alfabetyczne po tytule zaraz po wczytaniu
+                // Sortowanie alfabetyczne po tytule zaraz po wczytaniu
                 allSongs.sort((a, b) => {
                     if (a.titleLower < b.titleLower) {
                         return -1;
@@ -532,9 +589,13 @@
                     }
                     return 0;
                 });
-                // KONIEC ZMIANY
 
-                populateTransposeOptions();
+                // Reset transpozycji po załadowaniu nowego zbioru
+                currentTranspose = 0;
+                if (currentTransposeValue) {
+                    currentTransposeValue.textContent = '0'; 
+                }
+
                 populateFilterOptions();
                 filterAndRenderSongs();
             } catch (error) {
@@ -549,17 +610,6 @@
             searchInput.value = '';
             
             currentFilters = { searchTerm: '', vocalType: '', genre: '' };
-        }
-
-        function populateTransposeOptions() {
-            transposeSelect.innerHTML = '';
-            for (let i = -6; i <= 6; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i === 0 ? '0 (Oryginał)' : (i > 0 ? `+${i}` : `${i}`);
-                transposeSelect.appendChild(option);
-            }
-            currentTranspose = 0;
         }
 
         function populateFilterOptions() {
@@ -593,7 +643,6 @@
         function filterAndRenderSongs() {
             const { searchTerm, vocalType, genre } = currentFilters;
             
-            // Lista jest już posortowana w loadSongs
             const filteredSongs = allSongs.filter(song => {
                 const textMatch = song.titleLower.includes(searchTerm) || 
                                    song.artistLower.includes(searchTerm);
@@ -642,6 +691,12 @@
                 }
             });
             
+            // Reset transpozycji przy wyświetleniu nowej piosenki
+            currentTranspose = 0; 
+            if (currentTransposeValue) {
+                currentTransposeValue.textContent = '0';
+            }
+
             const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); 
             controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
 
@@ -687,6 +742,36 @@
         }
 
         // --- OBSŁUGA ZDARZEŃ ---
+        
+        // NOWE: Funkcja aktualizująca transpozycję i wyświetlanie
+        function updateTranspose(semitones) {
+            let newTranspose = semitones;
+            
+            // Ograniczenie transpozycji do zakresu -6 do +6
+            if (newTranspose > 6) newTranspose = -6;
+            if (newTranspose < -6) newTranspose = 6;
+            
+            currentTranspose = newTranspose;
+            
+            // Aktualizacja wyświetlanej wartości
+            currentTransposeValue.textContent = currentTranspose === 0 ? '0' : (currentTranspose > 0 ? `+${currentTranspose}` : `${currentTranspose}`);
+            
+            // Przerysowanie akordów
+            redrawChords();
+        }
+
+        transposeUpButton.addEventListener('click', () => {
+            updateTranspose(currentTranspose + 1);
+        });
+
+        transposeDownButton.addEventListener('click', () => {
+            updateTranspose(currentTranspose - 1);
+        });
+        
+        transposeResetButton.addEventListener('click', () => {
+            updateTranspose(0);
+        });
+        // KONIEC NOWEJ OBSŁUGI TRANSPOZYCJI
 
         toggleChordsButton.addEventListener('click', () => {
             areChordsSectionsVisible = !areChordsSectionsVisible;
@@ -724,11 +809,6 @@
         genreSelect.addEventListener('change', (event) => {
             currentFilters.genre = event.target.value;
             filterAndRenderSongs();
-        });
-        
-        transposeSelect.addEventListener('change', (event) => {
-            currentTranspose = parseInt(event.target.value);
-            redrawChords();
         });
         
         window.addEventListener('resize', () => {
