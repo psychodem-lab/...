@@ -23,7 +23,6 @@
           {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
         ]
       },
-
       {
         "type": "verse",
         "lines": [
@@ -43,7 +42,6 @@
           {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
         ]
       },
-
       {
         "type": "verse",
         "lines": [
@@ -63,7 +61,6 @@
           {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
         ]
       },
-
       {
         "type": "verse",
         "lines": [
@@ -83,7 +80,6 @@
           {"chords": "F                 G         C", "lyrics": "Cuda, cuda ogłaszają"}
         ]
       },
-
       {
         "type": "verse",
         "lines": [
@@ -133,6 +129,89 @@
         "lines": [
           {"chords": "Am         E", "lyrics": "Cichy deszcz, lato minęło,"},
           {"chords": "C          G", "lyrics": "Tylko cisza i echo gra."}
+        ]
+      }
+    ]
+  },
+
+  {
+    "title": "Gdy się Chrystus rodzi",
+    "artist": "Kolędy",
+    "originalKey": "C",
+    "stanzas": [
+      {
+        "type": "verse",
+        "lines": [
+          {"chords": "C           F             C      a     d       G7 C", "lyrics": "Gdy się Chrystus rodzi I na świat przychodzi"},
+          {"chords": "C           F         C                 a         d          G7 C", "lyrics": "Ciemna noc w jasnościach Promienistych brodzi"},
+          {"chords": "G              C              G                   C", "lyrics": "Aniołowie się radują Pod niebiosa wyśpiewują"}
+        ]
+      },
+      {
+        "type": "chorus",
+        "style": { "color": "red" },
+        "lines": [
+          {"chords": "C         F        G7      C F C         G7 C", "lyrics": "Gloria, gloria, gloria In excelsis De-o"}
+        ]
+      },
+
+      {
+        "type": "verse",
+        "lines": [
+          {"chords": "C         F   C", "lyrics": "Mówią do pasterzy"},
+          {"chords": "a          d                 G7   C", "lyrics": "Którzy trzód swych strzegli"},
+          {"chords": "C     F   C", "lyrics": "Aby do Betlejem"},
+          {"chords": "a        d           G7 C", "lyrics": "Czym prędzej pobiegli"},
+          {"chords": "G                      C", "lyrics": "Bo się narodził Zbawiciel"},
+          {"chords": "G                       C", "lyrics": "Wszego świata Odkupiciel"}
+        ]
+      },
+      {
+        "type": "chorus",
+        "style": { "color": "red" },
+        "lines": [
+          {"chords": "C         F        G7", "lyrics": "Gloria, gloria, gloria"},
+          {"chords": "C F C          G7 C", "lyrics": "In excelsis Deo"}
+        ]
+      },
+
+      {
+        "type": "verse",
+        "lines": [
+          {"chords": "C   F              C", "lyrics": "O niebieskie duchy"},
+          {"chords": "a      d       G7 C", "lyrics": "I posłowie nieba"},
+          {"chords": "C          F       C", "lyrics": "Powiedzcież wyraźniej"},
+          {"chords": "a            d         G7 C", "lyrics": "Co nam czynić trzeba"},
+          {"chords": "G                    C", "lyrics": "Bo my nic nie pojmujemy"},
+          {"chords": "G                           C", "lyrics": "Ledwo od strachu żyjemy"}
+        ]
+      },
+      {
+        "type": "chorus",
+        "style": { "color": "red" },
+        "lines": [
+          {"chords": "C         F        G7", "lyrics": "Gloria, gloria, gloria"},
+          {"chords": "C F C           G7 C", "lyrics": "In excelsis Deo"}
+        ]
+      },
+
+      {
+        "type": "verse",
+        "lines": [
+          {"chords": "C         F   C", "lyrics": "Idźcie do Betlejem"},
+          {"chords": "a          d        G7      C", "lyrics": "Gdzie Dziecię zrodzone"},
+          {"chords": "C             F C", "lyrics": "W pieluszki powite"},
+          {"chords": "a             d G7 C", "lyrics": "W żłobie położone"},
+          {"chords": "G             C", "lyrics": "Oddajcie Mu pokłon boski"},
+          {"chords": "G               C", "lyrics": "On osłodzi wasze troski"}
+        ]
+      },
+      {
+        "type": "chorus",
+        "style": { "color": "red" },
+        "lines": [
+          {"chords": "C         F         G7", "lyrics": "Gloria, gloria, gloria"},
+          {"chords": "C F C          G7 C", "lyrics": "In excelsis Deo"}
         ]
       }
     ]
