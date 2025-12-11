@@ -1,105 +1,46 @@
 [
   {
     "title": "Dzisiaj w Betlejem",
-    "stanzas": [
-      {
-        "type": 1,
-        "content": "C                            C\nDzisiaj w Betlejem, dzisiaj w Betlejem,\nG\nWesoła nowina\nC                          C\nŻe Panna czysta, że Panna czysta\nG\nPorodziła Syna"
-      },
-      {
-        "type": 1,
-        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
-      },
-      {
-        "type": 1,
-        "content": "C                      C\nMaryja Panna, Maryja Panna\nG\nDzieciątko piastuje\nC                      C\nI Józef święty i Józef święty\nG\nOn ją pielęgnuje"
-      },
-      {
-        "type": 1,
-        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
-      },
-      {
-        "type": 1,
-        "content": "C                           C\nChoć w stajence, Choć w stajence\nG\nPanna Syna rodzi\nC                                C\nPrzecież on wkrótce, przecież on wkrótce\nG\nludzi oswobodzi"
-      },
-      {
-        "type": 1,
-        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
-      },
-      {
-        "type": 1,
-        "content": "C                        C\nI Trzej królowie, i trzej królowie\nG\nod wschodu przybyli\nC                 C\nI dary Panu, i dary Panu\nG\nkosztowne złożyli"
-      },
-      {
-        "type": 1,
-        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
-      },
-      {
-        "type": 1,
-        "content": "C                          C\nPójdźmy też i my, pójdźmy też i my\nG\nprzywitać Jezusa\nC                            C\nKróla nad królami, Króla nad królami\nG\nuwielbić Jezusa"
-      },
-      {
-        "type": 1,
-        "content": "G                           C\nChrystus się rodzi Nas oswobodzi\nG                 C\nAnieli grają, Króle witają\nG                           C\nPasterz śpiewają, Bydlęta klękają\nF                 G         C\nCuda, cuda ogłaszają"
-      }
-    ]
+    "artist": "Kolędy",
+    "lyrics": "<p>[C] Dzisiaj w Betlejem, dzisiaj w Betlejem,</p><p>[G] Wesoła nowina</p><p>[C] Że Panna czysta, że Panna czysta</p><p>[G] Porodziła Syna</p><p></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Chrystus się rodzi Nas oswobodzi</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Anieli grają, Króle witają</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Pasterz śpiewają, Bydlęta klękają</span></p><p>[F] <span style=\"color: rgb(255, 0, 0);\">Cuda, cuda ogłaszają</span></p><p></p><p>[C] Maryja Panna, Maryja Panna</p><p>[G] Dzieciątko piastuje</p><p>[C] I Józef święty i Józef święty</p><p>[G] On ją pielęgnuje</p><p></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Chrystus się rodzi Nas oswobodzi</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Anieli grają, Króle witają</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Pasterz śpiewają, Bydlęta klękają</span></p><p>[F] <span style=\"color: rgb(255, 0, 0);\">Cuda, cuda ogłaszają</span></p><p></p><p>[C] Choć w stajence, Choć w stajence</p><p>[G] Panna Syna rodzi</p><p>[C] Przecież on wkrótce, przecież on wkrótce</p><p>[G] ludzi oswobodzi</p><p></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Chrystus się rodzi Nas oswobodzi</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Anieli grają, Króle witają</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Pasterz śpiewają, Bydlęta klękają</span></p><p>[F] <span style=\"color: rgb(255, 0, 0);\">Cuda, cuda ogłaszają</span></p><p></p><p>[C] I Trzej królowie, i trzej królowie</p><p>[G] od wschodu przybyli</p><p>[C] I dary Panu, i dary Panu</p><p>[G] kosztowne złożyli</p><p></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Chrystus się rodzi Nas oswobodzi</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Anieli grają, Króle witają</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Pasterz śpiewają, Bydlęta klękają</span></p><p>[F] <span style=\"color: rgb(255, 0, 0);\">Cuda, cuda ogłaszają</span></p><p></p><p>[C] Pójdźmy też i my, pójdźmy też i my</p><p>[G] przywitać Jezusa</p><p>[C] Króla nad królami, Króla nad królami</p><p>[G] uwielbić Jezusa</p><p></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Chrystus się rodzi Nas oswobodzi</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Anieli grają, Króle witają</span></p><p>[G] <span style=\"color: rgb(255, 0, 0);\">Pasterz śpiewają, Bydlęta klękają</span></p><p>[F] <span style=\"color: rgb(255, 0, 0);\">Cuda, cuda ogłaszają</span></p>",
+    "chords": "C\nG\nC\nG\n\nG C\nG C\nG C\nF G C",
+    "genre": "KOLEDY",
+    "vocal_type": "both",
+    "notes": "",
+    "key": "C",
+    "tempo": ""
   },
-
   {
     "title": "Przybieżeli do Betlejem",
-    "stanzas": [
-      {
-        "type": 1,
-        "content": "C                                          F C\nPrzybieżeli do Betlejem pasterze,\nC                                                 F C\nGrając skocznie Dzieciąteczku na lirze.\nC               F                                  G\nChwała na wysokości, chwała na wysokości,\nC F C      G   C\nA pokój na ziemi."
-      }
-    ]
+    "artist": "Kolędy",
+    "lyrics": "<p>[C][F][C] Przybieżeli do Betlejem pasterze,</p><p>[C][F][C] Grając skocznie Dzieciąteczku na lirze.</p><p>[C][F][G] Chwała na wysokości, chwała na wysokości,</p><p>[C][F][C][G][C] A pokój na ziemi.</p>",
+    "chords": "C F C\nC F C\nC F G\nC F C G C",
+    "genre": "KOLEDY",
+    "vocal_type": "both",
+    "notes": "",
+    "key": "C",
+    "tempo": ""
   },
-
   {
     "title": "Letni Deszcz",
-    "stanzas": [
-      {
-        "type": 1,
-        "content": "Am         E\nCichy deszcz, lato minęło,\nC          G\nTylko cisza i echo gra."
-      }
-    ]
+    "artist": "Samotny Bęben",
+    "lyrics": "<p>[Am][E] Cichy deszcz, lato minęło,</p><p>[C][G] Tylko cisza i echo gra.</p>",
+    "chords": "Am E\nC G",
+    "genre": "KOLEDY",
+    "vocal_type": "both",
+    "notes": "",
+    "key": "Am",
+    "tempo": ""
   },
-
   {
     "title": "Gdy się Chrystus rodzi",
-    "stanzas": [
-      {
-        "type": 1,
-        "content": "C           F             C      a     d       G7 C\nGdy się Chrystus rodzi I na świat przychodzi\nC           F         C                 a         d          G7 C\nCiemna noc w jasnościach Promienistych brodzi\nG              C              G                   C\nAniołowie się radują Pod niebiosa wyśpiewują"
-      },
-      {
-        "type": 1,
-        "content": "C         F        G7      C F C         G7 C\nGloria, gloria, gloria In excelsis De-o"
-      },
-      {
-        "type": 1,
-        "content": "C         F   C\nMówią do pasterzy\na          d                 G7   C\nKtórzy trzód swych strzegli\nC     F   C\nAby do Betlejem\na        d           G7 C\nCzym prędzej pobiegli\nG                      C\nBo się narodził Zbawiciel\nG                       C\nWszego świata Odkupiciel"
-      },
-      {
-        "type": 1,
-        "content": "C         F        G7\nGloria, gloria, gloria\nC F C          G7 C\nIn excelsis Deo"
-      },
-      {
-        "type": 1,
-        "content": "C   F              C\nO niebieskie duchy\na      d       G7 C\nI posłowie nieba\nC          F       C\nPowiedzcież wyraźniej\na            d         G7 C\nCo nam czynić trzeba\nG                    C\nBo my nic nie pojmujemy\nG                           C\nLedwo od strachu żyjemy"
-      },
-      {
-        "type": 1,
-        "content": "C         F        G7\nGloria, gloria, gloria\nC F C           G7 C\nIn excelsis Deo"
-      },
-      {
-        "type": 1,
-        "content": "C         F   C\nIdźcie do Betlejem\na          d        G7      C\nGdzie Dziecię zrodzone\nC             F C\nW pieluszki powite\na             d G7 C\nW żłobie położone\nG             C\nOddajcie Mu pokłon boski\nG               C\nOn osłodzi wasze troski"
-      },
-      {
-        "type": 1,
-        "content": "C         F         G7\nGloria, gloria, gloria\nC F C          G7 C\nIn excelsis Deo"
-      }
-    ]
+    "artist": "Kolędy",
+    "lyrics": "<p>[C][F][C][a][d][G7][C] Gdy się Chrystus rodzi I na świat przychodzi</p><p>[C][F][C][a][d][G7][C] Ciemna noc w jasnościach Promienistych brodzi</p><p>[G][C][G][C] Aniołowie się radują Pod niebiosa wyśpiewują</p><p></p><p>[C][F][G7][C][F][C][G7][C] <span style=\"color: rgb(255, 0, 0);\">Gloria, gloria, gloria In excelsis Deo</span></p><p></p><p>[C][F][C] Mówią do pasterzy</p><p>[a][d][G7][C] Którzy trzód swych strzegli</p><p>[C][F][C] Aby do Betlejem</p><p>[a][d][G7][C] Czym prędzej pobiegli</p><p>[G][C] Bo się narodził Zbawiciel</p><p>[G][C] Wszego świata Odkupiciel</p><p></p><p>[C][F][G7][C][F][C][G7][C] <span style=\"color: rgb(255, 0, 0);\">Gloria, gloria, gloria In excelsis Deo</span></p><p></p><p>[C][F][C] O niebieskie duchy</p><p>[a][d][G7][C] I posłowie nieba</p><p>[C][F][C] Powiedzcież wyraźniej</p><p>[a][d][G7][C] Co nam czynić trzeba</p><p>[G][C] Bo my nic nie pojmujemy</p><p>[G][C] Ledwo od strachu żyjemy</p><p></p><p>[C][F][G7][C][F][C][G7][C] <span style=\"color: rgb(255, 0, 0);\">Gloria, gloria, gloria In excelsis Deo</span></p><p></p><p>[C][F][C] Idźcie do Betlejem</p><p>[a][d][G7][C] Gdzie Dziecię zrodzone</p><p>[C][F][C] W pieluszki powite</p><p>[a][d][G7][C] W żłobie położone</p><p>[G][C] Oddajcie Mu pokłon boski</p><p>[G][C] On osłodzi wasze troski</p><p></p><p>[C][F][G7][C][F][C][G7][C] <span style=\"color: rgb(255, 0, 0);\">Gloria, gloria, gloria In excelsis Deo</span></p>",
+    "chords": "C F C a d G7 C\nC F C a d G7 C\nG C G C\n\nC F G7 C F C G7 C\n\nC F C\na d G7 C\nC F C\na d G7 C\nG C\nG C\n\nC F G7 C F C G7 C\n\nC F C\na d G7 C\nC F C\na d G7 C\nG C\nG C\n\nC F G7 C F C G7 C",
+    "genre": "KOLEDY",
+    "vocal_type": "both",
+    "notes": "",
+    "key": "C",
+    "tempo": ""
   }
 ]
