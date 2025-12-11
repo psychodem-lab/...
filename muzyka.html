@@ -368,12 +368,9 @@
         function setMobileView(view) {
             if (isMobileView()) {
                 if (view === 'details') {
-                    // Aktywacja widoku szczegółów poprzez klasę CSS
                     appContainer.classList.add('mobile-details-active');
-                    // Przewiń na górę (aby zobaczyć akordy/tekst)
                     document.getElementById('main-content').scrollTop = 0;
                 } else {
-                    // Powrót do widoku listy
                     appContainer.classList.remove('mobile-details-active');
                     document.getElementById('sidebar').scrollTop = 0;
                 }
@@ -381,14 +378,11 @@
         }
 
 
-        // --- LOGIKA TRANSPOZYCJI (W/G TWOICH WYMAGAŃ) ---
+        // --- LOGIKA TRANSPOZYCJI ---
         
         function getScaleIndex(note) {
             let baseNote = note.toUpperCase(); 
 
-            // Obsługa polskiej notacji B/H jako wejścia (jeśli taka jest w plikach JSON)
-            // B (nowe) = A# (stare) [indeks 10]
-            // H (nowe) = B (stare) [indeks 11]
             if (baseNote === 'H') {
                 baseNote = 'B'; 
             } else if (baseNote === 'B') {
@@ -398,7 +392,6 @@
             let index = chromaticScale.indexOf(baseNote);
 
             if (index === -1) {
-                // Obsługa nut z notacji płaskiej (Db, Eb, itp.)
                 const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
                 const sharpEquivalent = flatMap[baseNote];
                 if (sharpEquivalent) {
@@ -409,7 +402,6 @@
         }
 
         function transposeChordString(chordString, semitones) {
-            // Wyszukanie nuty bazowej (A-G, H, małe/wielkie litery, opcjonalny b/#) i reszty modyfikatora
             const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
             
@@ -418,24 +410,19 @@
             const originalBaseNote = match[1];
             const modifier = match[2];
             
-            // 1. Sprawdzenie wielkości liter (Major vs Minor)
             const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
             
-            // 2. Wyszukanie indeksu nuty bazowej 
             let baseNoteIndex = getScaleIndex(originalBaseNote);
             
             if (baseNoteIndex === -1) {
                 return chordString; 
             }
 
-            // 3. Obliczenie nowego indeksu
             let newIndex = (baseNoteIndex + semitones);
             newIndex = (newIndex % 12 + 12) % 12;
 
-            // 4. Pobranie nowej nuty bazowej z preferowanej przez użytkownika skali (B/H)
             let newBaseNote = displayScale[newIndex];
             
-            // 5. Zastosowanie odpowiedniej wielkości litery (Major/Minor)
             if (isMinor) {
                 newBaseNote = newBaseNote.toLowerCase(); 
             }
@@ -542,6 +529,18 @@
                     vocalTypeLower: (song.vocal_type || '').toLowerCase()
                 }));
 
+                // ZMIANA: Sortowanie alfabetyczne po tytule zaraz po wczytaniu
+                allSongs.sort((a, b) => {
+                    if (a.titleLower < b.titleLower) {
+                        return -1;
+                    }
+                    if (a.titleLower > b.titleLower) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                // KONIEC ZMIANY
+
                 populateTransposeOptions();
                 populateFilterOptions();
                 filterAndRenderSongs();
@@ -601,6 +600,7 @@
         function filterAndRenderSongs() {
             const { searchTerm, vocalType, genre } = currentFilters;
             
+            // UWAGA: Sortowanie odbywa się już w loadSongs, tutaj tylko filtrujemy.
             const filteredSongs = allSongs.filter(song => {
                 const textMatch = song.titleLower.includes(searchTerm) || 
                                    song.artistLower.includes(searchTerm);
@@ -649,7 +649,6 @@
                 }
             });
             
-            // Sprawdzenie, czy są akordy (w sekcji chords lub inline w lyrics)
             const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); 
             controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
 
