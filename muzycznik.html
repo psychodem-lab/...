@@ -94,7 +94,7 @@
         /* --- WIDOK SZCZEGÓŁÓW --- */
         #song-details {
             padding-top: 20px;
-            background-color: #fff; /* Ważne dla czystego JPG */
+            background-color: #fff; /* Ważne dla czystego zrzutu JPG */
         }
 
         #song-details h2 {
@@ -188,16 +188,6 @@
         #controls-bar button:hover {
             background-color: #eee;
         }
-
-        /* Styl dla przycisku JPG */
-        #download-jpg-button {
-            background-color: #28a745 !important;
-            color: white !important;
-            border-color: #218838 !important;
-        }
-        #download-jpg-button:hover {
-            background-color: #218838 !important;
-        }
         
         /* Grupa kontrolek transpozycji */
         #transpose-controls {
@@ -229,6 +219,10 @@
             min-width: 25px;
             text-align: center;
             display: inline-block;
+        }
+
+        #transpose-controls button:active {
+            background-color: #ddd;
         }
 
         /* Ukrywanie sekcji akordów */
@@ -265,7 +259,7 @@
                 transform: translateX(100%); 
                 transition: transform 0.3s ease-out;
                 box-shadow: 0 0 10px rgba(0,0,0,0.2);
-                padding-top: 60px; 
+                padding-top: 110px; /* Zwiększone, by pomieścić dwa rzędy kontrolek na mobile */
                 height: 100vh; 
                 overflow-y: auto; 
             }
@@ -283,17 +277,22 @@
                 padding: 10px;
                 border-bottom: 1px solid #ccc;
                 justify-content: space-between; 
-                flex-wrap: nowrap;
-                overflow-x: auto; /* Pozwala przewijać pasek jeśli przyciski się nie mieszczą */
+                flex-wrap: wrap; /* Pozwala na zawijanie przycisków na małych ekranach */
+                background: rgba(255,255,255,0.95);
             }
 
             #back-to-list-button {
-                display: block !important; 
+                display: flex !important; 
                 order: -1; 
             }
 
             #transpose-controls label {
-                 display: none; 
+                 display: none;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                gap: 5px;
             }
         }
     </style>
@@ -305,7 +304,7 @@
         <div id="sidebar">
             <div class="header">
                 <h3>🎸 Śpiewnik</h3>
-                <select id="collection-select"></select>
+                <select id="collection-select" style="width: 100%; padding: 8px; margin-top: 5px;"></select>
             </div>
 
             <div class="filter-controls">
@@ -327,7 +326,7 @@
             
             <div id="controls-bar" style="display: none;">
                 <button id="back-to-list-button" style="display: none;">
-                    <i class="fas fa-search"></i> Wróć
+                    <i class="fas fa-arrow-left"></i> Wróć
                 </button>
                 
                 <div id="transpose-controls">
@@ -339,16 +338,17 @@
                     <button id="transpose-up-button" title="Półton w górę">
                         <i class="fas fa-chevron-up"></i>
                     </button>
-                    <button id="transpose-reset-button" title="Reset do oryginału (0)">
+                    <button id="transpose-reset-button" title="Reset">
                         <i class="fas fa-redo-alt"></i>
                     </button>
                 </div>
-                
-                <button id="toggle-chords-button">Ukryj Akordy</button>
-                
-                <button id="download-jpg-button" title="Pobierz jako JPG">
-                    <i class="fas fa-file-image"></i> Pobierz JPG
-                </button>
+
+                <div style="display: flex; gap: 5px;">
+                    <button id="toggle-chords-button"><i class="fas fa-eye-slash"></i> Akordy</button>
+                    <button id="download-jpg-button" title="Pobierz jako JPG" style="background-color: #28a745; color: white; border: none;">
+                        <i class="fas fa-file-image"></i> JPG
+                    </button>
+                </div>
             </div>
             
             <div id="song-details">
@@ -359,12 +359,11 @@
     </div>
 
     <script>
-        // --- ZMIENNE GLOBALNE I DANE ---
+        // --- ZMIENNE GLOBALNE ---
         let allSongs = [];
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
         let currentTranspose = 0;
         let currentSongId = null; 
-        
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
@@ -394,57 +393,23 @@
         const transposeResetButton = document.getElementById('transpose-reset-button');
         const currentTransposeValue = document.getElementById('current-transpose-value');
 
-        // --- LOGIKA POBIERANIA JAKO JPG ---
-        downloadJpgButton.addEventListener('click', () => {
-            const songArea = document.getElementById('song-details');
-            
-            // Przygotowanie elementu do zdjęcia (zapewnienie białego tła)
-            const originalStyle = songArea.style.cssText;
-            songArea.style.backgroundColor = "#ffffff";
-            songArea.style.padding = "30px";
-            songArea.style.color = "#000000";
-
-            html2canvas(songArea, {
-                scale: 2, // Lepsza jakość tekstu
-                backgroundColor: "#ffffff",
-                logging: false,
-                useCORS: true
-            }).then(canvas => {
-                // Przywrócenie oryginalnego wyglądu strony
-                songArea.style.cssText = originalStyle;
-
-                // Tworzenie linku do pobrania
-                const songTitle = document.querySelector('#song-details h2')?.innerText.split('(')[0].trim() || 'piosenka';
-                const link = document.createElement('a');
-                link.download = `${songTitle}_akordy.jpg`;
-                link.href = canvas.toDataURL("image/jpeg", 0.9);
-                link.click();
-            });
-        });
-
         // --- LOGIKA WIDOKU MOBILNEGO ---
-        function isMobileView() {
-             return window.innerWidth <= 768;
-        }
-
+        function isMobileView() { return window.innerWidth <= 768; }
         function setMobileView(view) {
             if (isMobileView()) {
                 if (view === 'details') {
                     appContainer.classList.add('mobile-details-active');
-                    document.getElementById('main-content').scrollTop = 0;
                 } else {
                     appContainer.classList.remove('mobile-details-active');
-                    document.getElementById('sidebar').scrollTop = 0;
                 }
             }
         }
 
-        // --- LOGIKA TRANSPOZYCJI ---
+        // --- TRANSPOZYCJA ---
         function getScaleIndex(note) {
             let baseNote = note.toUpperCase(); 
             if (baseNote === 'H') baseNote = 'B'; 
             else if (baseNote === 'B') baseNote = 'A#'; 
-
             let index = chromaticScale.indexOf(baseNote);
             if (index === -1) {
                 const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
@@ -458,19 +423,15 @@
             const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
             if (!match) return chordString;
-            
             const originalBaseNote = match[1];
             const modifier = match[2];
             const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
             let baseNoteIndex = getScaleIndex(originalBaseNote);
-            
             if (baseNoteIndex === -1) return chordString; 
-
             let newIndex = (baseNoteIndex + semitones);
             newIndex = (newIndex % 12 + 12) % 12;
             let newBaseNote = displayScale[newIndex];
             if (isMinor) newBaseNote = newBaseNote.toLowerCase(); 
-            
             return newBaseNote + (modifier || '');
         }
 
@@ -482,8 +443,7 @@
 
         function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
             if (!lyricsHtml) return '';
-            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\]*)\]/g; 
-
+            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; 
             return lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
                 const transposedChord = transposeChordString(chordInsideBrackets, semitones);
                 return `<span class="inline-chord">${transposedChord}</span>`;
@@ -494,13 +454,11 @@
             if (currentSongId === null) return;
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
-            
             if (song.chords) {
                 const transposedChords = transposeChordsText(song.chords, currentTranspose);
                 const chordsContentDiv = document.getElementById('active-chords-content');
                 if (chordsContentDiv) chordsContentDiv.textContent = transposedChords;
             }
-            
             if (song.lyrics) {
                 const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
                 const lyricsContentDiv = document.getElementById('active-lyrics-content');
@@ -512,37 +470,20 @@
         function updateChordsVisibility() {
             if (areChordsSectionsVisible) {
                 songDetailsDiv.classList.remove('chords-hidden');
-                toggleChordsButton.textContent = 'Ukryj Akordy';
+                toggleChordsButton.innerHTML = '<i class="fas fa-eye-slash"></i> Ukryj Akordy';
             } else {
                 songDetailsDiv.classList.add('chords-hidden');
-                toggleChordsButton.textContent = 'Odkryj Akordy';
+                toggleChordsButton.innerHTML = '<i class="fas fa-eye"></i> Pokaż Akordy';
             }
         }
 
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE ---
-        function populateCollectionOptions() {
-            collectionSelect.innerHTML = '';
-            SONG_COLLECTIONS.forEach(collection => {
-                const option = document.createElement('option');
-                option.value = collection.file;
-                option.textContent = collection.name;
-                collectionSelect.appendChild(option);
-            });
-            collectionSelect.value = currentCollectionFile;
-        }
-
+        // --- FILTROWANIE I ŁADOWANIE ---
         async function loadSongs(file) {
             songList.innerHTML = `<li class="placeholder">Ładowanie...</li>`;
-            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy.</div>`;
-            controlsBar.style.display = 'none'; 
-            currentSongId = null;
-
             try {
                 const response = await fetch(file);
-                if (!response.ok) throw new Error("Błąd pliku");
                 allSongs = await response.json();
                 resetFilters();
-                
                 allSongs = allSongs.map((song, index) => ({
                     ...song,
                     id: index,
@@ -550,20 +491,16 @@
                     artistLower: (song.artist || '').toLowerCase(),
                     genreLower: (song.genre || '').toLowerCase(),
                     vocalTypeLower: (song.vocal_type || '').toLowerCase()
-                }));
-
-                allSongs.sort((a, b) => a.titleLower.localeCompare(b.titleLower));
-                currentTranspose = 0;
-                if (currentTransposeValue) currentTransposeValue.textContent = '0';
+                })).sort((a, b) => a.titleLower.localeCompare(b.titleLower));
                 populateFilterOptions();
                 filterAndRenderSongs();
             } catch (error) {
-                songList.innerHTML = `<li style="color: red;">Błąd ładowania zbioru.</li>`;
+                songList.innerHTML = `<li style="color: red;">Błąd ładowania pliku JSON.</li>`;
             }
         }
-        
+
         function resetFilters() {
-            vocalTypeSelect.innerHTML = '<option value="">-- Kto śpiewa? --</option>';
+            vocalTypeSelect.innerHTML = '<option value="">-- Typ Wokalu --</option>';
             genreSelect.innerHTML = '<option value="">-- Gatunek --</option>';
             searchInput.value = '';
             currentFilters = { searchTerm: '', vocalType: '', genre: '' };
@@ -577,14 +514,12 @@
                 if (song.genre) uniqueGenres.add(song.genre.trim());
             });
             Array.from(uniqueVocalTypes).sort().forEach(type => {
-                const option = document.createElement('option');
-                option.value = type.toLowerCase(); option.textContent = type;
-                vocalTypeSelect.appendChild(option);
+                const option = new Option(type, type.toLowerCase());
+                vocalTypeSelect.add(option);
             });
             Array.from(uniqueGenres).sort().forEach(genre => {
-                const option = document.createElement('option');
-                option.value = genre.toLowerCase(); option.textContent = genre;
-                genreSelect.appendChild(option);
+                const option = new Option(genre, genre.toLowerCase());
+                genreSelect.add(option);
             });
         }
         
@@ -601,78 +536,78 @@
             filteredSongs.forEach(song => {
                 const li = document.createElement('li');
                 li.setAttribute('data-song-id', song.id);
-                li.innerHTML = `<div><span class="song-title">${song.title}</span> <span class="song-artist">(${song.artist})</span></div>`;
+                li.innerHTML = `<div>${song.title} <span class="song-artist">(${song.artist})</span></div>`;
                 songList.appendChild(li);
             });
             
-            if (isMobileView()) setMobileView('list');
+            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy.</div>`;
+            controlsBar.style.display = 'none';
         }
 
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
             currentSongId = songId;
-
-            document.querySelectorAll('#song-list li').forEach(li => {
-                li.classList.remove('selected');
-                if (parseInt(li.getAttribute('data-song-id')) === songId) li.classList.add('selected');
-            });
-            
             currentTranspose = 0; 
-            if (currentTransposeValue) currentTransposeValue.textContent = '0';
-            controlsBar.style.display = 'flex'; 
+            currentTransposeValue.textContent = '0';
 
-            const chordsSection = song.chords ? `
-                <div class="chords-container">
-                    <div class="chords-header">Akordy / Chwyty</div>
-                    <pre id="active-chords-content">${song.chords}</pre>
-                </div>
-            ` : '';
-            
-            areChordsSectionsVisible = true;
-            const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
-            
+            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.includes('[')); 
+            controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
+
             songDetailsDiv.innerHTML = `
-                <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
-                ${chordsSection}
-                ${song.key ? `<div class="detail-item"><span class="detail-label">Tonacja:</span><span>${song.key}</span></div>` : ''}
-                <div class="detail-item"><span class="detail-label">Tekst:</span><div id="active-lyrics-content" class="lyrics-content">${processedLyrics || 'brak danych'}</div></div>
-                ${song.notes ? `<div class="detail-item"><span class="detail-label">Notatki:</span><span>${song.notes}</span></div>` : ''}
+                <div id="capture-area" style="padding: 10px; background: white;">
+                    <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
+                    ${song.chords ? `<div class="chords-container"><div class="chords-header">Akordy</div><pre id="active-chords-content">${song.chords}</pre></div>` : ''}
+                    ${song.key ? `<div class="detail-item"><span class="detail-label">Tonacja:</span>${song.key}</div>` : ''}
+                    <div class="detail-item"><span class="detail-label">Tekst:</span><div id="active-lyrics-content" class="lyrics-content"></div></div>
+                </div>
             `;
-            
             redrawChords();
             setMobileView('details'); 
         }
 
         // --- OBSŁUGA ZDARZEŃ ---
         function updateTranspose(semitones) {
-            let newTranspose = semitones;
-            if (newTranspose > 12) newTranspose = -11;
-            if (newTranspose < -12) newTranspose = 11;
-            currentTranspose = newTranspose;
-            currentTransposeValue.textContent = currentTranspose === 0 ? '0' : (currentTranspose > 0 ? `+${currentTranspose}` : `${currentTranspose}`);
+            currentTranspose = semitones;
+            if (currentTranspose > 6) currentTranspose = -6;
+            if (currentTranspose < -6) currentTranspose = 6;
+            currentTransposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
             redrawChords();
         }
 
-        transposeUpButton.addEventListener('click', () => updateTranspose(currentTranspose + 1));
-        transposeDownButton.addEventListener('click', () => updateTranspose(currentTranspose - 1));
-        transposeResetButton.addEventListener('click', () => updateTranspose(0));
-        toggleChordsButton.addEventListener('click', () => { areChordsSectionsVisible = !areChordsSectionsVisible; updateChordsVisibility(); });
-        collectionSelect.addEventListener('change', (e) => { currentCollectionFile = e.target.value; loadSongs(currentCollectionFile); });
-        songList.addEventListener('click', (e) => {
+        transposeUpButton.onclick = () => updateTranspose(currentTranspose + 1);
+        transposeDownButton.onclick = () => updateTranspose(currentTranspose - 1);
+        transposeResetButton.onclick = () => updateTranspose(0);
+
+        downloadJpgButton.onclick = async () => {
+            const area = document.getElementById('capture-area');
+            const song = allSongs.find(s => s.id === currentSongId);
+            try {
+                const canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff' });
+                const link = document.createElement('a');
+                link.download = `${song.title.replace(/\s+/g, '_')}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            } catch (e) { alert("Błąd zapisu JPG"); }
+        };
+
+        toggleChordsButton.onclick = () => {
+            areChordsSectionsVisible = !areChordsSectionsVisible;
+            updateChordsVisibility();
+        };
+
+        collectionSelect.onchange = (e) => loadSongs(e.target.value);
+        songList.onclick = (e) => {
             const li = e.target.closest('li');
-            if (li && li.hasAttribute('data-song-id')) showDetails(parseInt(li.getAttribute('data-song-id')));
-        });
-        backToListButton.addEventListener('click', () => setMobileView('list'));
-        searchInput.addEventListener('input', (e) => { currentFilters.searchTerm = e.target.value.toLowerCase().trim(); filterAndRenderSongs(); });
-        vocalTypeSelect.addEventListener('change', (e) => { currentFilters.vocalType = e.target.value; filterAndRenderSongs(); });
-        genreSelect.addEventListener('change', (e) => { currentFilters.genre = e.target.value; filterAndRenderSongs(); });
+            if (li) showDetails(parseInt(li.dataset.songId));
+        };
+        backToListButton.onclick = () => setMobileView('list');
+        searchInput.oninput = (e) => { currentFilters.searchTerm = e.target.value.toLowerCase().trim(); filterAndRenderSongs(); };
+        vocalTypeSelect.onchange = (e) => { currentFilters.vocalType = e.target.value; filterAndRenderSongs(); };
+        genreSelect.onchange = (e) => { currentFilters.genre = e.target.value; filterAndRenderSongs(); };
 
-        window.addEventListener('resize', () => {
-             if (!isMobileView()) appContainer.classList.remove('mobile-details-active');
-        });
-
-        populateCollectionOptions();
+        // --- INICJALIZACJA ---
+        SONG_COLLECTIONS.forEach(c => collectionSelect.add(new Option(c.name, c.file)));
         loadSongs(currentCollectionFile);
     </script>
 </body>
