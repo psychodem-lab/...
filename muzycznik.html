@@ -7,13 +7,43 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
     <style>
-        /* Globalne style i reset */
+        /* --- ZMIENNE KOLORÓW (Tryb Jasny) --- */
+        :root {
+            --bg-body: #f4f4f4;
+            --bg-sidebar: #ffffff;
+            --bg-main: #ffffff;
+            --bg-controls: #f9f9f9;
+            --bg-chords: #fffaf0;
+            --text-main: #333333;
+            --text-artist: #555555;
+            --text-chords: #a0522d;
+            --border-color: #ccc;
+            --accent-color: #0056b3;
+            --selected-item: #e0e0e0;
+        }
+
+        /* --- ZMIENNE KOLORÓW (Tryb Ciemny) --- */
+        body.dark-mode {
+            --bg-body: #121212;
+            --bg-sidebar: #1e1e1e;
+            --bg-main: #181818;
+            --bg-controls: #252525;
+            --bg-chords: #2d2a24;
+            --text-main: #e0e0e0;
+            --text-artist: #aaaaaa;
+            --text-chords: #ff9f43;
+            --border-color: #444;
+            --accent-color: #4da3ff;
+            --selected-item: #333333;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #app-container {
@@ -27,20 +57,20 @@
             flex-shrink: 0;
             overflow-y: auto;
             padding: 10px;
-            border-right: 1px solid #ccc;
-            background-color: #fff;
+            border-right: 1px solid var(--border-color);
+            background-color: var(--bg-sidebar);
         }
 
         #main-content {
             flex-grow: 1;
             overflow-y: auto;
             padding: 20px;
-            background-color: #fff;
+            background-color: var(--bg-main);
         }
 
         .header {
             padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 10px;
         }
         
@@ -54,9 +84,11 @@
         .filter-controls input, 
         .filter-controls select {
             padding: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             flex-grow: 1;
+            background: var(--bg-sidebar);
+            color: var(--text-main);
         }
 
         #song-list {
@@ -68,17 +100,18 @@
         #song-list li {
             padding: 10px;
             cursor: pointer;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
             transition: background-color 0.2s;
         }
 
         #song-list li:hover {
-            background-color: #f0f0f0;
+            background-color: var(--bg-body);
         }
 
         #song-list li.selected {
-            background-color: #e0e0e0;
+            background-color: var(--selected-item);
             font-weight: bold;
+            border-left: 4px solid var(--accent-color);
         }
         
         .placeholder {
@@ -87,47 +120,32 @@
             text-align: center;
         }
 
-        #song-details {
-            padding-top: 20px;
-        }
-
         #song-details h2 {
             margin-top: 0;
-            color: #0056b3;
-            border-bottom: 2px solid #eee;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
         
         .song-artist {
-            color: #555;
+            color: var(--text-artist);
             font-weight: normal;
             font-size: 0.9em;
-        }
-        
-        .detail-item {
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-        
-        .detail-label {
-            font-weight: bold;
-            margin-right: 10px;
-            color: #555;
         }
 
         .chords-container {
             margin: 20px 0;
             padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #fffaf0; 
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-chords); 
             border-radius: 5px;
             overflow-x: auto; 
         }
         
         .chords-header {
             font-weight: bold;
-            color: #a0522d; 
+            color: var(--text-chords); 
             margin-bottom: 10px;
         }
 
@@ -135,22 +153,20 @@
             font-family: 'Courier New', monospace;
             font-size: 16px;
             line-height: 1.5;
-            margin: 0;
-            padding: 0;
             white-space: pre-wrap;
-            word-wrap: break-word;
+            color: var(--text-main);
         }
         
         .inline-chord {
             font-weight: bold;
-            color: #a0522d; 
+            color: var(--text-chords); 
             margin-right: 4px;
             display: inline-block; 
         }
         
         .lyrics-content {
             white-space: pre-wrap; 
-            font-size: 16px;
+            font-size: 18px; /* Nieco większy tekst dla lepszej czytelności */
             line-height: 1.6;
         }
 
@@ -158,23 +174,19 @@
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             padding: 10px;
-            background-color: #f9f9f9;
-            border-bottom: 1px solid #ddd;
+            background-color: var(--bg-controls);
+            border-bottom: 1px solid var(--border-color);
         }
         
         #controls-bar button {
             padding: 8px 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             cursor: pointer;
-            background-color: #fff;
-            transition: background-color 0.2s;
-        }
-        
-        #controls-bar button:hover {
-            background-color: #eee;
+            background-color: var(--bg-sidebar);
+            color: var(--text-main);
         }
         
         #transpose-controls {
@@ -183,99 +195,25 @@
             gap: 5px; 
         }
         
-        #transpose-controls label {
-            margin-right: 5px;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        #transpose-controls button,
-        #current-transpose-value {
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #fff;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            line-height: 1; 
-        }
-        
         #current-transpose-value {
             font-weight: bold;
-            background-color: #f0f0f0;
             min-width: 25px;
             text-align: center;
-            display: inline-block;
         }
 
-        /* MEDIA QUERY MOBILNY */
+        /* --- MOBILE --- */
         @media (max-width: 768px) {
-            #app-container {
-                flex-direction: column; 
-                position: relative;
-                height: auto; 
-                min-height: 100vh;
-            }
-            
-            #sidebar, #main-content {
-                width: 100%; 
-                height: auto; 
-                padding: 10px;
-                overflow-y: visible;
-                border-right: none;
-            }
-            
+            #app-container { flex-direction: column; }
+            #sidebar { width: 100%; height: auto; border-right: none; }
             #main-content {
-                position: fixed; 
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 10;
-                background: white; 
-                transform: translateX(100%); 
-                transition: transform 0.3s ease-out;
-                box-shadow: 0 0 10px rgba(0,0,0,0.2);
-                padding-top: 60px; 
-                height: 100vh; 
-                overflow-y: auto; 
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 10; transform: translateX(100%); transition: transform 0.3s;
+                padding-top: 60px;
             }
-            
-            #app-container.mobile-details-active #main-content {
-                transform: translateX(0); 
-            }
-            
-            #controls-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 20;
-                padding: 10px;
-                border-bottom: 1px solid #ccc;
-                justify-content: space-between; 
-                flex-wrap: nowrap;
-            }
-
-            #back-to-list-button {
-                display: block !important; 
-                order: -1; 
-            }
-
-            #transpose-controls label {
-                 display: none;
-            }
-
-            .filter-controls {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .filter-controls input, 
-            .filter-controls select {
-                width: 100%;
-                box-sizing: border-box; 
-            }
+            #app-container.mobile-details-active #main-content { transform: translateX(0); }
+            #controls-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; justify-content: space-between; }
+            #back-to-list-button { display: block !important; }
+            #transpose-controls label { display: none; }
         }
     </style>
 </head>
@@ -291,44 +229,30 @@
 
             <div class="filter-controls">
                 <input type="text" id="search-input" placeholder="Szukaj (Tytuł / Artysta)">
-                <select id="vocal-type-select">
-                    <option value="">-- Typ Wokalu --</option>
-                </select>
-                <select id="genre-select">
-                    <option value="">-- Gatunek --</option>
-                </select>
+                <select id="vocal-type-select"><option value="">-- Typ Wokalu --</option></select>
+                <select id="genre-select"><option value="">-- Gatunek --</option></select>
             </div>
             
-            <ul id="song-list">
-                <li class="placeholder">Ładowanie...</li>
-            </ul>
+            <ul id="song-list"><li class="placeholder">Ładowanie...</li></ul>
         </div>
 
         <div id="main-content">
-            
             <div id="controls-bar" style="display: none;">
-                <button id="back-to-list-button" style="display: none;">
-                    <i class="fas fa-search"></i> Wróć
-                </button>
+                <button id="back-to-list-button" style="display: none;"><i class="fas fa-search"></i></button>
                 
                 <div id="transpose-controls">
-                    <label>Transpozycja:</label>
-                    <button id="transpose-down-button" title="Półton w dół">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
+                    <button id="transpose-down-button"><i class="fas fa-minus"></i></button>
                     <span id="current-transpose-value">0</span>
-                    <button id="transpose-up-button" title="Półton w górę">
-                        <i class="fas fa-chevron-up"></i>
-                    </button>
-                    <button id="transpose-reset-button" title="Reset do oryginału (0)">
-                        <i class="fas fa-redo-alt"></i>
-                    </button>
+                    <button id="transpose-up-button"><i class="fas fa-plus"></i></button>
+                    <button id="transpose-reset-button"><i class="fas fa-redo-alt"></i></button>
                 </div>
+
                 <button id="toggle-chords-button">Ukryj Akordy</button>
+                <button id="dark-mode-toggle" title="Przełącz tryb nocny"><i class="fas fa-moon"></i></button>
             </div>
             
             <div id="song-details">
-                <div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>
+                <div class="placeholder">Wybierz piosenkę z listy.</div>
             </div>
         </div>
 
@@ -346,211 +270,143 @@
             { name: "Kolędy", file: 'koledy.json' },
             { name: "Inne", file: 'lukasz.json' }
         ];
-        let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; 
         const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; 
 
+        // Elementy DOM
         const appContainer = document.getElementById('app-container');
         const songList = document.getElementById('song-list');
-        const searchInput = document.getElementById('search-input');
-        const vocalTypeSelect = document.getElementById('vocal-type-select');
-        const genreSelect = document.getElementById('genre-select');
         const songDetailsDiv = document.getElementById('song-details');
-        const backToListButton = document.getElementById('back-to-list-button');
-        const collectionSelect = document.getElementById('collection-select'); 
         const controlsBar = document.getElementById('controls-bar');
         const toggleChordsButton = document.getElementById('toggle-chords-button');
-        const transposeDownButton = document.getElementById('transpose-down-button');
-        const transposeUpButton = document.getElementById('transpose-up-button');
-        const transposeResetButton = document.getElementById('transpose-reset-button');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
         const currentTransposeValue = document.getElementById('current-transpose-value');
 
-        function isMobileView() { return window.innerWidth <= 768; }
-
-        function setMobileView(view) {
-            if (isMobileView()) {
-                if (view === 'details') {
-                    appContainer.classList.add('mobile-details-active');
-                    document.getElementById('main-content').scrollTop = 0;
-                } else {
-                    appContainer.classList.remove('mobile-details-active');
-                }
+        // --- OBSŁUGA TRYBU NOCNEGO ---
+        function initDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
             }
         }
 
+        darkModeToggle.onclick = () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        };
+
+        // --- TRANSPOZYCJA I WYŚWIETLANIE ---
         function getScaleIndex(note) {
-            let baseNote = note.toUpperCase(); 
-            if (baseNote === 'H') baseNote = 'B'; 
-            else if (baseNote === 'B') baseNote = 'A#'; 
-            let index = chromaticScale.indexOf(baseNote);
-            if (index === -1) {
-                const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
-                const sharpEquivalent = flatMap[baseNote];
-                if (sharpEquivalent) index = chromaticScale.indexOf(sharpEquivalent);
+            let base = note.toUpperCase();
+            if (base === 'H') base = 'B';
+            else if (base === 'B') base = 'A#';
+            let idx = chromaticScale.indexOf(base);
+            if (idx === -1) {
+                const map = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' };
+                if (map[base]) idx = chromaticScale.indexOf(map[base]);
             }
-            return index;
+            return idx;
         }
 
-        function transposeChordString(chordString, semitones) {
-            const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
-            const match = chordString.match(chordPattern);
-            if (!match) return chordString;
-            const originalBaseNote = match[1];
-            const modifier = match[2];
-            const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
-            let baseNoteIndex = getScaleIndex(originalBaseNote);
-            if (baseNoteIndex === -1) return chordString; 
-            let newIndex = (baseNoteIndex + semitones);
-            newIndex = (newIndex % 12 + 12) % 12;
-            let newBaseNote = displayScale[newIndex];
-            if (isMinor) newBaseNote = newBaseNote.toLowerCase(); 
-            return newBaseNote + (modifier || '');
+        function transposeChordString(chord, semi) {
+            const match = chord.match(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/);
+            if (!match) return chord;
+            const base = match[1];
+            const mod = match[2] || '';
+            const isMinor = base !== base.toUpperCase();
+            let idx = getScaleIndex(base);
+            if (idx === -1) return chord;
+            idx = (idx + semi % 12 + 12) % 12;
+            let newBase = displayScale[idx];
+            return (isMinor ? newBase.toLowerCase() : newBase) + mod;
         }
 
-        function transposeChordsText(text, semitones) {
-            if (!text || semitones === 0) return text;
-            const chordPattern = /([A-GHa-gh][b#]?[\w\d\/#\-]*)/g; 
-            return text.replace(chordPattern, (match) => transposeChordString(match, semitones));
-        }
-
-        function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
-            if (!lyricsHtml) return '';
-            const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; 
-            return lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
-                const transposedChord = transposeChordString(chordInsideBrackets, semitones);
-                return `<span class="inline-chord">${transposedChord}</span>`;
-            });
-        }
-        
-        // NOWA LOGIKA REDRAW CHORDS - Usuwa luki po ukryciu akordów
         function redrawChords() {
             if (currentSongId === null) return;
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
-            
-            // 1. Obsługa kontenera z akordami na górze
+
             const chordsWrapper = document.getElementById('active-chords-wrapper');
             if (chordsWrapper) {
-                chordsWrapper.style.display = areChordsSectionsVisible ? 'block' : 'none';
+                chordsWrapper.style.display = areChordsSectionsVisible && song.chords ? 'block' : 'none';
                 if (areChordsSectionsVisible && song.chords) {
-                    document.getElementById('active-chords-content').textContent = transposeChordsText(song.chords, currentTranspose);
+                    document.getElementById('active-chords-content').textContent = 
+                        song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transposeChordString(m, currentTranspose));
                 }
             }
-            
-            // 2. Obsługa tekstu i akordów inline
-            const lyricsContentDiv = document.getElementById('active-lyrics-content');
-            if (lyricsContentDiv && song.lyrics) {
-                if (areChordsSectionsVisible) {
-                    lyricsContentDiv.innerHTML = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
-                } else {
-                    // Czyścimy akordy i usuwamy puste linie, które po nich zostały
-                    let cleanLyrics = song.lyrics.replace(/\[.*?\]/g, '');
-                    cleanLyrics = cleanLyrics.replace(/^\s*[\r\n]/gm, ''); 
-                    lyricsContentDiv.innerHTML = cleanLyrics;
-                }
-            }
-        }
 
-        function updateChordsVisibility() {
-            toggleChordsButton.textContent = areChordsSectionsVisible ? 'Ukryj Akordy' : 'Odkryj Akordy';
-            redrawChords();
+            const lyricsDiv = document.getElementById('active-lyrics-content');
+            if (lyricsDiv && song.lyrics) {
+                if (areChordsSectionsVisible) {
+                    lyricsDiv.innerHTML = song.lyrics.replace(/\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g, (m, c) => 
+                        `<span class="inline-chord">${transposeChordString(c, currentTranspose)}</span>`);
+                } else {
+                    lyricsDiv.innerHTML = song.lyrics.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
+                }
+            }
         }
 
         async function loadSongs(file) {
-            songList.innerHTML = `<li class="placeholder">Ładowanie...</li>`;
+            songList.innerHTML = '<li class="placeholder">Ładowanie...</li>';
             try {
-                const response = await fetch(file);
-                allSongs = await response.json();
-                allSongs = allSongs.map((song, index) => ({
-                    ...song,
-                    id: index,
-                    titleLower: (song.title || '').toLowerCase(),
-                    artistLower: (song.artist || '').toLowerCase()
+                const resp = await fetch(file);
+                allSongs = (await resp.json()).map((s, i) => ({
+                    ...s, id: i, 
+                    tL: (s.title || '').toLowerCase(), 
+                    aL: (s.artist || '').toLowerCase()
                 }));
-                allSongs.sort((a, b) => a.titleLower.localeCompare(b.titleLower));
-                populateFilterOptions();
-                filterAndRenderSongs();
-            } catch (e) {
-                songList.innerHTML = `<li style="color:red">Błąd ładowania.</li>`;
-            }
+                allSongs.sort((a, b) => a.tL.localeCompare(b.tL));
+                renderList();
+            } catch (e) { songList.innerHTML = '<li style="color:red">Błąd.</li>'; }
         }
 
-        function populateFilterOptions() {
-            const uniqueVocalTypes = [...new Set(allSongs.map(s => s.vocal_type).filter(Boolean))];
-            const uniqueGenres = [...new Set(allSongs.map(s => s.genre).filter(Boolean))];
-            vocalTypeSelect.innerHTML = '<option value="">-- Typ Wokalu --</option>';
-            genreSelect.innerHTML = '<option value="">-- Gatunek --</option>';
-            uniqueVocalTypes.sort().forEach(t => vocalTypeSelect.add(new Option(t, t.toLowerCase())));
-            uniqueGenres.sort().forEach(g => genreSelect.add(new Option(g, g.toLowerCase())));
-        }
-
-        function filterAndRenderSongs() {
+        function renderList() {
             const { searchTerm, vocalType, genre } = currentFilters;
-            const filtered = allSongs.filter(s => {
-                const match = (s.titleLower + s.artistLower).includes(searchTerm);
-                const vMatch = !vocalType || (s.vocal_type || '').toLowerCase() === vocalType;
-                const gMatch = !genre || (s.genre || '').toLowerCase() === genre;
-                return match && vMatch && gMatch;
-            });
-            songList.innerHTML = filtered.map(s => `
-                <li data-song-id="${s.id}">
-                    ${s.title} <span class="song-artist">(${s.artist})</span>
-                </li>
-            `).join('') || '<li class="placeholder">Brak wyników.</li>';
+            const filtered = allSongs.filter(s => 
+                (s.tL + s.aL).includes(searchTerm) &&
+                (!vocalType || (s.vocal_type || '').toLowerCase() === vocalType) &&
+                (!genre || (s.genre || '').toLowerCase() === genre)
+            );
+            songList.innerHTML = filtered.map(s => `<li data-id="${s.id}">${s.title} <span class="song-artist">(${s.artist})</span></li>`).join('');
         }
 
-        function showDetails(songId) {
-            const song = allSongs.find(s => s.id === songId);
+        function showDetails(id) {
+            const song = allSongs.find(s => s.id === id);
             if (!song) return;
-            currentSongId = songId;
-            currentTranspose = 0;
+            currentSongId = id; currentTranspose = 0;
             currentTransposeValue.textContent = '0';
-            
-            document.querySelectorAll('#song-list li').forEach(li => li.classList.toggle('selected', parseInt(li.dataset.songId) === songId));
-            
             controlsBar.style.display = 'flex';
+            
+            document.querySelectorAll('#song-list li').forEach(li => li.classList.toggle('selected', parseInt(li.dataset.id) === id));
 
             songDetailsDiv.innerHTML = `
                 <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
-                <div id="active-chords-wrapper" class="chords-container" style="${song.chords ? '' : 'display:none'}">
-                    <div class="chords-header">Akordy</div>
-                    <pre id="active-chords-content"></pre>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Tekst:</span>
-                    <div id="active-lyrics-content" class="lyrics-content"></div>
-                </div>
+                <div id="active-chords-wrapper" class="chords-container"><div class="chords-header">Akordy</div><pre id="active-chords-content"></pre></div>
+                <div class="detail-item"><strong>Tekst:</strong><div id="active-lyrics-content" class="lyrics-content"></div></div>
             `;
-            
             redrawChords();
-            setMobileView('details');
+            if (window.innerWidth <= 768) appContainer.classList.add('mobile-details-active');
         }
 
-        function updateTranspose(val) {
-            currentTranspose = val > 6 ? -6 : (val < -6 ? 6 : val);
-            currentTransposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
-            redrawChords();
-        }
-
-        transposeUpButton.onclick = () => updateTranspose(currentTranspose + 1);
-        transposeDownButton.onclick = () => updateTranspose(currentTranspose - 1);
-        transposeResetButton.onclick = () => updateTranspose(0);
-        toggleChordsButton.onclick = () => { areChordsSectionsVisible = !areChordsSectionsVisible; updateChordsVisibility(); };
+        // Eventy
+        document.getElementById('transpose-up-button').onclick = () => { currentTranspose++; currentTransposeValue.textContent = (currentTranspose > 0 ? '+' : '') + currentTranspose; redrawChords(); };
+        document.getElementById('transpose-down-button').onclick = () => { currentTranspose--; currentTransposeValue.textContent = (currentTranspose > 0 ? '+' : '') + currentTranspose; redrawChords(); };
+        document.getElementById('transpose-reset-button').onclick = () => { currentTranspose = 0; currentTransposeValue.textContent = '0'; redrawChords(); };
+        toggleChordsButton.onclick = () => { areChordsSectionsVisible = !areChordsSectionsVisible; toggleChordsButton.textContent = areChordsSectionsVisible ? 'Ukryj Akordy' : 'Odkryj Akordy'; redrawChords(); };
         
-        songList.onclick = (e) => {
-            const li = e.target.closest('li[data-song-id]');
-            if (li) showDetails(parseInt(li.dataset.songId));
-        };
+        songList.onclick = (e) => { const li = e.target.closest('li'); if (li) showDetails(parseInt(li.dataset.id)); };
+        document.getElementById('search-input').oninput = (e) => { currentFilters.searchTerm = e.target.value.toLowerCase(); renderList(); };
+        document.getElementById('back-to-list-button').onclick = () => appContainer.classList.remove('mobile-details-active');
 
-        searchInput.oninput = (e) => { currentFilters.searchTerm = e.target.value.toLowerCase().trim(); filterAndRenderSongs(); };
-        vocalTypeSelect.onchange = (e) => { currentFilters.vocalType = e.target.value; filterAndRenderSongs(); };
-        genreSelect.onchange = (e) => { currentFilters.genre = e.target.value; filterAndRenderSongs(); };
-        backToListButton.onclick = () => setMobileView('list');
-        collectionSelect.onchange = (e) => loadSongs(e.target.value);
-
-        SONG_COLLECTIONS.forEach(c => collectionSelect.add(new Option(c.name, c.file)));
-        loadSongs(currentCollectionFile);
+        // Inicjalizacja
+        initDarkMode();
+        const collSel = document.getElementById('collection-select');
+        SONG_COLLECTIONS.forEach(c => collSel.add(new Option(c.name, c.file)));
+        collSel.onchange = (e) => loadSongs(e.target.value);
+        loadSongs(SONG_COLLECTIONS[0].file);
     </script>
 </body>
 </html>
