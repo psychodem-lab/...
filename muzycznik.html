@@ -16,7 +16,6 @@
             color: #333;
         }
 
-        /* --- UKŁAD GŁÓWNY (DESKTOP) --- */
         #app-container {
             display: flex;
             height: 100vh;
@@ -39,7 +38,6 @@
             background-color: #fff;
         }
 
-        /* --- KONTROLKI I FILTRY --- */
         .header {
             padding: 10px 0;
             border-bottom: 1px solid #eee;
@@ -61,7 +59,6 @@
             flex-grow: 1;
         }
 
-        /* --- LISTA PIOSENEK --- */
         #song-list {
             list-style: none;
             padding: 0;
@@ -90,7 +87,6 @@
             text-align: center;
         }
 
-        /* --- WIDOK SZCZEGÓŁÓW --- */
         #song-details {
             padding-top: 20px;
         }
@@ -120,7 +116,6 @@
             color: #555;
         }
 
-        /* Akordy w sekcji pre */
         .chords-container {
             margin: 20px 0;
             padding: 15px;
@@ -146,7 +141,6 @@
             word-wrap: break-word;
         }
         
-        /* Akordy w tekście (inline) */
         .inline-chord {
             font-weight: bold;
             color: #a0522d; 
@@ -160,7 +154,6 @@
             line-height: 1.6;
         }
 
-        /* --- KONTROLKI NAD AKORDAMI/W TEKŚCIE --- */
         #controls-bar {
             display: flex;
             justify-content: flex-end;
@@ -184,7 +177,6 @@
             background-color: #eee;
         }
         
-        /* NOWE: Grupa kontrolek transpozycji */
         #transpose-controls {
             display: flex;
             align-items: center;
@@ -216,19 +208,8 @@
             display: inline-block;
         }
 
-        #transpose-controls button:active {
-            background-color: #ddd;
-        }
-
-        /* Ukrywanie sekcji akordów */
-        .chords-hidden .chords-container,
-        .chords-hidden .inline-chord {
-            display: none !important;
-        }
-        
-        /* --- MEDIA QUERY: WIDOK MOBILNY (PONIŻEJ 768PX) --- */
+        /* MEDIA QUERY MOBILNY */
         @media (max-width: 768px) {
-            
             #app-container {
                 flex-direction: column; 
                 position: relative;
@@ -244,7 +225,6 @@
                 border-right: none;
             }
             
-            /* Widok szczegółów (po kliknięciu) */
             #main-content {
                 position: fixed; 
                 top: 0;
@@ -261,12 +241,10 @@
                 overflow-y: auto; 
             }
             
-            /* Klasa aktywująca widok detali */
             #app-container.mobile-details-active #main-content {
                 transform: translateX(0); 
             }
             
-            /* Mobilny Pasek Kontrolek (Fixowany na górze) */
             #controls-bar {
                 position: fixed;
                 top: 0;
@@ -276,7 +254,7 @@
                 padding: 10px;
                 border-bottom: 1px solid #ccc;
                 justify-content: space-between; 
-                flex-wrap: nowrap; /* ZMIANA: zapobiega zawijaniu kontrolek */
+                flex-wrap: nowrap;
             }
 
             #back-to-list-button {
@@ -284,24 +262,10 @@
                 order: -1; 
             }
 
-            #song-details {
-                height: auto; 
-                padding-bottom: 20px;
-            }
-            
-            /* ZMIANA: Dostosowanie przycisków transpozycji na mobile */
-            #transpose-controls {
-                gap: 3px;
-            }
-            #transpose-controls button,
-            #current-transpose-value {
-                padding: 4px 8px; 
-            }
             #transpose-controls label {
-                 display: none; /* Ukryj napis, by zaoszczędzić miejsce */
+                 display: none;
             }
 
-            /* Dopasowanie filtrów do kolumny */
             .filter-controls {
                 flex-direction: column;
                 gap: 5px;
@@ -371,27 +335,22 @@
     </div>
 
     <script>
-        // --- ZMIENNE GLOBALNE I DANE ---
         let allSongs = [];
         let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
         let currentTranspose = 0;
         let currentSongId = null; 
-        
         let areChordsSectionsVisible = true;
         
         const SONG_COLLECTIONS = [
-            // PAMIĘTAJ O DODANIU SWOICH PLIKÓW JSON!
             { name: "Główny Zbiór", file: 'piosenki.json' },
             { name: "Kolędy", file: 'koledy.json' },
             { name: "Inne", file: 'lukasz.json' }
         ];
         let currentCollectionFile = SONG_COLLECTIONS[0].file;
 
-
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; 
         const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; 
 
-        // Elementy DOM
         const appContainer = document.getElementById('app-container');
         const songList = document.getElementById('song-list');
         const searchInput = document.getElementById('search-input');
@@ -400,22 +359,14 @@
         const songDetailsDiv = document.getElementById('song-details');
         const backToListButton = document.getElementById('back-to-list-button');
         const collectionSelect = document.getElementById('collection-select'); 
-        
         const controlsBar = document.getElementById('controls-bar');
         const toggleChordsButton = document.getElementById('toggle-chords-button');
-        
-        // NOWE: Elementy DOM dla transpozycji
         const transposeDownButton = document.getElementById('transpose-down-button');
         const transposeUpButton = document.getElementById('transpose-up-button');
         const transposeResetButton = document.getElementById('transpose-reset-button');
         const currentTransposeValue = document.getElementById('current-transpose-value');
 
-
-        
-        // --- LOGIKA WIDOKU MOBILNEGO ---
-        function isMobileView() {
-             return window.innerWidth <= 768;
-        }
+        function isMobileView() { return window.innerWidth <= 768; }
 
         function setMobileView(view) {
             if (isMobileView()) {
@@ -424,31 +375,19 @@
                     document.getElementById('main-content').scrollTop = 0;
                 } else {
                     appContainer.classList.remove('mobile-details-active');
-                    document.getElementById('sidebar').scrollTop = 0;
                 }
             }
         }
 
-
-        // --- LOGIKA TRANSPOZYCJI ---
-        
         function getScaleIndex(note) {
             let baseNote = note.toUpperCase(); 
-
-            if (baseNote === 'H') {
-                baseNote = 'B'; 
-            } else if (baseNote === 'B') {
-                baseNote = 'A#'; 
-            }
-
+            if (baseNote === 'H') baseNote = 'B'; 
+            else if (baseNote === 'B') baseNote = 'A#'; 
             let index = chromaticScale.indexOf(baseNote);
-
             if (index === -1) {
                 const flatMap = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' }; 
                 const sharpEquivalent = flatMap[baseNote];
-                if (sharpEquivalent) {
-                    index = chromaticScale.indexOf(sharpEquivalent);
-                }
+                if (sharpEquivalent) index = chromaticScale.indexOf(sharpEquivalent);
             }
             return index;
         }
@@ -456,373 +395,161 @@
         function transposeChordString(chordString, semitones) {
             const chordPattern = /([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/; 
             const match = chordString.match(chordPattern);
-            
             if (!match) return chordString;
-            
             const originalBaseNote = match[1];
             const modifier = match[2];
-            
             const isMinor = originalBaseNote !== originalBaseNote.toUpperCase();
-            
             let baseNoteIndex = getScaleIndex(originalBaseNote);
-            
-            if (baseNoteIndex === -1) {
-                return chordString; 
-            }
-
+            if (baseNoteIndex === -1) return chordString; 
             let newIndex = (baseNoteIndex + semitones);
             newIndex = (newIndex % 12 + 12) % 12;
-
             let newBaseNote = displayScale[newIndex];
-            
-            if (isMinor) {
-                newBaseNote = newBaseNote.toLowerCase(); 
-            }
-            
+            if (isMinor) newBaseNote = newBaseNote.toLowerCase(); 
             return newBaseNote + (modifier || '');
         }
 
         function transposeChordsText(text, semitones) {
             if (!text || semitones === 0) return text;
             const chordPattern = /([A-GHa-gh][b#]?[\w\d\/#\-]*)/g; 
-            
-            const transposedText = text.replace(chordPattern, (match) => {
-                return transposeChordString(match, semitones);
-            });
-            return transposedText;
+            return text.replace(chordPattern, (match) => transposeChordString(match, semitones));
         }
 
         function transposeInlineChordsInLyrics(lyricsHtml, semitones) {
             if (!lyricsHtml) return '';
             const inlineChordPattern = /\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g; 
-
-            const transposedLyricsHtml = lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
+            return lyricsHtml.replace(inlineChordPattern, (match, chordInsideBrackets) => {
                 const transposedChord = transposeChordString(chordInsideBrackets, semitones);
                 return `<span class="inline-chord">${transposedChord}</span>`;
             });
-            
-            return transposedLyricsHtml;
         }
         
+        // NOWA LOGIKA REDRAW CHORDS - Usuwa luki po ukryciu akordów
         function redrawChords() {
             if (currentSongId === null) return;
-            
             const song = allSongs.find(s => s.id === currentSongId);
             if (!song) return;
             
-            if (song.chords) {
-                const originalChords = song.chords;
-                const transposedChords = transposeChordsText(originalChords, currentTranspose);
-                const chordsContentDiv = document.getElementById('active-chords-content');
-                if (chordsContentDiv) {
-                    chordsContentDiv.textContent = transposedChords;
+            // 1. Obsługa kontenera z akordami na górze
+            const chordsWrapper = document.getElementById('active-chords-wrapper');
+            if (chordsWrapper) {
+                chordsWrapper.style.display = areChordsSectionsVisible ? 'block' : 'none';
+                if (areChordsSectionsVisible && song.chords) {
+                    document.getElementById('active-chords-content').textContent = transposeChordsText(song.chords, currentTranspose);
                 }
             }
             
-            if (song.lyrics) {
-                const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
-                const lyricsContentDiv = document.getElementById('active-lyrics-content');
-                if (lyricsContentDiv) {
-                    lyricsContentDiv.innerHTML = processedLyrics;
+            // 2. Obsługa tekstu i akordów inline
+            const lyricsContentDiv = document.getElementById('active-lyrics-content');
+            if (lyricsContentDiv && song.lyrics) {
+                if (areChordsSectionsVisible) {
+                    lyricsContentDiv.innerHTML = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
+                } else {
+                    // Czyścimy akordy i usuwamy puste linie, które po nich zostały
+                    let cleanLyrics = song.lyrics.replace(/\[.*?\]/g, '');
+                    cleanLyrics = cleanLyrics.replace(/^\s*[\r\n]/gm, ''); 
+                    lyricsContentDiv.innerHTML = cleanLyrics;
                 }
             }
-
-            updateChordsVisibility();
         }
-
 
         function updateChordsVisibility() {
-            if (areChordsSectionsVisible) {
-                songDetailsDiv.classList.remove('chords-hidden');
-                toggleChordsButton.textContent = 'Ukryj Akordy';
-            } else {
-                songDetailsDiv.classList.add('chords-hidden');
-                toggleChordsButton.textContent = 'Odkryj Akordy';
-            }
-        }
-
-
-        // --- FUNKCJE RENDERUJĄCE I FILTRUJĄCE ---
-        
-        function populateCollectionOptions() {
-            collectionSelect.innerHTML = '';
-            SONG_COLLECTIONS.forEach(collection => {
-                const option = document.createElement('option');
-                option.value = collection.file;
-                option.textContent = collection.name;
-                collectionSelect.appendChild(option);
-            });
-            collectionSelect.value = currentCollectionFile;
+            toggleChordsButton.textContent = areChordsSectionsVisible ? 'Ukryj Akordy' : 'Odkryj Akordy';
+            redrawChords();
         }
 
         async function loadSongs(file) {
-            songList.innerHTML = `<li class="placeholder">Ładowanie piosenek ze zbioru <strong>${file}</strong>...</li>`;
-            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
-            controlsBar.style.display = 'none'; 
-            currentSongId = null;
-
+            songList.innerHTML = `<li class="placeholder">Ładowanie...</li>`;
             try {
                 const response = await fetch(file);
-                if (!response.ok) {
-                    throw new Error(`Nie można wczytać pliku: ${file} (${response.statusText})`);
-                }
                 allSongs = await response.json();
-                
-                resetFilters();
-                
                 allSongs = allSongs.map((song, index) => ({
                     ...song,
                     id: index,
                     titleLower: (song.title || '').toLowerCase(),
-                    artistLower: (song.artist || '').toLowerCase(),
-                    genreLower: (song.genre || '').toLowerCase(),
-                    vocalTypeLower: (song.vocal_type || '').toLowerCase()
+                    artistLower: (song.artist || '').toLowerCase()
                 }));
-
-                // Sortowanie alfabetyczne po tytule zaraz po wczytaniu
-                allSongs.sort((a, b) => {
-                    if (a.titleLower < b.titleLower) {
-                        return -1;
-                    }
-                    if (a.titleLower > b.titleLower) {
-                        return 1;
-                    }
-                    return 0;
-                });
-
-                // Reset transpozycji po załadowaniu nowego zbioru
-                currentTranspose = 0;
-                if (currentTransposeValue) {
-                    currentTransposeValue.textContent = '0'; 
-                }
-
+                allSongs.sort((a, b) => a.titleLower.localeCompare(b.titleLower));
                 populateFilterOptions();
                 filterAndRenderSongs();
-            } catch (error) {
-                console.error("Błąd ładowania piosenek:", error);
-                songList.innerHTML = `<li style="color: red;">Błąd wczytywania zbioru <strong>${file}</strong>. Upewnij się, że plik JSON znajduje się w tym samym folderze.</li>`;
+            } catch (e) {
+                songList.innerHTML = `<li style="color:red">Błąd ładowania.</li>`;
             }
-        }
-        
-        function resetFilters() {
-            vocalTypeSelect.innerHTML = '<option value="">-- Kto śpiewa? --</option>';
-            genreSelect.innerHTML = '<option value="">-- Gatunek --</option>';
-            searchInput.value = '';
-            
-            currentFilters = { searchTerm: '', vocalType: '', genre: '' };
         }
 
         function populateFilterOptions() {
-            const uniqueVocalTypes = new Set();
-            const uniqueGenres = new Set();
-
-            allSongs.forEach(song => {
-                if (song.vocal_type && song.vocal_type.trim() !== '') {
-                    uniqueVocalTypes.add(song.vocal_type.trim());
-                }
-                if (song.genre && song.genre.trim() !== '') {
-                    uniqueGenres.add(song.genre.trim());
-                }
-            });
-
-            Array.from(uniqueVocalTypes).sort().forEach(type => {
-                const option = document.createElement('option');
-                option.value = type.toLowerCase();
-                option.textContent = type;
-                vocalTypeSelect.appendChild(option);
-            });
-
-            Array.from(uniqueGenres).sort().forEach(genre => {
-                const option = document.createElement('option');
-                option.value = genre.toLowerCase();
-                option.textContent = genre;
-                genreSelect.appendChild(option);
-            });
+            const uniqueVocalTypes = [...new Set(allSongs.map(s => s.vocal_type).filter(Boolean))];
+            const uniqueGenres = [...new Set(allSongs.map(s => s.genre).filter(Boolean))];
+            vocalTypeSelect.innerHTML = '<option value="">-- Typ Wokalu --</option>';
+            genreSelect.innerHTML = '<option value="">-- Gatunek --</option>';
+            uniqueVocalTypes.sort().forEach(t => vocalTypeSelect.add(new Option(t, t.toLowerCase())));
+            uniqueGenres.sort().forEach(g => genreSelect.add(new Option(g, g.toLowerCase())));
         }
-        
+
         function filterAndRenderSongs() {
             const { searchTerm, vocalType, genre } = currentFilters;
-            
-            const filteredSongs = allSongs.filter(song => {
-                const textMatch = song.titleLower.includes(searchTerm) || 
-                                   song.artistLower.includes(searchTerm);
-                const vocalMatch = vocalType === '' || song.vocalTypeLower === vocalType;
-                const genreMatch = genre === '' || song.genreLower === genre;
-
-                return textMatch && vocalMatch && genreMatch;
+            const filtered = allSongs.filter(s => {
+                const match = (s.titleLower + s.artistLower).includes(searchTerm);
+                const vMatch = !vocalType || (s.vocal_type || '').toLowerCase() === vocalType;
+                const gMatch = !genre || (s.genre || '').toLowerCase() === genre;
+                return match && vMatch && gMatch;
             });
-
-            songList.innerHTML = '';
-            if (filteredSongs.length === 0) {
-                songList.innerHTML = `<li class="placeholder">Nie znaleziono piosenek spełniających kryteria.</li>`;
-            } else {
-                filteredSongs.forEach(song => {
-                    const li = document.createElement('li');
-                    li.setAttribute('data-song-id', song.id);
-                    li.innerHTML = `
-                        <div>
-                            <span class="song-title">${song.title}</span> 
-                            <span class="song-artist">(${song.artist})</span>
-                        </div>
-                    `;
-                    songList.appendChild(li);
-                });
-            }
-            
-            songDetailsDiv.innerHTML = `<div class="placeholder">Wybierz piosenkę z listy, aby zobaczyć szczegóły.</div>`;
-            controlsBar.style.display = 'none'; 
-            currentSongId = null;
-            
-            if (isMobileView()) {
-                setMobileView('list');
-            }
+            songList.innerHTML = filtered.map(s => `
+                <li data-song-id="${s.id}">
+                    ${s.title} <span class="song-artist">(${s.artist})</span>
+                </li>
+            `).join('') || '<li class="placeholder">Brak wyników.</li>';
         }
 
         function showDetails(songId) {
             const song = allSongs.find(s => s.id === songId);
             if (!song) return;
-
             currentSongId = songId;
+            currentTranspose = 0;
+            currentTransposeValue.textContent = '0';
+            
+            document.querySelectorAll('#song-list li').forEach(li => li.classList.toggle('selected', parseInt(li.dataset.songId) === songId));
+            
+            controlsBar.style.display = 'flex';
 
-            document.querySelectorAll('#song-list li').forEach(li => {
-                li.classList.remove('selected');
-                if (parseInt(li.getAttribute('data-song-id')) === songId) {
-                    li.classList.add('selected');
-                }
-            });
-            
-            // Reset transpozycji przy wyświetleniu nowej piosenki
-            currentTranspose = 0; 
-            if (currentTransposeValue) {
-                currentTransposeValue.textContent = '0';
-            }
-
-            const hasChordsOrLyrics = song.chords || (song.lyrics && song.lyrics.match(/\[[A-GHa-gh][b#]?[\w\d\/#\-]*\]/)); 
-            controlsBar.style.display = hasChordsOrLyrics ? 'flex' : 'none'; 
-
-            const chordsSection = song.chords ? `
-                <div class="chords-container">
-                    <div class="chords-header">Akordy/Chwyty (Transponowane)</div>
-                    <pre id="active-chords-content">${song.chords}</pre>
-                </div>
-            ` : '';
-            
-            areChordsSectionsVisible = true;
-            
-            const processedLyrics = transposeInlineChordsInLyrics(song.lyrics, currentTranspose);
-            
             songDetailsDiv.innerHTML = `
                 <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
-                
-                ${chordsSection}
-
-                ${song.key ? `<div class="detail-item">
-                    <span class="detail-label">Tonacja (Oryginał):</span>
-                    <span>${song.key}</span>
-                </div>` : ''}
-
-                ${song.tempo ? `<div class="detail-item">
-                    <span class="detail-label">Tempo:</span>
-                    <span>${song.tempo}</span>
-                </div>` : ''}
-                
+                <div id="active-chords-wrapper" class="chords-container" style="${song.chords ? '' : 'display:none'}">
+                    <div class="chords-header">Akordy</div>
+                    <pre id="active-chords-content"></pre>
+                </div>
                 <div class="detail-item">
                     <span class="detail-label">Tekst:</span>
-                    <div id="active-lyrics-content" class="lyrics-content">${processedLyrics || 'brak danych'}</div>
+                    <div id="active-lyrics-content" class="lyrics-content"></div>
                 </div>
-                
-                ${song.notes ? `<div class="detail-item">
-                    <span class="detail-label">Notatki:</span>
-                    <span>${song.notes}</span>
-                </div>` : ''}
             `;
             
             redrawChords();
-            setMobileView('details'); 
+            setMobileView('details');
         }
 
-        // --- OBSŁUGA ZDARZEŃ ---
-        
-        // NOWE: Funkcja aktualizująca transpozycję i wyświetlanie
-        function updateTranspose(semitones) {
-            let newTranspose = semitones;
-            
-            // Ograniczenie transpozycji do zakresu -6 do +6
-            if (newTranspose > 6) newTranspose = -6;
-            if (newTranspose < -6) newTranspose = 6;
-            
-            currentTranspose = newTranspose;
-            
-            // Aktualizacja wyświetlanej wartości
-            currentTransposeValue.textContent = currentTranspose === 0 ? '0' : (currentTranspose > 0 ? `+${currentTranspose}` : `${currentTranspose}`);
-            
-            // Przerysowanie akordów
+        function updateTranspose(val) {
+            currentTranspose = val > 6 ? -6 : (val < -6 ? 6 : val);
+            currentTransposeValue.textContent = currentTranspose > 0 ? `+${currentTranspose}` : currentTranspose;
             redrawChords();
         }
 
-        transposeUpButton.addEventListener('click', () => {
-            updateTranspose(currentTranspose + 1);
-        });
-
-        transposeDownButton.addEventListener('click', () => {
-            updateTranspose(currentTranspose - 1);
-        });
+        transposeUpButton.onclick = () => updateTranspose(currentTranspose + 1);
+        transposeDownButton.onclick = () => updateTranspose(currentTranspose - 1);
+        transposeResetButton.onclick = () => updateTranspose(0);
+        toggleChordsButton.onclick = () => { areChordsSectionsVisible = !areChordsSectionsVisible; updateChordsVisibility(); };
         
-        transposeResetButton.addEventListener('click', () => {
-            updateTranspose(0);
-        });
-        // KONIEC NOWEJ OBSŁUGI TRANSPOZYCJI
+        songList.onclick = (e) => {
+            const li = e.target.closest('li[data-song-id]');
+            if (li) showDetails(parseInt(li.dataset.songId));
+        };
 
-        toggleChordsButton.addEventListener('click', () => {
-            areChordsSectionsVisible = !areChordsSectionsVisible;
-            updateChordsVisibility();
-        });
+        searchInput.oninput = (e) => { currentFilters.searchTerm = e.target.value.toLowerCase().trim(); filterAndRenderSongs(); };
+        vocalTypeSelect.onchange = (e) => { currentFilters.vocalType = e.target.value; filterAndRenderSongs(); };
+        genreSelect.onchange = (e) => { currentFilters.genre = e.target.value; filterAndRenderSongs(); };
+        backToListButton.onclick = () => setMobileView('list');
+        collectionSelect.onchange = (e) => loadSongs(e.target.value);
 
-        collectionSelect.addEventListener('change', (event) => {
-            currentCollectionFile = event.target.value;
-            loadSongs(currentCollectionFile);
-        });
-
-        songList.addEventListener('click', (event) => {
-            const li = event.target.closest('li');
-            
-            if (li && li.hasAttribute('data-song-id')) {
-                const songId = parseInt(li.getAttribute('data-song-id'));
-                showDetails(songId);
-            }
-        });
-
-        backToListButton.addEventListener('click', () => {
-            setMobileView('list');
-        });
-
-        searchInput.addEventListener('input', (event) => {
-            currentFilters.searchTerm = event.target.value.toLowerCase().trim();
-            filterAndRenderSongs();
-        });
-
-        vocalTypeSelect.addEventListener('change', (event) => {
-            currentFilters.vocalType = event.target.value;
-            filterAndRenderSongs();
-        });
-
-        genreSelect.addEventListener('change', (event) => {
-            currentFilters.genre = event.target.value;
-            filterAndRenderSongs();
-        });
-        
-        window.addEventListener('resize', () => {
-             if (!isMobileView()) {
-                 appContainer.classList.remove('mobile-details-active');
-             } else if (currentSongId !== null) {
-                 setMobileView('details');
-             } else {
-                 setMobileView('list');
-             }
-        });
-
-        // --- INICJALIZACJA ---
-        populateCollectionOptions();
+        SONG_COLLECTIONS.forEach(c => collectionSelect.add(new Option(c.name, c.file)));
         loadSongs(currentCollectionFile);
     </script>
 </body>
