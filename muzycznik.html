@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Śpiewnik - Poprawna Transpozycja</title>
+    <title>Śpiewnik - Auto-scroll & Transpose Reset</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -34,7 +34,7 @@
             width: 320px; border-right: 1px solid var(--border-color); 
             background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column; 
         }
-        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); }
+        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); scroll-behavior: smooth; }
 
         .header-select { margin-bottom: 15px; }
         .header-select select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-sidebar); color: var(--text-main); }
@@ -46,7 +46,7 @@
 
         #controls-bar { 
             display: flex; gap: 10px; padding: 10px; background: #eee; 
-            border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 10; 
+            border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 10; align-items: center;
         }
         body.dark-mode #controls-bar { background: #252525; color: #eee; }
 
@@ -61,6 +61,10 @@
         button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); }
         .btn-green { background: var(--accent-success); color: white; border: none; }
         
+        /* Auto-scroll UI */
+        .scroll-control { display: flex; align-items: center; gap: 5px; border-left: 1px solid var(--border-color); padding-left: 10px; }
+        #scroll-speed { width: 80px; }
+
         #progress-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); color: white; z-index: 100;
@@ -94,9 +98,17 @@
         <div id="controls-bar" style="display:none;">
             <button id="btn-transpose-down"><i class="fas fa-minus"></i></button>
             <span id="transpose-val" style="min-width: 30px; text-align: center; font-weight: bold;">0</span>
+            <button id="btn-transpose-reset" title="Resetuj do 0" style="padding: 4px 8px; font-size: 12px;"><i class="fas fa-redo"></i></button>
             <button id="btn-transpose-up"><i class="fas fa-plus"></i></button>
+            
             <button id="btn-toggle-chords">Ukryj akordy</button>
-            <button id="btn-jpg" class="btn-green"><i class="fas fa-image"></i> Pobierz JPG</button>
+
+            <div class="scroll-control">
+                <button id="btn-scroll-toggle" title="Auto-scroll"><i class="fas fa-play"></i></button>
+                <input type="range" id="scroll-speed" min="1" max="50" value="10" title="Prędkość przewijania">
+            </div>
+
+            <button id="btn-jpg" class="btn-green"><i class="fas fa-image"></i></button>
             <button id="btn-dark-mode"><i class="fas fa-moon"></i></button>
         </div>
 
@@ -116,6 +128,8 @@
     ];
 
     let allSongs = [], currentId = null, transpose = 0, showChords = true;
+    let scrollInterval = null, isScrolling = false;
+
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
@@ -152,7 +166,6 @@
         });
     }
 
-    // --- KLUCZOWA POPRAWKA: Funkcja renderująca widok bez resetowania ID ---
     function updateView() {
         if (currentId === null) return;
         const song = allSongs.find(s => s.id === currentId);
@@ -164,7 +177,7 @@
         }
         let lyr = song.lyrics || "";
         if (showChords) {
-            lyr = lyr.replace(/\[(.*?)\]/g, (m, c) => `<span class="inline-chord">${transChord(c, transpose)}</span>`);
+            lyr = lyr.replace(/\[(.*?)\]/g, (m, c) => `<span class="inline-chord">${transposeChord(c, transpose)}</span>`);
         } else {
             lyr = lyr.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
         }
@@ -174,23 +187,54 @@
     }
 
     window.selectSong = (id) => {
+        stopAutoScroll();
         currentId = id; 
-        transpose = 0; // Tylko przy wyborze nowej piosenki resetujemy transpozycję
+        transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         updateView();
         renderList();
+        document.getElementById('main-content').scrollTop = 0;
     };
 
-    // Obsługa przycisków
+    // --- AUTO SCROLL LOGIC ---
+    function toggleAutoScroll() {
+        if (isScrolling) stopAutoScroll();
+        else startAutoScroll();
+    }
+
+    function startAutoScroll() {
+        isScrolling = true;
+        document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>';
+        const container = document.getElementById('main-content');
+        
+        scrollInterval = setInterval(() => {
+            const speed = document.getElementById('scroll-speed').value;
+            container.scrollTop += 1;
+            // Zatrzymaj na dole
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight) stopAutoScroll();
+        }, 100 - document.getElementById('scroll-speed').value);
+    }
+
+    function stopAutoScroll() {
+        isScrolling = false;
+        document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>';
+        clearInterval(scrollInterval);
+    }
+
+    // --- BUTTONS ---
     document.getElementById('btn-transpose-up').onclick = () => { transpose++; updateView(); };
     document.getElementById('btn-transpose-down').onclick = () => { transpose--; updateView(); };
+    document.getElementById('btn-transpose-reset').onclick = () => { transpose = 0; updateView(); };
+    
+    document.getElementById('btn-scroll-toggle').onclick = toggleAutoScroll;
+
     document.getElementById('btn-toggle-chords').onclick = function() { 
         showChords = !showChords; 
         this.textContent = showChords ? "Ukryj akordy" : "Pokaż akordy"; 
         updateView(); 
     };
 
-    // Reszta funkcji (Eksport JPG)
+    // --- EXPORT LOGIC ---
     async function saveAsJpg(element, name) {
         element.classList.add('export-mode');
         const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
@@ -199,6 +243,36 @@
         link.href = canvas.toDataURL("image/jpeg", 0.9);
         link.click();
         element.classList.remove('export-mode');
+    }
+
+    document.getElementById('btn-export-all').onclick = async function() {
+        if (!allSongs.length) return;
+        if (!confirm(`Eksportować ${allSongs.length} plików?`)) return;
+        const overlay = document.getElementById('progress-overlay');
+        const countText = document.getElementById('progress-count');
+        overlay.style.display = 'flex';
+        for (let i = 0; i < allSongs.length; i++) {
+            const s = allSongs[i];
+            countText.textContent = `${i + 1} / ${allSongs.length}`;
+            document.getElementById('song-display').innerHTML = generateSongHTML(s, 0, showChords);
+            await new Promise(r => setTimeout(r, 400));
+            await saveAsJpg(document.getElementById('song-capture-area'), s.title);
+        }
+        overlay.style.display = 'none';
+        updateView();
+    };
+
+    // Helpers
+    function generateSongHTML(song, trans, visible) {
+        let html = `<h2>${song.title} <small>(${song.artist})</small></h2>`;
+        if (visible && song.chords) {
+            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, trans));
+            html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
+        }
+        let lyr = song.lyrics || "";
+        if (visible) lyr = lyr.replace(/\[(.*?)\]/g, (m, c) => `<span class="inline-chord">${transChord(c, trans)}</span>`);
+        else lyr = lyr.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
+        return html + `<div class="lyrics-content">${lyr}</div>`;
     }
 
     document.getElementById('btn-jpg').onclick = () => saveAsJpg(document.getElementById('song-capture-area'), allSongs.find(s=>s.id===currentId).title);
