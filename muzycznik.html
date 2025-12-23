@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Śpiewnik - Twoje Pliki JSON</title>
+    <title>Śpiewnik - Poprawna Transpozycja</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -75,29 +75,25 @@
 <div id="progress-overlay">
     <h2 id="progress-text">Generowanie plików JPG...</h2>
     <p id="progress-count">0 / 0</p>
-    <small>Nie zamykaj okna przeglądarki</small>
 </div>
 
 <div id="app-container">
     <div id="sidebar">
         <div class="header-select">
-            <label style="font-size: 12px; font-weight: bold;">WYBIERZ ZBIÓR:</label>
+            <label style="font-size: 11px; font-weight: bold;">ZBIÓR:</label>
             <select id="collection-select"></select>
         </div>
-        <input type="text" id="search" placeholder="Szukaj w tym zbiorze..." style="width:100%; padding:8px; box-sizing: border-box;">
+        <input type="text" id="search" placeholder="Szukaj..." style="width:100%; padding:8px; box-sizing: border-box;">
         <ul id="song-list"></ul>
-        
-        <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
-            <button id="btn-export-all" class="btn-green" style="width:100%;">
-                <i class="fas fa-file-export"></i> Eksportuj ten zbiór do JPG
-            </button>
+        <div style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+            <button id="btn-export-all" class="btn-green" style="width:100%;"><i class="fas fa-file-export"></i> Eksportuj JPG</button>
         </div>
     </div>
 
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
             <button id="btn-transpose-down"><i class="fas fa-minus"></i></button>
-            <span id="transpose-val" style="min-width: 20px; text-align: center; font-weight: bold;">0</span>
+            <span id="transpose-val" style="min-width: 30px; text-align: center; font-weight: bold;">0</span>
             <button id="btn-transpose-up"><i class="fas fa-plus"></i></button>
             <button id="btn-toggle-chords">Ukryj akordy</button>
             <button id="btn-jpg" class="btn-green"><i class="fas fa-image"></i> Pobierz JPG</button>
@@ -106,14 +102,13 @@
 
         <div id="song-capture-area">
             <div id="song-display">
-                <div class="placeholder">Wybierz piosenkę z listy po lewej stronie.</div>
+                <div class="placeholder">Wybierz piosenkę.</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURACJA TWOICH PLIKÓW ---
     const COLLECTIONS = [
         { name: "Główny Zbiór", file: 'piosenki.json' },
         { name: "Kolędy", file: 'koledy.json' },
@@ -124,48 +119,24 @@
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
-    // Inicjalizacja selecta zbiorów
     const colSelect = document.getElementById('collection-select');
     COLLECTIONS.forEach(c => colSelect.add(new Option(c.name, c.file)));
 
-    // --- LOGIKA ŁADOWANIA ---
     async function loadSongs(file) {
-        const list = document.getElementById('song-list');
-        list.innerHTML = '<li>Ładowanie piosenek...</li>';
-        
         try {
             const response = await fetch(file);
-            if (!response.ok) throw new Error("Nie znaleziono pliku");
             const data = await response.json();
-            
-            // Mapujemy dane, dodając unikalne ID dla sesji
-            allSongs = data.map((s, index) => ({
-                ...s,
-                id: index,
-                searchKey: (s.title + " " + s.artist).toLowerCase()
-            }));
-
-            // Sortowanie alfabetyczne
+            allSongs = data.map((s, index) => ({ ...s, id: index, searchKey: (s.title + " " + s.artist).toLowerCase() }));
             allSongs.sort((a, b) => a.title.localeCompare(b.title));
-            
             renderList();
-            document.getElementById('song-display').innerHTML = '<div class="placeholder">Wybierz piosenkę ze zbioru.</div>';
-            document.getElementById('controls-bar').style.display = 'none';
-        } catch (error) {
-            list.innerHTML = `<li style="color:red">Błąd: ${error.message}. Sprawdź czy plik ${file} istnieje.</li>`;
-        }
+        } catch (e) { console.error("Błąd ładowania", e); }
     }
 
-    // --- RENDEROWANIE ---
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
-        const filtered = allSongs.filter(s => s.searchKey.includes(term));
-        
-        list.innerHTML = filtered.map(s => `
-            <li onclick="selectSong(${s.id})" class="${currentId === s.id ? 'selected' : ''}">
-                ${s.title} <span style="font-size:11px; opacity:0.6">(${s.artist})</span>
-            </li>
+        list.innerHTML = allSongs.filter(s => s.searchKey.includes(term)).map(s => `
+            <li onclick="selectSong(${s.id})" class="${currentId === s.id ? 'selected' : ''}">${s.title}</li>
         `).join('');
     }
 
@@ -181,36 +152,45 @@
         });
     }
 
-    function generateSongHTML(song, trans, visible) {
-        let html = `<h2>${song.title} <small style="color:#666">(${song.artist})</small></h2>`;
+    // --- KLUCZOWA POPRAWKA: Funkcja renderująca widok bez resetowania ID ---
+    function updateView() {
+        if (currentId === null) return;
+        const song = allSongs.find(s => s.id === currentId);
         
-        if (visible && song.chords) {
-            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, trans));
+        let html = `<h2>${song.title} <small style="color:#666">(${song.artist})</small></h2>`;
+        if (showChords && song.chords) {
+            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
-
         let lyr = song.lyrics || "";
-        if (visible) {
-            lyr = lyr.replace(/\[(.*?)\]/g, (m, c) => `<span class="inline-chord">${transChord(c, trans)}</span>`);
+        if (showChords) {
+            lyr = lyr.replace(/\[(.*?)\]/g, (m, c) => `<span class="inline-chord">${transChord(c, transpose)}</span>`);
         } else {
             lyr = lyr.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
         }
-        
         html += `<div class="lyrics-content">${lyr}</div>`;
-        return html;
+        document.getElementById('song-display').innerHTML = html;
+        document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
     window.selectSong = (id) => {
-        currentId = id; transpose = 0;
-        document.getElementById('transpose-val').textContent = "0";
+        currentId = id; 
+        transpose = 0; // Tylko przy wyborze nowej piosenki resetujemy transpozycję
         document.getElementById('controls-bar').style.display = "flex";
-        
-        const song = allSongs.find(s => s.id === id);
-        document.getElementById('song-display').innerHTML = generateSongHTML(song, transpose, showChords);
+        updateView();
         renderList();
     };
 
-    // --- EKSPORT ---
+    // Obsługa przycisków
+    document.getElementById('btn-transpose-up').onclick = () => { transpose++; updateView(); };
+    document.getElementById('btn-transpose-down').onclick = () => { transpose--; updateView(); };
+    document.getElementById('btn-toggle-chords').onclick = function() { 
+        showChords = !showChords; 
+        this.textContent = showChords ? "Ukryj akordy" : "Pokaż akordy"; 
+        updateView(); 
+    };
+
+    // Reszta funkcji (Eksport JPG)
     async function saveAsJpg(element, name) {
         element.classList.add('export-mode');
         const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
@@ -221,43 +201,12 @@
         element.classList.remove('export-mode');
     }
 
-    document.getElementById('btn-export-all').onclick = async function() {
-        if (!allSongs.length) return;
-        if (!confirm(`Rozpocząć seryjne pobieranie ${allSongs.length} plików JPG?`)) return;
-
-        const overlay = document.getElementById('progress-overlay');
-        const countText = document.getElementById('progress-count');
-        const area = document.getElementById('song-capture-area');
-        const display = document.getElementById('song-display');
-
-        overlay.style.display = 'flex';
-
-        for (let i = 0; i < allSongs.length; i++) {
-            const s = allSongs[i];
-            countText.textContent = `${i + 1} / ${allSongs.length}: ${s.title}`;
-            display.innerHTML = generateSongHTML(s, 0, showChords);
-            
-            await new Promise(r => setTimeout(r, 400)); // Czas na render
-            await saveAsJpg(area, s.title);
-        }
-
-        overlay.style.display = 'none';
-        alert("Gotowe!");
-        if (currentId !== null) selectSong(currentId);
-    };
-
-    // Obsługa eventów
-    document.getElementById('btn-transpose-up').onclick = () => { transpose++; document.getElementById('transpose-val').textContent = transpose; selectSong(currentId); };
-    document.getElementById('btn-transpose-down').onclick = () => { transpose--; document.getElementById('transpose-val').textContent = transpose; selectSong(currentId); };
-    document.getElementById('btn-toggle-chords').onclick = function() { showChords = !showChords; this.textContent = showChords ? "Ukryj akordy" : "Pokaż akordy"; selectSong(currentId); };
     document.getElementById('btn-jpg').onclick = () => saveAsJpg(document.getElementById('song-capture-area'), allSongs.find(s=>s.id===currentId).title);
     document.getElementById('btn-dark-mode').onclick = () => document.body.classList.toggle('dark-mode');
     document.getElementById('search').oninput = renderList;
     colSelect.onchange = (e) => loadSongs(e.target.value);
 
-    // Start
     loadSongs(COLLECTIONS[0].file);
 </script>
-
 </body>
 </html>
