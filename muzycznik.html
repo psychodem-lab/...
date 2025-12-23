@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
     <style>
-        /* --- ZMIENNE KOLORÓW (Tryb Jasny) --- */
+        /* --- ZMIENNE KOLORÓW --- */
         :root {
             --bg-body: #f4f4f4;
             --bg-sidebar: #ffffff;
@@ -22,7 +22,6 @@
             --selected-item: #e0e0e0;
         }
 
-        /* --- ZMIENNE KOLORÓW (Tryb Ciemny) --- */
         body.dark-mode {
             --bg-body: #121212;
             --bg-sidebar: #1e1e1e;
@@ -37,376 +36,253 @@
             --selected-item: #333333;
         }
 
+        /* --- STYLE WYDRUKU --- */
+        @media print {
+            #sidebar, #controls-bar, .header, .filter-controls, #back-to-list-button, #print-all-btn {
+                display: none !important;
+            }
+            #main-content {
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                background: white !important;
+                color: black !important;
+            }
+            .song-page {
+                page-break-after: always;
+                padding: 20px;
+                border-bottom: 1px solid #eee;
+            }
+            .chords-container {
+                background: #f9f9f9 !important;
+                border: 1px solid #ccc !important;
+                color: black !important;
+            }
+            .inline-chord {
+                color: #444 !important;
+                text-decoration: underline;
+            }
+            h2, .song-artist { color: black !important; }
+        }
+
+        /* --- STYLE UI --- */
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg-body);
             color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s;
         }
 
-        #app-container {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        #app-container { display: flex; height: 100vh; overflow: hidden; }
 
         #sidebar {
-            width: 350px;
-            flex-shrink: 0;
-            overflow-y: auto;
-            padding: 10px;
-            border-right: 1px solid var(--border-color);
+            width: 350px; flex-shrink: 0; overflow-y: auto;
+            padding: 10px; border-right: 1px solid var(--border-color);
             background-color: var(--bg-sidebar);
+            display: flex; flex-direction: column;
         }
 
-        #main-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background-color: var(--bg-main);
-        }
+        #main-content { flex-grow: 1; overflow-y: auto; padding: 20px; background-color: var(--bg-main); }
 
-        .header {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 10px;
-        }
+        .header { padding: 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; }
         
-        .filter-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap; 
-        }
-        
-        .filter-controls input, 
-        .filter-controls select {
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            flex-grow: 1;
-            background: var(--bg-sidebar);
-            color: var(--text-main);
+        .filter-controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .filter-controls input, .filter-controls select {
+            padding: 8px; border: 1px solid var(--border-color);
+            border-radius: 4px; flex-grow: 1; background: var(--bg-sidebar); color: var(--text-main);
         }
 
-        #song-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        #song-list { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         #song-list li {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
+            padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border-color);
         }
-
-        #song-list li:hover {
-            background-color: var(--bg-body);
-        }
-
-        #song-list li.selected {
-            background-color: var(--selected-item);
-            font-weight: bold;
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .placeholder {
-            padding: 10px;
-            color: #888;
-            text-align: center;
-        }
-
-        #song-details h2 {
-            margin-top: 0;
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .song-artist {
-            color: var(--text-artist);
-            font-weight: normal;
-            font-size: 0.9em;
-        }
+        #song-list li.selected { background-color: var(--selected-item); font-weight: bold; }
 
         .chords-container {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-chords); 
-            border-radius: 5px;
-            overflow-x: auto; 
+            margin: 20px 0; padding: 15px; border: 1px solid var(--border-color);
+            background-color: var(--bg-chords); border-radius: 5px;
         }
         
-        .chords-header {
-            font-weight: bold;
-            color: var(--text-chords); 
-            margin-bottom: 10px;
-        }
-
-        #active-chords-content {
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            color: var(--text-main);
-        }
-        
-        .inline-chord {
-            font-weight: bold;
-            color: var(--text-chords); 
-            margin-right: 4px;
-            display: inline-block; 
-        }
-        
-        .lyrics-content {
-            white-space: pre-wrap; 
-            font-size: 18px; /* Nieco większy tekst dla lepszej czytelności */
-            line-height: 1.6;
-        }
+        #active-chords-content { font-family: 'Courier New', monospace; font-size: 16px; white-space: pre-wrap; }
+        .inline-chord { font-weight: bold; color: var(--text-chords); margin-right: 4px; }
+        .lyrics-content { white-space: pre-wrap; font-size: 18px; line-height: 1.6; }
 
         #controls-bar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background-color: var(--bg-controls);
+            display: flex; justify-content: flex-end; align-items: center;
+            gap: 10px; padding: 10px; background-color: var(--bg-controls);
             border-bottom: 1px solid var(--border-color);
         }
         
-        #controls-bar button {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            background-color: var(--bg-sidebar);
-            color: var(--text-main);
+        button {
+            padding: 8px 12px; border: 1px solid var(--border-color);
+            border-radius: 4px; cursor: pointer; background-color: var(--bg-sidebar); color: var(--text-main);
         }
-        
-        #transpose-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px; 
-        }
-        
-        #current-transpose-value {
-            font-weight: bold;
-            min-width: 25px;
-            text-align: center;
-        }
+
+        #print-all-btn { margin-top: 10px; width: 100%; background-color: var(--accent-color); color: white; border: none; }
 
         /* --- MOBILE --- */
         @media (max-width: 768px) {
-            #app-container { flex-direction: column; }
-            #sidebar { width: 100%; height: auto; border-right: none; }
+            #sidebar { width: 100%; }
             #main-content {
                 position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 z-index: 10; transform: translateX(100%); transition: transform 0.3s;
                 padding-top: 60px;
             }
             #app-container.mobile-details-active #main-content { transform: translateX(0); }
-            #controls-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; justify-content: space-between; }
-            #back-to-list-button { display: block !important; }
-            #transpose-controls label { display: none; }
+            #controls-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; }
         }
     </style>
 </head>
 <body>
 
     <div id="app-container">
-
         <div id="sidebar">
             <div class="header">
                 <h3>🎸 Śpiewnik</h3>
                 <select id="collection-select"></select>
             </div>
-
             <div class="filter-controls">
-                <input type="text" id="search-input" placeholder="Szukaj (Tytuł / Artysta)">
-                <select id="vocal-type-select"><option value="">-- Typ Wokalu --</option></select>
-                <select id="genre-select"><option value="">-- Gatunek --</option></select>
+                <input type="text" id="search-input" placeholder="Szukaj...">
             </div>
-            
-            <ul id="song-list"><li class="placeholder">Ładowanie...</li></ul>
+            <ul id="song-list"></ul>
+            <button id="print-all-btn"><i class="fas fa-print"></i> Drukuj cały zbiór</button>
         </div>
 
         <div id="main-content">
             <div id="controls-bar" style="display: none;">
-                <button id="back-to-list-button" style="display: none;"><i class="fas fa-search"></i></button>
-                
+                <button id="back-to-list-button" style="display: none;"><i class="fas fa-arrow-left"></i></button>
                 <div id="transpose-controls">
-                    <button id="transpose-down-button"><i class="fas fa-minus"></i></button>
-                    <span id="current-transpose-value">0</span>
-                    <button id="transpose-up-button"><i class="fas fa-plus"></i></button>
-                    <button id="transpose-reset-button"><i class="fas fa-redo-alt"></i></button>
+                    <button id="trans-down"><i class="fas fa-minus"></i></button>
+                    <span id="trans-val">0</span>
+                    <button id="trans-up"><i class="fas fa-plus"></i></button>
                 </div>
-
-                <button id="toggle-chords-button">Ukryj Akordy</button>
-                <button id="dark-mode-toggle" title="Przełącz tryb nocny"><i class="fas fa-moon"></i></button>
+                <button id="toggle-chords">Ukryj Akordy</button>
+                <button id="print-single-btn" title="Drukuj piosenkę"><i class="fas fa-print"></i></button>
+                <button id="dark-mode-toggle"><i class="fas fa-moon"></i></button>
             </div>
             
             <div id="song-details">
-                <div class="placeholder">Wybierz piosenkę z listy.</div>
+                <div class="placeholder">Wybierz piosenkę.</div>
             </div>
         </div>
-
     </div>
 
     <script>
-        let allSongs = [];
-        let currentFilters = { searchTerm: '', vocalType: '', genre: '' };
-        let currentTranspose = 0;
-        let currentSongId = null; 
-        let areChordsSectionsVisible = true;
-        
-        const SONG_COLLECTIONS = [
-            { name: "Główny Zbiór", file: 'piosenki.json' },
-            { name: "Kolędy", file: 'koledy.json' },
-            { name: "Inne", file: 'lukasz.json' }
-        ];
+        let allSongs = [], currentTranspose = 0, currentSongId = null, areChordsVisible = true;
+        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
-        const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']; 
-        const displayScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H']; 
-
-        // Elementy DOM
-        const appContainer = document.getElementById('app-container');
         const songList = document.getElementById('song-list');
-        const songDetailsDiv = document.getElementById('song-details');
-        const controlsBar = document.getElementById('controls-bar');
-        const toggleChordsButton = document.getElementById('toggle-chords-button');
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const currentTransposeValue = document.getElementById('current-transpose-value');
+        const songDetails = document.getElementById('song-details');
+        const transVal = document.getElementById('trans-val');
 
-        // --- OBSŁUGA TRYBU NOCNEGO ---
-        function initDarkMode() {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        // --- FUNKCJE POMOCNICZE ---
+        function getScaleIndex(n) {
+            let b = n.toUpperCase().replace('H', 'B');
+            let i = chromaticScale.indexOf(b);
+            if (i === -1) i = chromaticScale.indexOf({'DB':'C#','EB':'D#','GB':'F#','AB':'G#','BB':'A#'}[b]);
+            return i;
+        }
+
+        function transposeChord(c, s) {
+            return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, base, mod) => {
+                let isMin = base !== base.toUpperCase();
+                let idx = getScaleIndex(base);
+                if (idx === -1) return m;
+                idx = (idx + s % 12 + 12) % 12;
+                let newB = displayScale[idx];
+                return (isMin ? newB.toLowerCase() : newB) + (mod || '');
+            });
+        }
+
+        // Generuje HTML piosenki do wyświetlenia/druku
+        function generateSongHTML(song, transpose, chordsVisible) {
+            let chordsPart = "";
+            if (chordsVisible && song.chords) {
+                const transChords = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transposeChord(m, transpose));
+                chordsPart = `<div class="chords-container"><pre id="active-chords-content">${transChords}</pre></div>`;
             }
-        }
 
-        darkModeToggle.onclick = () => {
-            const isDark = document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', isDark);
-            darkModeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        };
-
-        // --- TRANSPOZYCJA I WYŚWIETLANIE ---
-        function getScaleIndex(note) {
-            let base = note.toUpperCase();
-            if (base === 'H') base = 'B';
-            else if (base === 'B') base = 'A#';
-            let idx = chromaticScale.indexOf(base);
-            if (idx === -1) {
-                const map = { 'DB': 'C#', 'EB': 'D#', 'GB': 'F#', 'AB': 'G#', 'BB': 'A#' };
-                if (map[base]) idx = chromaticScale.indexOf(map[base]);
+            let lyricsPart = song.lyrics || "";
+            if (chordsVisible) {
+                lyricsPart = lyricsPart.replace(/\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g, (m, c) => 
+                    `<span class="inline-chord">${transposeChord(c, transpose)}</span>`);
+            } else {
+                lyricsPart = lyricsPart.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
             }
-            return idx;
+
+            return `
+                <div class="song-page">
+                    <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
+                    ${chordsPart}
+                    <div class="lyrics-content">${lyricsPart}</div>
+                </div>
+            `;
         }
 
-        function transposeChordString(chord, semi) {
-            const match = chord.match(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/);
-            if (!match) return chord;
-            const base = match[1];
-            const mod = match[2] || '';
-            const isMinor = base !== base.toUpperCase();
-            let idx = getScaleIndex(base);
-            if (idx === -1) return chord;
-            idx = (idx + semi % 12 + 12) % 12;
-            let newBase = displayScale[idx];
-            return (isMinor ? newBase.toLowerCase() : newBase) + mod;
-        }
-
-        function redrawChords() {
+        function redraw() {
             if (currentSongId === null) return;
             const song = allSongs.find(s => s.id === currentSongId);
-            if (!song) return;
-
-            const chordsWrapper = document.getElementById('active-chords-wrapper');
-            if (chordsWrapper) {
-                chordsWrapper.style.display = areChordsSectionsVisible && song.chords ? 'block' : 'none';
-                if (areChordsSectionsVisible && song.chords) {
-                    document.getElementById('active-chords-content').textContent = 
-                        song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transposeChordString(m, currentTranspose));
-                }
-            }
-
-            const lyricsDiv = document.getElementById('active-lyrics-content');
-            if (lyricsDiv && song.lyrics) {
-                if (areChordsSectionsVisible) {
-                    lyricsDiv.innerHTML = song.lyrics.replace(/\[([A-GHa-gh][b#]?[\w\d\/#\-]*)\]/g, (m, c) => 
-                        `<span class="inline-chord">${transposeChordString(c, currentTranspose)}</span>`);
-                } else {
-                    lyricsDiv.innerHTML = song.lyrics.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '');
-                }
-            }
+            songDetails.innerHTML = generateSongHTML(song, currentTranspose, areChordsVisible);
         }
 
-        async function loadSongs(file) {
-            songList.innerHTML = '<li class="placeholder">Ładowanie...</li>';
-            try {
-                const resp = await fetch(file);
-                allSongs = (await resp.json()).map((s, i) => ({
-                    ...s, id: i, 
-                    tL: (s.title || '').toLowerCase(), 
-                    aL: (s.artist || '').toLowerCase()
-                }));
-                allSongs.sort((a, b) => a.tL.localeCompare(b.tL));
-                renderList();
-            } catch (e) { songList.innerHTML = '<li style="color:red">Błąd.</li>'; }
+        // --- DRUKOWANIE ---
+        document.getElementById('print-single-btn').onclick = () => window.print();
+
+        document.getElementById('print-all-btn').onclick = () => {
+            const originalContent = songDetails.innerHTML;
+            const originalControls = document.getElementById('controls-bar').style.display;
+            
+            // Renderuj wszystkie piosenki do głównego kontenera
+            songDetails.innerHTML = allSongs.map(s => generateSongHTML(s, 0, areChordsVisible)).join('');
+            
+            window.print();
+            
+            // Przywróć widok po druku
+            if (currentSongId !== null) redraw();
+            else songDetails.innerHTML = '<div class="placeholder">Wybierz piosenkę.</div>';
+        };
+
+        // --- RESZTA LOGIKI ---
+        async function load(file) {
+            const resp = await fetch(file);
+            allSongs = (await resp.json()).map((s, i) => ({ ...s, id: i, tL: s.title.toLowerCase() }));
+            renderList();
         }
 
         function renderList() {
-            const { searchTerm, vocalType, genre } = currentFilters;
-            const filtered = allSongs.filter(s => 
-                (s.tL + s.aL).includes(searchTerm) &&
-                (!vocalType || (s.vocal_type || '').toLowerCase() === vocalType) &&
-                (!genre || (s.genre || '').toLowerCase() === genre)
-            );
-            songList.innerHTML = filtered.map(s => `<li data-id="${s.id}">${s.title} <span class="song-artist">(${s.artist})</span></li>`).join('');
+            const term = document.getElementById('search-input').value.toLowerCase();
+            songList.innerHTML = allSongs.filter(s => s.tL.includes(term))
+                .map(s => `<li data-id="${s.id}">${s.title}</li>`).join('');
         }
 
-        function showDetails(id) {
-            const song = allSongs.find(s => s.id === id);
-            if (!song) return;
-            currentSongId = id; currentTranspose = 0;
-            currentTransposeValue.textContent = '0';
-            controlsBar.style.display = 'flex';
-            
-            document.querySelectorAll('#song-list li').forEach(li => li.classList.toggle('selected', parseInt(li.dataset.id) === id));
+        songList.onclick = (e) => {
+            const li = e.target.closest('li');
+            if (li) {
+                currentSongId = parseInt(li.dataset.id);
+                document.getElementById('controls-bar').style.display = 'flex';
+                redraw();
+                if (window.innerWidth <= 768) document.getElementById('app-container').classList.add('mobile-details-active');
+            }
+        };
 
-            songDetailsDiv.innerHTML = `
-                <h2>${song.title} <span class="song-artist">(${song.artist})</span></h2>
-                <div id="active-chords-wrapper" class="chords-container"><div class="chords-header">Akordy</div><pre id="active-chords-content"></pre></div>
-                <div class="detail-item"><strong>Tekst:</strong><div id="active-lyrics-content" class="lyrics-content"></div></div>
-            `;
-            redrawChords();
-            if (window.innerWidth <= 768) appContainer.classList.add('mobile-details-active');
-        }
+        document.getElementById('trans-up').onclick = () => { currentTranspose++; transVal.textContent = currentTranspose; redraw(); };
+        document.getElementById('trans-down').onclick = () => { currentTranspose--; transVal.textContent = currentTranspose; redraw(); };
+        document.getElementById('toggle-chords').onclick = (e) => { 
+            areChordsVisible = !areChordsVisible; 
+            e.target.textContent = areChordsVisible ? 'Ukryj Akordy' : 'Odkryj Akordy'; 
+            redraw(); 
+        };
+        document.getElementById('dark-mode-toggle').onclick = () => document.body.classList.toggle('dark-mode');
+        document.getElementById('search-input').oninput = renderList;
+        document.getElementById('back-to-list-button').onclick = () => document.getElementById('app-container').classList.remove('mobile-details-active');
 
-        // Eventy
-        document.getElementById('transpose-up-button').onclick = () => { currentTranspose++; currentTransposeValue.textContent = (currentTranspose > 0 ? '+' : '') + currentTranspose; redrawChords(); };
-        document.getElementById('transpose-down-button').onclick = () => { currentTranspose--; currentTransposeValue.textContent = (currentTranspose > 0 ? '+' : '') + currentTranspose; redrawChords(); };
-        document.getElementById('transpose-reset-button').onclick = () => { currentTranspose = 0; currentTransposeValue.textContent = '0'; redrawChords(); };
-        toggleChordsButton.onclick = () => { areChordsSectionsVisible = !areChordsSectionsVisible; toggleChordsButton.textContent = areChordsSectionsVisible ? 'Ukryj Akordy' : 'Odkryj Akordy'; redrawChords(); };
-        
-        songList.onclick = (e) => { const li = e.target.closest('li'); if (li) showDetails(parseInt(li.dataset.id)); };
-        document.getElementById('search-input').oninput = (e) => { currentFilters.searchTerm = e.target.value.toLowerCase(); renderList(); };
-        document.getElementById('back-to-list-button').onclick = () => appContainer.classList.remove('mobile-details-active');
-
-        // Inicjalizacja
-        initDarkMode();
         const collSel = document.getElementById('collection-select');
-        SONG_COLLECTIONS.forEach(c => collSel.add(new Option(c.name, c.file)));
-        collSel.onchange = (e) => loadSongs(e.target.value);
-        loadSongs(SONG_COLLECTIONS[0].file);
+        [{n:"Zbiór",f:"piosenki.json"}].forEach(c => collSel.add(new Option(c.n, c.f)));
+        load("piosenki.json");
     </script>
 </body>
 </html>
