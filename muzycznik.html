@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik - Mobile Ready</title>
+    <title>Śpiewnik - Poprawiony Układ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -35,28 +35,22 @@
         body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; }
         #app-container { display: flex; height: 100vh; width: 100vw; position: relative; }
         
-        /* SIDEBAR - Responsywny */
         #sidebar { 
             width: 320px; border-right: 1px solid var(--border-color); 
             background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column;
             transition: transform 0.3s ease; z-index: 20;
         }
 
-        /* MAIN CONTENT - Responsywny */
         #main-content { 
             flex-grow: 1; overflow-y: auto; background: var(--bg-main); 
             scroll-behavior: smooth; position: relative; z-index: 10;
         }
 
-        /* Widok mobilny - lista i tekst na pełny ekran */
         @media (max-width: 768px) {
             #sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; box-sizing: border-box; }
             #main-content { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transform: translateX(100%); transition: transform 0.3s ease; }
-            
-            /* Klasa aktywująca widok piosenki na komórce */
             body.song-active #main-content { transform: translateX(0); }
             body.song-active #sidebar { transform: translateX(-100%); }
-            
             .mobile-only { display: inline-block !important; }
         }
 
@@ -70,7 +64,6 @@
         body.dark-mode #controls-bar { background: #252525; color: #eee; }
 
         #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; }
-        
         .export-mode { width: 800px !important; color: #000 !important; background: #fff !important; }
         
         .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; }
@@ -85,7 +78,6 @@
         .scroll-control { display: flex; align-items: center; gap: 5px; border-left: 1px solid var(--border-color); padding-left: 10px; }
         #scroll-speed { width: 50px; }
 
-        /* MODAL EDYTORA */
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; color: var(--text-main); }
         .form-group textarea { height: 120px; width: 100%; font-family: monospace; }
@@ -127,17 +119,20 @@
 
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
-            <button onclick="backToList()" class="mobile-only"><i class="fas fa-chevron-left"></i></button>
-            <button id="btn-transpose-down"><i class="fas fa-minus"></i></button>
-            <span id="transpose-val" style="font-weight:bold; min-width:20px;">0</span>
-            <button id="btn-transpose-reset"><i class="fas fa-redo"></i></button>
-            <button id="btn-transpose-up"><i class="fas fa-plus"></i></button>
+            <button onclick="backToList()" class="mobile-only" title="Powrót do listy"><i class="fas fa-chevron-left"></i></button>
+            
+            <button id="btn-transpose-down" title="Obniż tonację"><i class="fas fa-minus"></i></button>
+            <span id="transpose-val" style="font-weight:bold; min-width:25px; text-align:center;">0</span>
+            <button id="btn-transpose-up" title="Podwyższ tonację"><i class="fas fa-plus"></i></button>
+            <button id="btn-transpose-reset" title="Przywróć 0" style="margin-left: 2px;"><i class="fas fa-redo"></i></button>
+            
             <div class="scroll-control">
-                <button id="btn-scroll-toggle"><i class="fas fa-play"></i></button>
+                <button id="btn-scroll-toggle" title="Auto-scroll"><i class="fas fa-play"></i></button>
                 <input type="range" id="scroll-speed" min="1" max="50" value="10">
             </div>
-            <button id="btn-jpg" class="btn-green"><i class="fas fa-image"></i></button>
-            <button id="btn-dark-mode"><i class="fas fa-moon"></i></button>
+            
+            <button id="btn-jpg" class="btn-green" title="Pobierz JPG"><i class="fas fa-image"></i></button>
+            <button id="btn-dark-mode" title="Tryb nocny"><i class="fas fa-moon"></i></button>
         </div>
 
         <div id="song-capture-area">
@@ -160,7 +155,6 @@
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
-    // Inicjalizacja
     const colSelect = document.getElementById('collection-select');
     COLLECTIONS.forEach(c => colSelect.add(new Option(c.name, c.file)));
     colSelect.onchange = (e) => loadSongs(e.target.value);
@@ -171,7 +165,7 @@
             const data = await response.json();
             allSongs = data.map((s, index) => ({ ...s, id: index, searchKey: (s.title + " " + s.artist).toLowerCase() }));
             renderList();
-        } catch (e) { console.error("Błąd", e); }
+        } catch (e) { console.error("Błąd ładowania", e); }
     }
 
     function renderList() {
@@ -205,7 +199,7 @@
         stopAutoScroll();
         currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
-        document.body.classList.add('song-active'); // Przełącz widok na mobile
+        document.body.classList.add('song-active');
         updateView(); renderList();
         document.getElementById('main-content').scrollTop = 0;
     };
@@ -215,18 +209,17 @@
         document.body.classList.remove('song-active');
     }
 
-    // --- GEST SWIPE (od lewej do prawej) ---
+    // GEST SWIPE
     let touchStartX = 0;
     document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
     document.addEventListener('touchend', e => {
         let touchEndX = e.changedTouches[0].screenX;
-        // Jeśli przesunięto w prawo o min 100px i jesteśmy w widoku piosenki
         if (touchEndX - touchStartX > 100 && document.body.classList.contains('song-active')) {
             backToList();
         }
     });
 
-    // --- AUTO SCROLL ---
+    // AUTO SCROLL
     function startAutoScroll() {
         isScrolling = true;
         document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>';
@@ -240,7 +233,7 @@
         clearInterval(scrollInterval);
     }
 
-    // --- RESZTA LOGIKI (EDYCJA, EKSPORT) ---
+    // EDYTOR I EKSPORT
     function openEditor() { document.getElementById('editor-modal').style.display = 'flex'; }
     function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
     function saveNewSong() {
@@ -289,7 +282,6 @@
         return html + `<div class="lyrics-content">${lyr}</div>`;
     }
 
-    // Przycisk transpozycji, dark mode itp.
     document.getElementById('btn-transpose-up').onclick = () => { transpose++; updateView(); };
     document.getElementById('btn-transpose-down').onclick = () => { transpose--; updateView(); };
     document.getElementById('btn-transpose-reset').onclick = () => { transpose = 0; updateView(); };
