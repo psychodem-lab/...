@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik - Kontrola Czcionki</title>
+    <title>Śpiewnik - Profesjonalny Interfejs</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -19,7 +19,7 @@
             --border-color: #ccc;
             --accent-success: #28a745;
             --accent-blue: #007bff;
-            --lyrics-font-size: 18px; /* Domyślna wielkość */
+            --lyrics-font-size: 18px;
         }
 
         body.dark-mode {
@@ -60,11 +60,12 @@
         }
         body.dark-mode #controls-bar { background: #252525; border-color: #444; }
 
+        /* Menu kołowrotek - rozszerzone */
         #settings-menu {
             display: none; position: absolute; top: 55px; right: 10px; 
             background: var(--bg-sidebar); border: 1px solid var(--border-color);
-            padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            flex-direction: column; gap: 15px; min-width: 220px; z-index: 100;
+            padding: 15px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+            flex-direction: column; gap: 12px; min-width: 240px; z-index: 100;
         }
         #settings-menu.active { display: flex; }
 
@@ -72,19 +73,8 @@
         .setting-item label { font-size: 13px; font-weight: bold; }
 
         #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; }
-        .export-mode { width: 800px !important; color: #000 !important; background: #fff !important; }
         
-        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; }
-        #active-chords-content { font-family: 'Courier New', monospace; font-size: 16px; white-space: pre-wrap; margin: 0; color: var(--text-song); }
-        
-        /* Tekst piosenki korzysta z dynamicznej zmiennej */
-        .lyrics-content { 
-            white-space: pre-wrap; 
-            font-size: var(--lyrics-font-size); 
-            line-height: 1.6; 
-            margin-top: 20px; 
-            color: var(--text-song); 
-        }
+        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); }
         .inline-chord { font-weight: bold; color: var(--text-chords); }
 
         button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); }
@@ -97,7 +87,8 @@
         
         #progress-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; z-index: 1100; flex-direction: column; align-items: center; justify-content: center; }
         #song-list { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
-        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+        #song-list li:hover { background: rgba(0,0,0,0.05); }
         #song-list li.selected { background: var(--accent-blue); color: white; }
     </style>
 </head>
@@ -113,26 +104,21 @@
         <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami..." style="width:100%; margin-bottom:10px; padding:8px; height:120px; font-family:monospace;"></textarea>
         <div style="display:flex; gap:10px;">
             <button onclick="closeEditor()" style="flex:1">Anuluj</button>
-            <button class="btn-green" onclick="saveNewSong()" style="flex:1">Dodaj</button>
+            <button class="btn-green" onclick="saveNewSong()" style="flex:1">Dodaj do listy</button>
         </div>
     </div>
 </div>
 
 <div id="app-container">
     <div id="sidebar">
-        <select id="collection-select" style="width:100%; padding:10px; margin-bottom:10px;"></select>
-        <input type="text" id="search" placeholder="Szukaj..." style="width:100%; padding:10px; box-sizing: border-box; margin-bottom:10px;">
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button onclick="openEditor()" style="flex:1"><i class="fas fa-plus"></i> Nowa</button>
-            <button id="btn-download-json" class="btn-blue" style="flex:1"><i class="fas fa-save"></i> JSON</button>
-        </div>
+        <select id="collection-select" style="width:100%; padding:10px; margin-bottom:10px; font-weight: bold;"></select>
+        <input type="text" id="search" placeholder="Szukaj piosenki..." style="width:100%; padding:12px; box-sizing: border-box; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
-        <button id="btn-export-all" class="btn-green" style="margin-top:10px;"><i class="fas fa-file-export"></i> Eksportuj JPG</button>
     </div>
 
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
-            <button onclick="backToList()" class="mobile-only btn-icon" title="Powrót"><i class="fas fa-arrow-left"></i></button>
+            <button onclick="backToList()" class="mobile-only btn-icon"><i class="fas fa-arrow-left"></i></button>
             
             <div style="display:flex; align-items:center; gap:5px; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 6px;">
                 <button id="btn-transpose-down" class="btn-icon" style="font-size: 14px;"><i class="fas fa-minus"></i></button>
@@ -150,34 +136,39 @@
                 <label><i class="fas fa-text-height"></i> Rozmiar tekstu</label>
                 <span id="font-size-val" style="font-size: 12px; font-weight: bold;">18px</span>
             </div>
-            <div class="setting-item">
-                <input type="range" id="font-size-slider" min="12" max="40" value="18" style="width:100%;">
-            </div>
-            <hr style="width:100%; opacity:0.2;">
+            <input type="range" id="font-size-slider" min="12" max="40" value="18" style="width:100%;">
+            
+            <hr style="width:100%; opacity:0.1;">
             
             <div class="setting-item">
                 <label>Akordy</label>
-                <button id="btn-toggle-chords" style="width: 100px;">Ukryj</button>
+                <button id="btn-toggle-chords" style="width: 80px;">Ukryj</button>
             </div>
-            <hr style="width:100%; opacity:0.2;">
+            
             <div class="setting-item">
                 <label>Auto-scroll</label>
-                <button id="btn-scroll-toggle"><i class="fas fa-play"></i></button>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <button id="btn-scroll-toggle"><i class="fas fa-play"></i></button>
+                    <input type="range" id="scroll-speed" min="1" max="50" value="10" style="width:60px;">
+                </div>
             </div>
-            <div class="setting-item">
-                <input type="range" id="scroll-speed" min="1" max="50" value="10" style="width:100%;">
-            </div>
-            <hr style="width:100%; opacity:0.2;">
+
             <div class="setting-item">
                 <label>Tryb nocny</label>
                 <button id="btn-dark-mode" class="btn-icon"><i class="fas fa-moon"></i></button>
             </div>
-            <button id="btn-jpg" class="btn-green" style="width:100%;"><i class="fas fa-image"></i> Pobierz JPG</button>
+
+            <hr style="width:100%; opacity:0.1;">
+            
+            <button onclick="openEditor()" style="text-align:left;"><i class="fas fa-plus-circle"></i> Dodaj nową piosenkę</button>
+            <button id="btn-download-json" class="btn-blue" style="text-align:left;"><i class="fas fa-file-download"></i> Pobierz plik JSON</button>
+            <button id="btn-export-all" class="btn-green" style="text-align:left;"><i class="fas fa-images"></i> Eksportuj wszystko (JPG)</button>
+            <button id="btn-jpg" style="text-align:left; background: #666; color: white; border:none;"><i class="fas fa-image"></i> Pobierz tę piosenkę</button>
         </div>
 
         <div id="song-capture-area">
             <div id="song-display">
-                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę.</div>
+                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę z listy po lewej.</div>
             </div>
         </div>
     </div>
@@ -205,7 +196,7 @@
             const data = await response.json();
             allSongs = data.map((s, index) => ({ ...s, id: index, searchKey: (s.title + " " + s.artist).toLowerCase() }));
             renderList();
-        } catch (e) { console.error("Błąd", e); }
+        } catch (e) { console.error(e); }
     }
 
     function renderList() {
@@ -251,7 +242,7 @@
         document.getElementById('settings-menu').classList.remove('active');
     }
 
-    // Settings Toggle
+    // Toggle menu
     document.getElementById('btn-settings').onclick = (e) => {
         e.stopPropagation();
         document.getElementById('settings-menu').classList.toggle('active');
@@ -259,13 +250,12 @@
     document.addEventListener('click', () => document.getElementById('settings-menu').classList.remove('active'));
     document.getElementById('settings-menu').onclick = (e) => e.stopPropagation();
 
-    // FONT SIZE CONTROL
+    // Rozmiar czcionki
     const fontSlider = document.getElementById('font-size-slider');
-    const fontLabel = document.getElementById('font-size-val');
     fontSlider.oninput = (e) => {
         const size = e.target.value + 'px';
         document.documentElement.style.setProperty('--lyrics-font-size', size);
-        fontLabel.textContent = size;
+        document.getElementById('font-size-val').textContent = size;
     };
 
     // Swipe
@@ -275,14 +265,13 @@
         if (e.changedTouches[0].screenX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList();
     });
 
-    // Chords Toggle
+    // Funkcje menu
     document.getElementById('btn-toggle-chords').onclick = function() {
         showChords = !showChords;
         this.textContent = showChords ? "Ukryj" : "Pokaż";
         updateView();
     };
 
-    // Auto Scroll
     function startAutoScroll() {
         isScrolling = true;
         document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>';
@@ -296,7 +285,6 @@
         clearInterval(scrollInterval);
     }
 
-    // Export & Editor
     function openEditor() { document.getElementById('editor-modal').style.display = 'flex'; }
     function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
     function saveNewSong() {
@@ -304,6 +292,7 @@
         if (!title) return;
         const newSong = { title, artist: document.getElementById('edit-artist').value, lyrics: document.getElementById('edit-lyrics').value, id: Date.now(), searchKey: title.toLowerCase() };
         allSongs.push(newSong); renderList(); closeEditor(); selectSong(newSong.id);
+        document.getElementById('settings-menu').classList.remove('active');
     }
 
     document.getElementById('btn-download-json').onclick = () => {
@@ -313,14 +302,11 @@
     };
 
     async function saveAsJpg(element, name) {
-        element.classList.add('export-mode');
-        await new Promise(r => setTimeout(r, 100));
-        const canvas = await html2canvas(element, { backgroundColor: "#ffffff", scale: 2 });
+        element.style.width = "800px"; element.style.background = "#ffffff";
+        const canvas = await html2canvas(element, { scale: 2 });
         const link = document.createElement('a');
-        link.download = name.replace(/[<>:"/\\|?*]/g, '') + ".jpg";
-        link.href = canvas.toDataURL("image/jpeg", 0.9);
-        link.click();
-        element.classList.remove('export-mode');
+        link.download = name + ".jpg"; link.href = canvas.toDataURL("image/jpeg", 0.9); link.click();
+        element.style.width = ""; element.style.background = "";
     }
 
     document.getElementById('btn-export-all').onclick = async function() {
