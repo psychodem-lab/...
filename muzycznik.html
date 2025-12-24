@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik - Profesjonalny Interfejs</title>
+    <title>Śpiewnik - Gesty i Lupa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -33,7 +33,7 @@
             --border-color: #444;
         }
 
-        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; }
+        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; touch-action: pan-y; }
         #app-container { display: flex; height: 100vh; width: 100vw; position: relative; }
         
         #sidebar { 
@@ -60,7 +60,6 @@
         }
         body.dark-mode #controls-bar { background: #252525; border-color: #444; }
 
-        /* Menu kołowrotek - rozszerzone */
         #settings-menu {
             display: none; position: absolute; top: 55px; right: 10px; 
             background: var(--bg-sidebar); border: 1px solid var(--border-color);
@@ -72,7 +71,7 @@
         .setting-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .setting-item label { font-size: 13px; font-weight: bold; }
 
-        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; }
+        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; touch-action: none; }
         
         .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); }
         .inline-chord { font-weight: bold; color: var(--text-chords); }
@@ -88,7 +87,6 @@
         #progress-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; z-index: 1100; flex-direction: column; align-items: center; justify-content: center; }
         #song-list { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
         #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
-        #song-list li:hover { background: rgba(0,0,0,0.05); }
         #song-list li.selected { background: var(--accent-blue); color: white; }
     </style>
 </head>
@@ -119,47 +117,32 @@
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
             <button onclick="backToList()" class="mobile-only btn-icon"><i class="fas fa-arrow-left"></i></button>
-            
             <div style="display:flex; align-items:center; gap:5px; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 6px;">
                 <button id="btn-transpose-down" class="btn-icon" style="font-size: 14px;"><i class="fas fa-minus"></i></button>
                 <span id="transpose-val" style="font-weight:bold; min-width:25px; text-align:center;">0</span>
                 <button id="btn-transpose-up" class="btn-icon" style="font-size: 14px;"><i class="fas fa-plus"></i></button>
                 <button id="btn-transpose-reset" class="btn-icon" style="font-size: 14px; color: var(--accent-blue);"><i class="fas fa-redo"></i></button>
             </div>
-
             <div style="flex-grow: 1;"></div>
             <button id="btn-settings" class="btn-icon"><i class="fas fa-cog"></i></button>
         </div>
 
         <div id="settings-menu">
             <div class="setting-item">
-                <label><i class="fas fa-text-height"></i> Rozmiar tekstu</label>
+                <label><i class="fas fa-search-plus"></i> Rozmiar (gest lupy)</label>
                 <span id="font-size-val" style="font-size: 12px; font-weight: bold;">18px</span>
             </div>
-            <input type="range" id="font-size-slider" min="12" max="40" value="18" style="width:100%;">
-            
+            <input type="range" id="font-size-slider" min="12" max="60" value="18" style="width:100%;">
             <hr style="width:100%; opacity:0.1;">
-            
-            <div class="setting-item">
-                <label>Akordy</label>
-                <button id="btn-toggle-chords" style="width: 80px;">Ukryj</button>
-            </div>
-            
-            <div class="setting-item">
-                <label>Auto-scroll</label>
+            <div class="setting-item"><label>Akordy</label><button id="btn-toggle-chords" style="width: 80px;">Ukryj</button></div>
+            <div class="setting-item"><label>Auto-scroll</label>
                 <div style="display:flex; gap:5px; align-items:center;">
                     <button id="btn-scroll-toggle"><i class="fas fa-play"></i></button>
                     <input type="range" id="scroll-speed" min="1" max="50" value="10" style="width:60px;">
                 </div>
             </div>
-
-            <div class="setting-item">
-                <label>Tryb nocny</label>
-                <button id="btn-dark-mode" class="btn-icon"><i class="fas fa-moon"></i></button>
-            </div>
-
+            <div class="setting-item"><label>Tryb nocny</label><button id="btn-dark-mode" class="btn-icon"><i class="fas fa-moon"></i></button></div>
             <hr style="width:100%; opacity:0.1;">
-            
             <button onclick="openEditor()" style="text-align:left;"><i class="fas fa-plus-circle"></i> Dodaj nową piosenkę</button>
             <button id="btn-download-json" class="btn-blue" style="text-align:left;"><i class="fas fa-file-download"></i> Pobierz plik JSON</button>
             <button id="btn-export-all" class="btn-green" style="text-align:left;"><i class="fas fa-images"></i> Eksportuj wszystko (JPG)</button>
@@ -168,21 +151,17 @@
 
         <div id="song-capture-area">
             <div id="song-display">
-                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę z listy po lewej.</div>
+                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę z listy.</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const COLLECTIONS = [
-        { name: "Główny Zbiór", file: 'piosenki.json' },
-        { name: "Kolędy", file: 'koledy.json' },
-        { name: "Inne", file: 'lukasz.json' }
-    ];
-
+    const COLLECTIONS = [{ name: "Główny Zbiór", file: 'piosenki.json' },{ name: "Kolędy", file: 'koledy.json' },{ name: "Inne", file: 'lukasz.json' }];
     let allSongs = [], currentId = null, transpose = 0, showChords = true;
     let scrollInterval = null, isScrolling = false;
+    let currentFontSize = 18;
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
@@ -207,18 +186,6 @@
         `).join('');
     }
 
-    function transChord(c, s) {
-        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => {
-            let base = b.toUpperCase().replace('H', 'B');
-            let i = scale.indexOf(base);
-            if (i === -1) return m;
-            i = (i + s % 12 + 12) % 12;
-            let res = dScale[i];
-            if (b === b.toLowerCase()) res = res.toLowerCase();
-            return res + (mod || '');
-        });
-    }
-
     function updateView() {
         if (currentId === null) return;
         const song = allSongs.find(s => s.id === currentId);
@@ -226,9 +193,34 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
+    function setFontSize(size) {
+        currentFontSize = Math.min(Math.max(size, 12), 60);
+        document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px');
+        document.getElementById('font-size-slider').value = currentFontSize;
+        document.getElementById('font-size-val').textContent = currentFontSize + 'px';
+    }
+
+    // GEST LUPY (PINCH ZOOM)
+    let initialDist = -1;
+    const songArea = document.getElementById('song-capture-area');
+
+    songArea.addEventListener('touchstart', e => {
+        if (e.touches.length === 2) initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+    });
+
+    songArea.addEventListener('touchmove', e => {
+        if (e.touches.length === 2 && initialDist > 0) {
+            const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            const diff = (dist - initialDist) / 10;
+            setFontSize(currentFontSize + diff);
+            initialDist = dist;
+        }
+    });
+
+    songArea.addEventListener('touchend', () => { initialDist = -1; });
+
     window.selectSong = (id) => {
-        stopAutoScroll();
-        currentId = id; transpose = 0;
+        stopAutoScroll(); currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
         document.getElementById('settings-menu').classList.remove('active');
@@ -236,101 +228,39 @@
         document.getElementById('main-content').scrollTop = 0;
     };
 
-    function backToList() {
-        stopAutoScroll();
-        document.body.classList.remove('song-active');
-        document.getElementById('settings-menu').classList.remove('active');
-    }
-
-    // Toggle menu
-    document.getElementById('btn-settings').onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('settings-menu').classList.toggle('active');
-    };
+    function backToList() { stopAutoScroll(); document.body.classList.remove('song-active'); }
+    document.getElementById('btn-settings').onclick = (e) => { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); };
     document.addEventListener('click', () => document.getElementById('settings-menu').classList.remove('active'));
-    document.getElementById('settings-menu').onclick = (e) => e.stopPropagation();
+    document.getElementById('font-size-slider').oninput = (e) => setFontSize(parseInt(e.target.value));
 
-    // Rozmiar czcionki
-    const fontSlider = document.getElementById('font-size-slider');
-    fontSlider.oninput = (e) => {
-        const size = e.target.value + 'px';
-        document.documentElement.style.setProperty('--lyrics-font-size', size);
-        document.getElementById('font-size-val').textContent = size;
-    };
-
-    // Swipe
+    // Swipe Back
     let touchStartX = 0;
-    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+    document.addEventListener('touchstart', e => { if(e.touches.length === 1) touchStartX = e.touches[0].screenX; });
     document.addEventListener('touchend', e => {
         if (e.changedTouches[0].screenX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList();
     });
 
-    // Funkcje menu
-    document.getElementById('btn-toggle-chords').onclick = function() {
-        showChords = !showChords;
-        this.textContent = showChords ? "Ukryj" : "Pokaż";
-        updateView();
-    };
-
-    function startAutoScroll() {
-        isScrolling = true;
-        document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>';
-        scrollInterval = setInterval(() => {
-            document.getElementById('main-content').scrollTop += 1;
-        }, 100 - document.getElementById('scroll-speed').value);
-    }
-    function stopAutoScroll() {
-        isScrolling = false;
-        document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>';
-        clearInterval(scrollInterval);
+    // Reszta logiki
+    function transChord(c, s) {
+        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => {
+            let base = b.toUpperCase().replace('H', 'B');
+            let i = scale.indexOf(base); if (i === -1) return m;
+            i = (i + s % 12 + 12) % 12;
+            let res = dScale[i]; if (b === b.toLowerCase()) res = res.toLowerCase();
+            return res + (mod || '');
+        });
     }
 
+    document.getElementById('btn-toggle-chords').onclick = function() { showChords = !showChords; this.textContent = showChords ? "Ukryj" : "Pokaż"; updateView(); };
+    function startAutoScroll() { isScrolling = true; document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>'; scrollInterval = setInterval(() => { document.getElementById('main-content').scrollTop += 1; }, 100 - document.getElementById('scroll-speed').value); }
+    function stopAutoScroll() { isScrolling = false; document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>'; clearInterval(scrollInterval); }
     function openEditor() { document.getElementById('editor-modal').style.display = 'flex'; }
     function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
-    function saveNewSong() {
-        const title = document.getElementById('edit-title').value;
-        if (!title) return;
-        const newSong = { title, artist: document.getElementById('edit-artist').value, lyrics: document.getElementById('edit-lyrics').value, id: Date.now(), searchKey: title.toLowerCase() };
-        allSongs.push(newSong); renderList(); closeEditor(); selectSong(newSong.id);
-        document.getElementById('settings-menu').classList.remove('active');
-    }
-
-    document.getElementById('btn-download-json').onclick = () => {
-        const clean = allSongs.map(({title, artist, chords, lyrics}) => ({title, artist, chords, lyrics}));
-        const blob = new Blob([JSON.stringify(clean, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = colSelect.value; a.click();
-    };
-
-    async function saveAsJpg(element, name) {
-        element.style.width = "800px"; element.style.background = "#ffffff";
-        const canvas = await html2canvas(element, { scale: 2 });
-        const link = document.createElement('a');
-        link.download = name + ".jpg"; link.href = canvas.toDataURL("image/jpeg", 0.9); link.click();
-        element.style.width = ""; element.style.background = "";
-    }
-
-    document.getElementById('btn-export-all').onclick = async function() {
-        const overlay = document.getElementById('progress-overlay');
-        overlay.style.display = 'flex';
-        for (let i = 0; i < allSongs.length; i++) {
-            document.getElementById('progress-count').textContent = `${i+1}/${allSongs.length}`;
-            document.getElementById('song-display').innerHTML = generateSongHTML(allSongs[i], 0, true);
-            await new Promise(r => setTimeout(r, 400));
-            await saveAsJpg(document.getElementById('song-capture-area'), allSongs[i].title);
-        }
-        overlay.style.display = 'none'; updateView();
-    };
-
-    function generateSongHTML(song, trans, visible) {
-        let html = `<h2>${song.title} <small style="opacity:0.7">(${song.artist})</small></h2>`;
-        if (song.chords && visible) {
-            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, trans));
-            html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
-        }
-        let lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, visible ? (m, c) => `<span class="inline-chord">${transChord(c, trans)}</span>` : '');
-        return html + `<div class="lyrics-content">${lyr}</div>`;
-    }
-
+    function saveNewSong() { const title = document.getElementById('edit-title').value; if (!title) return; const newSong = { title, artist: document.getElementById('edit-artist').value, lyrics: document.getElementById('edit-lyrics').value, id: Date.now(), searchKey: title.toLowerCase() }; allSongs.push(newSong); renderList(); closeEditor(); selectSong(newSong.id); }
+    document.getElementById('btn-download-json').onclick = () => { const clean = allSongs.map(({title, artist, chords, lyrics}) => ({title, artist, chords, lyrics})); const blob = new Blob([JSON.stringify(clean, null, 2)], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = colSelect.value; a.click(); };
+    async function saveAsJpg(element, name) { element.style.width = "800px"; element.style.background = "#ffffff"; const canvas = await html2canvas(element, { scale: 2 }); const link = document.createElement('a'); link.download = name + ".jpg"; link.href = canvas.toDataURL("image/jpeg", 0.9); link.click(); element.style.width = ""; element.style.background = ""; }
+    document.getElementById('btn-export-all').onclick = async function() { const overlay = document.getElementById('progress-overlay'); overlay.style.display = 'flex'; for (let i = 0; i < allSongs.length; i++) { document.getElementById('progress-count').textContent = `${i+1}/${allSongs.length}`; document.getElementById('song-display').innerHTML = generateSongHTML(allSongs[i], 0, true); await new Promise(r => setTimeout(r, 400)); await saveAsJpg(document.getElementById('song-capture-area'), allSongs[i].title); } overlay.style.display = 'none'; updateView(); };
+    function generateSongHTML(song, trans, visible) { let html = `<h2>${song.title} <small style="opacity:0.7">(${song.artist})</small></h2>`; if (song.chords && visible) { const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, trans)); html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`; } let lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, visible ? (m, c) => `<span class="inline-chord">${transChord(c, trans)}</span>` : ''); return html + `<div class="lyrics-content">${lyr}</div>`; }
     document.getElementById('btn-transpose-up').onclick = () => { transpose++; updateView(); };
     document.getElementById('btn-transpose-down').onclick = () => { transpose--; updateView(); };
     document.getElementById('btn-transpose-reset').onclick = () => { transpose = 0; updateView(); };
@@ -338,7 +268,6 @@
     document.getElementById('btn-jpg').onclick = () => saveAsJpg(document.getElementById('song-capture-area'), allSongs.find(s=>s.id===currentId).title);
     document.getElementById('btn-dark-mode').onclick = () => document.body.classList.toggle('dark-mode');
     document.getElementById('search').oninput = renderList;
-
     loadSongs(COLLECTIONS[0].file);
 </script>
 </body>
