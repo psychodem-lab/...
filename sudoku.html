@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Sudoku Mobile-Ready</title>
+    <title>Modern Sudoku - Centered</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -13,67 +13,65 @@
             --border-color: #ddd;
             --error-color: #ff6b6b;
             --success-color: #51cf66;
-            --highlight-color: #e7f3ff;
             --fixed-number: #2d3436;
+            --cell-size: min(42px, 10vw);
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            -webkit-text-size-adjust: 100%;
         }
 
         .game-container {
             background: var(--container-bg);
-            padding: 1.5rem;
+            padding: 1.2rem;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 500px;
-            width: 95%;
+            width: 100%;
+            max-width: 420px; /* Optymalne dla mobile */
             box-sizing: border-box;
-            margin: 10px;
         }
 
-        h1 { margin-top: 0; font-weight: 300; letter-spacing: 2px; font-size: 1.5rem; color: var(--primary-color); }
+        h1 { margin: 0 0 15px 0; font-weight: 300; letter-spacing: 2px; font-size: 1.4rem; color: var(--primary-color); }
 
         .controls {
             margin-bottom: 15px;
             display: flex;
             justify-content: center;
             gap: 8px;
-            flex-wrap: wrap;
         }
 
         select, button {
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             background: white;
-            cursor: pointer;
             font-size: 14px;
-            transition: all 0.2s;
             touch-action: manipulation;
         }
 
-        button:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        /* Centrowanie planszy */
+        .board-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
 
-        /* Styl Planszy - Responsywny Grid */
         #sudoku-board {
             display: grid;
-            grid-template-columns: repeat(9, 1fr);
+            grid-template-columns: repeat(9, var(--cell-size));
+            grid-template-rows: repeat(9, var(--cell-size));
             border: 2px solid #333;
-            margin: 0 auto 20px;
-            --cell-size: min(45px, 10vw); 
-            width: calc(var(--cell-size) * 9 + 4px);
-            background-color: #333; /* Kolor linii grubych */
-            gap: 0px;
+            background-color: #333;
+            gap: 1px; /* Cienkie linie między komórkami */
+            width: fit-content;
         }
 
         .cell {
@@ -83,8 +81,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
             box-sizing: border-box;
-            border: 0.5px solid var(--border-color);
+        }
+
+        /* Grube linie 3x3 robione cieniem wewnętrznym, aby nie przesuwać siatki */
+        .cell:nth-child(3n):not( :nth-child(9n) ) {
+            box-shadow: inset -2px 0 0 #333;
+        }
+        
+        /* Poziome grube linie */
+        #sudoku-board .cell:nth-child(n+19):nth-child(-n+27),
+        #sudoku-board .cell:nth-child(n+46):nth-child(-n+54) {
+            box-shadow: inset 0 -2px 0 #333;
+        }
+        
+        /* Rogi sekcji (kombinacja linii pionowej i poziomej) */
+        #sudoku-board .cell:nth-child(21), #sudoku-board .cell:nth-child(24),
+        #sudoku-board .cell:nth-child(48), #sudoku-board .cell:nth-child(51) {
+            box-shadow: inset -2px -2px 0 #333;
         }
 
         .cell input {
@@ -92,38 +107,26 @@
             height: 100%;
             border: none;
             text-align: center;
-            font-size: min(1.2rem, 5vw);
+            font-size: 1.2rem;
             outline: none;
             background: transparent;
             color: var(--primary-color);
-            -webkit-appearance: none;
-            border-radius: 0;
             padding: 0;
+            appearance: none;
+            -webkit-appearance: none;
         }
 
-        /* Grubsze linie sekcji 3x3 */
-        .cell:nth-child(3n) { border-right: 2px solid #333; }
-        .cell:nth-child(9n) { border-right: 0.5px solid var(--border-color); }
-        #sudoku-board .cell:nth-child(n+19):nth-child(-n+27),
-        #sudoku-board .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #333; }
-
-        .cell.fixed { background-color: #f4f4f4; font-weight: bold; color: var(--fixed-number); }
+        .cell.fixed { background-color: #f8f9fa; font-weight: bold; color: var(--fixed-number); }
         .cell.error { background-color: #ffe3e3; }
-        .cell.error input { color: var(--error-color); }
 
         .actions {
             display: flex;
-            justify-content: space-between;
             gap: 10px;
         }
 
         .hint-btn { background: #f1f3f5; flex: 1; }
         .check-btn { background: var(--primary-color); color: white; flex: 2; font-weight: bold; }
 
-        @media (max-width: 350px) {
-            .game-container { padding: 10px; }
-            .controls select, .controls button { padding: 8px 5px; font-size: 12px; }
-        }
     </style>
 </head>
 <body>
@@ -140,11 +143,13 @@
         <button onclick="newGame()">Nowa Gra</button>
     </div>
 
-    <div id="sudoku-board"></div>
+    <div class="board-wrapper">
+        <div id="sudoku-board"></div>
+    </div>
 
     <div class="actions">
         <button class="hint-btn" onclick="getHint()">Podpowiedź</button>
-        <button class="check-btn" onclick="checkSolution()">Sprawdź wynik</button>
+        <button class="check-btn" onclick="checkSolution()">Sprawdź</button>
     </div>
 </div>
 
@@ -152,12 +157,9 @@
     let solution = [];
     let board = [];
 
-    // Funkcja generująca planszę Sudoku
     function generateSudoku(difficulty) {
-        // Tworzenie pustej macierzy 9x9
         const matrix = Array.from({ length: 9 }, () => Array(9).fill(0));
-
-        // Funkcja sprawdzająca czy liczba pasuje
+        
         function isValid(board, r, c, k) {
             for (let i = 0; i < 9; i++) {
                 const m = 3 * Math.floor(r / 3) + Math.floor(i / 3);
@@ -167,7 +169,6 @@
             return true;
         }
 
-        // Rekurencyjne wypełnianie
         function solve(board) {
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
@@ -190,10 +191,8 @@
         solve(matrix);
         solution = JSON.parse(JSON.stringify(matrix));
 
-        // Usuwanie cyfr dla poziomu trudności
-        let removedCount = difficulty === 'easy' ? 35 : difficulty === 'medium' ? 45 : 55;
+        let removedCount = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 45 : 55;
         let gameBoard = JSON.parse(JSON.stringify(matrix));
-        
         while (removedCount > 0) {
             let r = Math.floor(Math.random() * 9);
             let c = Math.floor(Math.random() * 9);
@@ -219,10 +218,9 @@
                     cell.classList.add('fixed');
                 } else {
                     const input = document.createElement('input');
-                    input.type = 'number'; // Wywołuje klawiaturę numeryczną na mobile
-                    input.pattern = "[1-9]*";
-                    input.inputMode = "numeric";
-                    input.maxLength = 1;
+                    input.type = 'number';
+                    input.inputMode = 'numeric';
+                    input.pattern = '[1-9]*';
                     input.dataset.row = r;
                     input.dataset.col = c;
                     input.oninput = function() { 
@@ -244,31 +242,17 @@
 
     function checkSolution() {
         const inputs = document.querySelectorAll('.cell input');
-        let isComplete = true;
         let hasErrors = false;
-
         inputs.forEach(input => {
             const r = input.dataset.row;
             const c = input.dataset.col;
-            const val = parseInt(input.value);
-
-            if(!val) {
-                isComplete = false;
-            } else if(val !== solution[r][c]) {
+            if(input.value && parseInt(input.value) !== solution[r][c]) {
                 input.parentElement.classList.add('error');
                 hasErrors = true;
-            } else {
-                input.parentElement.classList.remove('error');
             }
         });
-
-        if(isComplete && !hasErrors) {
-            alert("Gratulacje! Sudoku rozwiązane poprawnie! 🎉");
-        } else if(hasErrors) {
-            alert("Niektóre pola są błędne. Spróbuj poprawić czerwone komórki.");
-        } else {
-            alert("Plansza nie jest jeszcze pełna.");
-        }
+        if(!hasErrors) alert("Wszystko wygląda dobrze!");
+        else alert("Są błędy w Twoim rozwiązaniu.");
     }
 
     function getHint() {
@@ -280,13 +264,9 @@
             randomInput.value = solution[r][c];
             randomInput.style.color = 'var(--success-color)';
             randomInput.disabled = true;
-            randomInput.parentElement.classList.remove('error');
-        } else {
-            alert("Brak wolnych miejsc na podpowiedź!");
         }
     }
 
-    // Pierwsze uruchomienie
     window.onload = newGame;
 </script>
 
