@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik - Gesty i Lupa</title>
+    <title>Śpiewnik - Pełne Skalowanie</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -19,7 +19,7 @@
             --border-color: #ccc;
             --accent-success: #28a745;
             --accent-blue: #007bff;
-            --lyrics-font-size: 18px;
+            --lyrics-font-size: 18px; /* Wspólna zmienna dla tekstu i akordów */
         }
 
         body.dark-mode {
@@ -73,7 +73,24 @@
 
         #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; touch-action: none; }
         
-        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); }
+        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; }
+        
+        /* Teraz akordy na górze też używają zmiennej font-size */
+        #active-chords-content { 
+            font-family: 'Courier New', monospace; 
+            font-size: calc(var(--lyrics-font-size) * 0.9); /* Nieco mniejsze niż tekst, ale skalowalne */
+            white-space: pre-wrap; 
+            margin: 0; 
+            color: var(--text-song); 
+        }
+        
+        .lyrics-content { 
+            white-space: pre-wrap; 
+            font-size: var(--lyrics-font-size); 
+            line-height: 1.6; 
+            margin-top: 20px; 
+            color: var(--text-song); 
+        }
         .inline-chord { font-weight: bold; color: var(--text-chords); }
 
         button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); }
@@ -193,6 +210,7 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
+    // FUNKCJA SKALOWANIA (Działa na tekst i akordy)
     function setFontSize(size) {
         currentFontSize = Math.min(Math.max(size, 12), 60);
         document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px');
@@ -203,11 +221,7 @@
     // GEST LUPY (PINCH ZOOM)
     let initialDist = -1;
     const songArea = document.getElementById('song-capture-area');
-
-    songArea.addEventListener('touchstart', e => {
-        if (e.touches.length === 2) initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-    });
-
+    songArea.addEventListener('touchstart', e => { if (e.touches.length === 2) initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); });
     songArea.addEventListener('touchmove', e => {
         if (e.touches.length === 2 && initialDist > 0) {
             const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
@@ -216,18 +230,9 @@
             initialDist = dist;
         }
     });
-
     songArea.addEventListener('touchend', () => { initialDist = -1; });
 
-    window.selectSong = (id) => {
-        stopAutoScroll(); currentId = id; transpose = 0;
-        document.getElementById('controls-bar').style.display = "flex";
-        document.body.classList.add('song-active');
-        document.getElementById('settings-menu').classList.remove('active');
-        updateView(); renderList();
-        document.getElementById('main-content').scrollTop = 0;
-    };
-
+    window.selectSong = (id) => { stopAutoScroll(); currentId = id; transpose = 0; document.getElementById('controls-bar').style.display = "flex"; document.body.classList.add('song-active'); document.getElementById('settings-menu').classList.remove('active'); updateView(); renderList(); document.getElementById('main-content').scrollTop = 0; };
     function backToList() { stopAutoScroll(); document.body.classList.remove('song-active'); }
     document.getElementById('btn-settings').onclick = (e) => { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); };
     document.addEventListener('click', () => document.getElementById('settings-menu').classList.remove('active'));
@@ -236,21 +241,9 @@
     // Swipe Back
     let touchStartX = 0;
     document.addEventListener('touchstart', e => { if(e.touches.length === 1) touchStartX = e.touches[0].screenX; });
-    document.addEventListener('touchend', e => {
-        if (e.changedTouches[0].screenX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList();
-    });
+    document.addEventListener('touchend', e => { if (e.changedTouches[0].screenX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList(); });
 
-    // Reszta logiki
-    function transChord(c, s) {
-        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => {
-            let base = b.toUpperCase().replace('H', 'B');
-            let i = scale.indexOf(base); if (i === -1) return m;
-            i = (i + s % 12 + 12) % 12;
-            let res = dScale[i]; if (b === b.toLowerCase()) res = res.toLowerCase();
-            return res + (mod || '');
-        });
-    }
-
+    function transChord(c, s) { return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { let base = b.toUpperCase().replace('H', 'B'); let i = scale.indexOf(base); if (i === -1) return m; i = (i + s % 12 + 12) % 12; let res = dScale[i]; if (b === b.toLowerCase()) res = res.toLowerCase(); return res + (mod || ''); }); }
     document.getElementById('btn-toggle-chords').onclick = function() { showChords = !showChords; this.textContent = showChords ? "Ukryj" : "Pokaż"; updateView(); };
     function startAutoScroll() { isScrolling = true; document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-pause"></i>'; scrollInterval = setInterval(() => { document.getElementById('main-content').scrollTop += 1; }, 100 - document.getElementById('scroll-speed').value); }
     function stopAutoScroll() { isScrolling = false; document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>'; clearInterval(scrollInterval); }
