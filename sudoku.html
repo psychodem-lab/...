@@ -3,75 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Sudoku - Centered</title>
+    <title>Modern Sudoku Pro</title>
     <style>
         :root {
-            --bg-color: #f0f2f5;
+            --bg-color: #f4f7f9;
             --container-bg: #ffffff;
             --primary-color: #4a90e2;
-            --text-color: #333;
-            --border-color: #ddd;
+            --text-color: #2c3e50;
+            --border-color: #e0e6ed;
             --error-color: #ff6b6b;
-            --success-color: #51cf66;
+            --success-color: #20bf6b;
             --fixed-number: #2d3436;
-            --cell-size: min(42px, 10vw);
+            --cell-size: min(44px, 10vw);
+            --accent-bg: #f8faff;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
         }
 
         .game-container {
             background: var(--container-bg);
-            padding: 1.2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             text-align: center;
             width: 100%;
-            max-width: 420px; /* Optymalne dla mobile */
+            max-width: 440px;
             box-sizing: border-box;
+            margin: 10px;
         }
 
-        h1 { margin: 0 0 15px 0; font-weight: 300; letter-spacing: 2px; font-size: 1.4rem; color: var(--primary-color); }
+        h1 { 
+            margin: 0 0 20px 0; 
+            font-weight: 700; 
+            letter-spacing: -0.5px; 
+            font-size: 1.6rem; 
+            color: var(--text-color);
+        }
 
         .controls {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         select, button {
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             background: white;
             font-size: 14px;
-            touch-action: manipulation;
+            font-weight: 600;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            outline: none;
         }
 
-        /* Centrowanie planszy */
+        button:active { transform: scale(0.96); }
+
         .board-wrapper {
             display: flex;
             justify-content: center;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
+        /* Usprawniona tabela Sudoku */
         #sudoku-board {
             display: grid;
             grid-template-columns: repeat(9, var(--cell-size));
             grid-template-rows: repeat(9, var(--cell-size));
-            border: 2px solid #333;
-            background-color: #333;
-            gap: 1px; /* Cienkie linie między komórkami */
-            width: fit-content;
+            border: 3px solid var(--text-color);
+            background-color: var(--text-color);
+            gap: 1px;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .cell {
@@ -85,21 +102,28 @@
             box-sizing: border-box;
         }
 
-        /* Grube linie 3x3 robione cieniem wewnętrznym, aby nie przesuwać siatki */
-        .cell:nth-child(3n):not( :nth-child(9n) ) {
-            box-shadow: inset -2px 0 0 #333;
+        /* Grube linie sekcji 3x3 */
+        .cell:nth-child(3n):not(:nth-child(9n))::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: var(--text-color);
+            z-index: 2;
         }
-        
-        /* Poziome grube linie */
-        #sudoku-board .cell:nth-child(n+19):nth-child(-n+27),
-        #sudoku-board .cell:nth-child(n+46):nth-child(-n+54) {
-            box-shadow: inset 0 -2px 0 #333;
-        }
-        
-        /* Rogi sekcji (kombinacja linii pionowej i poziomej) */
-        #sudoku-board .cell:nth-child(21), #sudoku-board .cell:nth-child(24),
-        #sudoku-board .cell:nth-child(48), #sudoku-board .cell:nth-child(51) {
-            box-shadow: inset -2px -2px 0 #333;
+
+        #sudoku-board .cell:nth-child(n+19):nth-child(-n+27)::before,
+        #sudoku-board .cell:nth-child(n+46):nth-child(-n+54)::before {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--text-color);
+            z-index: 2;
         }
 
         .cell input {
@@ -107,26 +131,73 @@
             height: 100%;
             border: none;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 500;
             outline: none;
             background: transparent;
             color: var(--primary-color);
             padding: 0;
-            appearance: none;
             -webkit-appearance: none;
+            border-radius: 0;
         }
 
-        .cell.fixed { background-color: #f8f9fa; font-weight: bold; color: var(--fixed-number); }
-        .cell.error { background-color: #ffe3e3; }
+        /* Efekt podświetlenia wybranego pola */
+        .cell:focus-within {
+            background-color: var(--accent-bg);
+        }
+        
+        .cell input:focus {
+            color: #000;
+            font-weight: 700;
+        }
+
+        .cell.fixed { 
+            background-color: #fafbfc; 
+            font-weight: 700; 
+            color: var(--fixed-number);
+            font-size: 1.3rem;
+        }
+
+        /* Animacja błędu */
+        .cell.error { 
+            background-color: #fff5f5; 
+            animation: shake 0.3s ease-in-out;
+        }
+        
+        .cell.error input { color: var(--error-color); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
 
         .actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .hint-btn { background: #f1f3f5; flex: 1; }
-        .check-btn { background: var(--primary-color); color: white; flex: 2; font-weight: bold; }
+        .hint-btn { 
+            background: #fff; 
+            flex: 1; 
+            border-color: var(--border-color);
+        }
+        
+        .check-btn { 
+            background: var(--primary-color); 
+            color: white; 
+            flex: 2; 
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
 
+        .check-btn:hover { background: #357abd; }
+
+        @media (max-width: 350px) {
+            .game-container { padding: 1rem; }
+            h1 { font-size: 1.2rem; }
+        }
     </style>
 </head>
 <body>
@@ -157,6 +228,7 @@
     let solution = [];
     let board = [];
 
+    // Logika generowania poprawnego Sudoku
     function generateSudoku(difficulty) {
         const matrix = Array.from({ length: 9 }, () => Array(9).fill(0));
         
@@ -243,16 +315,26 @@
     function checkSolution() {
         const inputs = document.querySelectorAll('.cell input');
         let hasErrors = false;
+        let emptyFields = 0;
+
         inputs.forEach(input => {
             const r = input.dataset.row;
             const c = input.dataset.col;
-            if(input.value && parseInt(input.value) !== solution[r][c]) {
+            if(!input.value) {
+                emptyFields++;
+            } else if(parseInt(input.value) !== solution[r][c]) {
                 input.parentElement.classList.add('error');
                 hasErrors = true;
             }
         });
-        if(!hasErrors) alert("Wszystko wygląda dobrze!");
-        else alert("Są błędy w Twoim rozwiązaniu.");
+
+        if(emptyFields === 0 && !hasErrors) {
+            alert("Gratulacje! Rozwiązałeś Sudoku poprawnie! 🎉");
+        } else if(hasErrors) {
+            alert("Są błędy w rozwiązaniu. Popraw podświetlone pola.");
+        } else {
+            alert("Wypełnij wszystkie pola, aby ukończyć grę.");
+        }
     }
 
     function getHint() {
@@ -264,6 +346,7 @@
             randomInput.value = solution[r][c];
             randomInput.style.color = 'var(--success-color)';
             randomInput.disabled = true;
+            randomInput.parentElement.classList.remove('error');
         }
     }
 
