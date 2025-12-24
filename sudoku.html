@@ -3,27 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Sudoku - Fixed View</title>
+    <title>Sudoku - Perfect Grid</title>
     <style>
         :root {
             --bg-color: #f4f7f9;
             --container-bg: #ffffff;
             --primary-color: #4a90e2;
             --text-color: #2c3e50;
-            --border-color: #e0e6ed;
-            --error-color: #ff6b6b;
-            --success-color: #20bf6b;
-            --fixed-number: #2d3436;
-            --board-size: min(380px, 92vw); /* Gwarantuje, że plansza nie wyjdzie poza ekran */
+            --border-color: #d1d9e0;
+            --grid-bold: #34495e; /* Kolor grubych linii */
+            --board-size: min(380px, 92vw);
         }
 
-        * {
-            box-sizing: border-box; /* Kluczowe dla uniknięcia ucinania krawędzi */
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             display: flex;
@@ -34,27 +29,26 @@
 
         .game-container {
             background: var(--container-bg);
-            padding: 1rem;
-            border-radius: 20px;
+            padding: 1.5rem;
+            border-radius: 24px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            text-align: center;
             width: 100%;
             max-width: 420px;
             margin: 10px;
         }
 
-        h1 { margin: 0 0 15px 0; font-size: 1.5rem; color: var(--text-color); font-weight: 700; }
+        h1 { margin: 0 0 15px 0; font-size: 1.5rem; text-align: center; color: var(--text-color); }
 
         .controls {
-            margin-bottom: 15px;
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         select, button {
-            padding: 10px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             background: white;
             font-size: 14px;
@@ -62,98 +56,71 @@
             cursor: pointer;
         }
 
+        /* NAPRAWA SIATKI */
         .board-wrapper {
             display: flex;
             justify-content: center;
-            width: 100%;
             margin-bottom: 20px;
         }
 
         #sudoku-board {
             display: grid;
-            grid-template-columns: repeat(9, 1fr); /* 1fr zamiast stałych pikseli zapobiega ucinaniu */
+            grid-template-columns: repeat(9, 1fr);
             width: var(--board-size);
             height: var(--board-size);
-            border: 2px solid var(--text-color);
-            background-color: var(--text-color);
-            gap: 1px;
-            border-radius: 4px;
-            overflow: hidden;
+            background-color: white;
+            border: 2px solid var(--grid-bold);
+            position: relative;
+            /* Rysowanie grubych linii bloków 3x3 za pomocą gradientu */
+            background-image: 
+                linear-gradient(to right, transparent 33.1%, var(--grid-bold) 33.1%, var(--grid-bold) 33.6%, transparent 33.6%, transparent 66.4%, var(--grid-bold) 66.4%, var(--grid-bold) 66.9%, transparent 66.9%),
+                linear-gradient(to bottom, transparent 33.1%, var(--grid-bold) 33.1%, var(--grid-bold) 33.6%, transparent 33.6%, transparent 66.4%, var(--grid-bold) 66.4%, var(--grid-bold) 66.9%, transparent 66.9%);
         }
 
         .cell {
-            background-color: white;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 0.5px solid var(--border-color); /* Cienkie linie */
             position: relative;
+            z-index: 1;
         }
 
-        /* Grube linie sekcji 3x3 */
-        .cell:nth-child(3n):not(:nth-child(9n)) {
-            box-shadow: inset -2px 0 0 var(--text-color);
-        }
-
-        #sudoku-board .cell:nth-child(n+19):nth-child(-n+27),
-        #sudoku-board .cell:nth-child(n+46):nth-child(-n+54) {
-            box-shadow: inset 0 -2px 0 var(--text-color);
-        }
-
-        /* Rogi sekcji */
-        #sudoku-board .cell:nth-child(21), #sudoku-board .cell:nth-child(24),
-        #sudoku-board .cell:nth-child(48), #sudoku-board .cell:nth-child(51) {
-            box-shadow: inset -2px -2px 0 var(--text-color);
-        }
-
-        .cell input {
+        .cell input, .cell.fixed {
             width: 100%;
             height: 100%;
-            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            font-size: 1.2rem;
-            font-weight: 600;
-            outline: none;
+            font-size: 1.3rem;
+            border: none;
             background: transparent;
-            color: var(--primary-color);
+            outline: none;
             padding: 0;
-            border-radius: 0;
         }
 
         .cell.fixed {
-            background-color: #f8f9fa;
-            color: var(--fixed-number);
+            color: var(--text-color);
             font-weight: 800;
-            font-size: 1.2rem;
+            background-color: rgba(244, 247, 249, 0.5);
         }
 
+        .cell input { color: var(--primary-color); font-weight: 600; }
         .cell.error { background-color: #fff5f5; animation: shake 0.3s; }
-        .cell.error input { color: var(--error-color); }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
         }
 
-        .actions {
-            display: flex;
-            gap: 10px;
-        }
+        .actions { display: flex; gap: 10px; }
+        .hint-btn { flex: 1; background: #fff; }
+        .check-btn { flex: 2; background: var(--primary-color); color: white; border: none; }
 
-        .hint-btn { background: #fff; flex: 1; }
-        .check-btn { 
-            background: var(--primary-color); 
-            color: white; 
-            flex: 2; 
-            border: none;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-        }
-
-        /* Ukrycie strzałek w inputach typu number */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
         }
     </style>
 </head>
@@ -161,7 +128,6 @@
 
 <div class="game-container">
     <h1>SUDOKU</h1>
-    
     <div class="controls">
         <select id="difficulty">
             <option value="easy">Łatwy</option>
@@ -183,7 +149,6 @@
 
 <script>
     let solution = [];
-    let board = [];
 
     function generateSudoku(difficulty) {
         const matrix = Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -215,15 +180,11 @@
         }
         solve(matrix);
         solution = JSON.parse(JSON.stringify(matrix));
-        let removedCount = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 45 : 55;
+        let removed = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 45 : 55;
         let gameBoard = JSON.parse(JSON.stringify(matrix));
-        while (removedCount > 0) {
-            let r = Math.floor(Math.random() * 9);
-            let c = Math.floor(Math.random() * 9);
-            if (gameBoard[r][c] !== null) {
-                gameBoard[r][c] = null;
-                removedCount--;
-            }
+        while (removed > 0) {
+            let r = Math.floor(Math.random() * 9), c = Math.floor(Math.random() * 9);
+            if (gameBoard[r][c] !== null) { gameBoard[r][c] = null; removed--; }
         }
         return gameBoard;
     }
@@ -256,38 +217,29 @@
     }
 
     function newGame() {
-        const difficulty = document.getElementById('difficulty').value;
-        board = generateSudoku(difficulty);
-        createBoardUI(board);
+        createBoardUI(generateSudoku(document.getElementById('difficulty').value));
     }
 
     function checkSolution() {
         const inputs = document.querySelectorAll('.cell input');
-        let hasErrors = false;
-        let empty = 0;
+        let err = false;
         inputs.forEach(input => {
-            const r = input.dataset.row;
-            const c = input.dataset.col;
-            if(!input.value) empty++;
-            else if(parseInt(input.value) !== solution[r][c]) {
+            if(input.value && parseInt(input.value) !== solution[input.dataset.row][input.dataset.col]) {
                 input.parentElement.classList.add('error');
-                hasErrors = true;
+                err = true;
             }
         });
-        if(empty === 0 && !hasErrors) alert("Brawo! Sudoku rozwiązane!");
-        else if(hasErrors) alert("Popraw błędy!");
-        else alert("Uzupełnij wszystkie pola!");
+        alert(err ? "Masz błędy!" : "Wygląda dobrze!");
     }
 
     function getHint() {
         const inputs = Array.from(document.querySelectorAll('.cell input')).filter(i => !i.value);
         if(inputs.length > 0) {
-            const randomInput = inputs[Math.floor(Math.random() * inputs.length)];
-            const r = randomInput.dataset.row;
-            const c = randomInput.dataset.col;
-            randomInput.value = solution[r][c];
-            randomInput.style.color = 'var(--success-color)';
-            randomInput.disabled = true;
+            const input = inputs[Math.floor(Math.random() * inputs.length)];
+            const r = input.dataset.row, c = input.dataset.col;
+            input.value = solution[r][c];
+            input.disabled = true;
+            input.style.color = "#20bf6b";
         }
     }
 
