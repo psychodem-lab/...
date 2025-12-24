@@ -2,109 +2,109 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Sudoku</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Sudoku Mobile-First</title>
     <style>
         :root {
-            --bg-color: #f0f2f5;
+            --bg-color: #f8f9fa;
             --container-bg: #ffffff;
-            --primary-color: #4a90e2;
-            --text-color: #333;
-            --border-color: #ddd;
+            --primary-color: #339af0;
+            --text-color: #212529;
+            --border-color: #dee2e6;
             --error-color: #ff6b6b;
-            --success-color: #51cf66;
-            --highlight-color: #e7f3ff;
-            --fixed-number: #2d3436;
+            --fixed-bg: #e9ecef;
+            --active-cell: #e7f5ff;
+            --board-size: 95vw;
+            --max-board-size: 450px;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            margin: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            touch-action: manipulation;
         }
 
         .game-container {
-            background: var(--container-bg);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
             width: 100%;
+            max-width: var(--max-board-size);
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
         }
 
-        h1 { margin-top: 0; font-weight: 300; letter-spacing: 2px; }
+        h1 { margin: 10px 0; font-size: 1.5rem; color: var(--primary-color); }
 
-        .controls {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        select, button {
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        button:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-
-        /* Styl Planszy */
+        /* Board Styling */
         #sudoku-board {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
-            border: 2px solid #333;
-            margin: 0 auto 20px;
-            width: fit-content;
+            width: var(--board-size);
+            height: var(--board-size);
+            max-width: var(--max-board-size);
+            max-height: var(--max-board-size);
+            border: 2px solid #343a40;
+            margin: 10px auto;
+            background: white;
+            user-select: none;
         }
 
         .cell {
-            width: 45px;
-            height: 45px;
-            border: 1px solid var(--border-color);
+            border: 0.5px solid var(--border-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2rem;
+            font-size: clamp(1.2rem, 5vw, 1.5rem);
+            cursor: pointer;
+            transition: background 0.1s;
         }
 
-        .cell input {
-            width: 100%;
-            height: 100%;
-            border: none;
-            text-align: center;
-            font-size: 1.2rem;
-            outline: none;
-            background: transparent;
-            color: var(--primary-color);
-        }
-
-        .cell.fixed { background-color: #f9f9f9; font-weight: bold; color: var(--fixed-number); }
-        .cell.error { background-color: #ffe3e3; }
+        .cell.fixed { background-color: var(--fixed-bg); font-weight: bold; color: #495057; }
+        .cell.active { background-color: var(--active-cell); outline: 2px solid var(--primary-color); z-index: 1; }
+        .cell.error { color: var(--error-color); background-color: #fff5f5; }
         
-        /* Grubsze linie sekcji 3x3 */
-        .cell:nth-child(3n) { border-right: 2px solid #333; }
-        .cell:nth-child(9n) { border-right: 1px solid var(--border-color); }
-        #sudoku-board div:nth-child(n+19):nth-child(-n+27),
-        #sudoku-board div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #333; }
+        /* 3x3 Grid Borders */
+        .cell:nth-child(3n) { border-right: 2px solid #343a40; }
+        .cell:nth-child(9n) { border-right: 0.5px solid var(--border-color); }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #343a40; }
 
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
+        /* Custom Number Pad */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            padding: 0 10px;
         }
 
-        .hint-btn { background: #f1f3f5; }
-        .check-btn { background: var(--primary-color); color: white; flex-grow: 1; }
+        .numpad button {
+            padding: 15px 0;
+            font-size: 1.2rem;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .numpad button:active { background: var(--primary-color); color: white; }
+        .numpad .clear-btn { color: var(--error-color); }
+
+        .controls { margin: 10px 0; display: flex; justify-content: space-between; gap: 5px; }
+        select, .action-btn {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            font-size: 0.9rem;
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -118,27 +118,34 @@
             <option value="medium">Średni</option>
             <option value="hard">Trudny</option>
         </select>
-        <button onclick="newGame()">Nowa Gra</button>
+        <button class="action-btn" onclick="newGame()">Nowa Gra</button>
+        <button class="action-btn" onclick="checkSolution()">Sprawdź</button>
     </div>
 
     <div id="sudoku-board"></div>
 
-    <div class="actions">
-        <button class="hint-btn" onclick="getHint()">Podpowiedź</button>
-        <button class="check-btn" onclick="checkSolution()">Sprawdź wynik</button>
+    <div class="numpad">
+        <button onclick="inputValue(1)">1</button>
+        <button onclick="inputValue(2)">2</button>
+        <button onclick="inputValue(3)">3</button>
+        <button onclick="inputValue(4)">4</button>
+        <button onclick="inputValue(5)">5</button>
+        <button onclick="inputValue(6)">6</button>
+        <button onclick="inputValue(7)">7</button>
+        <button onclick="inputValue(8)">8</button>
+        <button onclick="inputValue(9)">9</button>
+        <button class="clear-btn" onclick="inputValue('')">✕</button>
     </div>
 </div>
 
 <script>
     let solution = [];
     let board = [];
+    let selectedCell = null;
 
-    // Funkcja generująca losową planszę (uproszczona wersja)
     function generateSudoku(difficulty) {
-        // Podstawowy wzór (przesunięcia dla poprawnego sudoku)
         const pattern = (r, c) => (3 * (r % 3) + Math.floor(r / 3) + c) % 9;
-        
-        const shuffle = (array) => array.sort(() => Math.random() - 0.5);
+        const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
         let nums = shuffle([1,2,3,4,5,6,7,8,9]);
         
         let newBoard = Array.from({length: 9}, (_, r) => 
@@ -147,7 +154,6 @@
 
         solution = JSON.parse(JSON.stringify(newBoard));
 
-        // Usuwanie cyfr zależnie od trudności
         let attempts = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 45 : 55;
         while(attempts > 0) {
             let r = Math.floor(Math.random() * 9);
@@ -168,71 +174,63 @@
             for(let c=0; c<9; c++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
+                cell.dataset.row = r;
+                cell.dataset.col = c;
                 
                 if(gameBoard[r][c] !== null) {
                     cell.textContent = gameBoard[r][c];
                     cell.classList.add('fixed');
                 } else {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.maxLength = 1;
-                    input.dataset.row = r;
-                    input.dataset.col = c;
-                    input.oninput = function() { 
-                        this.value = this.value.replace(/[^1-9]/g, '');
-                        cell.classList.remove('error');
-                    };
-                    cell.appendChild(input);
+                    cell.onclick = () => selectCell(cell);
                 }
                 boardElement.appendChild(cell);
             }
         }
     }
 
+    function selectCell(cell) {
+        if(selectedCell) selectedCell.classList.remove('active');
+        selectedCell = cell;
+        selectedCell.classList.add('active');
+    }
+
+    function inputValue(val) {
+        if(selectedCell && !selectedCell.classList.contains('fixed')) {
+            selectedCell.textContent = val;
+            selectedCell.classList.remove('error');
+        }
+    }
+
     function newGame() {
         const difficulty = document.getElementById('difficulty').value;
         board = generateSudoku(difficulty);
+        selectedCell = null;
         createBoardUI(board);
     }
 
     function checkSolution() {
-        const inputs = document.querySelectorAll('.cell input');
+        const cells = document.querySelectorAll('.cell:not(.fixed)');
         let isComplete = true;
         let isCorrect = true;
 
-        inputs.forEach(input => {
-            const r = input.dataset.row;
-            const c = input.dataset.col;
-            const val = parseInt(input.value);
+        cells.forEach(cell => {
+            const r = cell.dataset.row;
+            const c = cell.dataset.col;
+            const val = parseInt(cell.textContent);
 
             if(!val) {
                 isComplete = false;
             } else if(val !== solution[r][c]) {
-                input.parentElement.classList.add('error');
+                cell.classList.add('error');
                 isCorrect = false;
-            } else {
-                input.parentElement.classList.remove('error');
             }
         });
 
-        if(isComplete && isCorrect) alert("Gratulacje! Rozwiązałeś Sudoku!");
-        else if(!isComplete) alert("Wypełnij wszystkie pola.");
-        else alert("Są błędy w rozwiązaniu.");
+        if(isComplete && isCorrect) alert("Gratulacje!");
+        else if(!isComplete) alert("Dokończ planszę.");
+        else alert("Masz błędy.");
     }
 
-    function getHint() {
-        const inputs = Array.from(document.querySelectorAll('.cell input')).filter(i => !i.value);
-        if(inputs.length > 0) {
-            const randomInput = inputs[Math.floor(Math.random() * inputs.length)];
-            const r = randomInput.dataset.row;
-            const c = randomInput.dataset.col;
-            randomInput.value = solution[r][c];
-            randomInput.style.color = 'green';
-            randomInput.disabled = true;
-        }
-    }
-
-    // Inicjalizacja gry przy starcie
     newGame();
 </script>
 
