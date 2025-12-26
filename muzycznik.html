@@ -91,12 +91,12 @@
             <select id="collection-select" style="flex-grow:1; padding:10px; font-weight: bold;">
                 <option value="piosenki.json">📁 Piosenki (Główna)</option>
                 <option value="koledy.json">🎄 Kolędy</option>
-                <option value="lukasz.json">👤 Inne</option>
+                <option value="lukasz.json">👤 Biblioteka Łukasza</option>
                 <option value="favorites">⭐ Ulubione</option>
             </select>
             <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
-        <input type="text" id="search" placeholder="Szukaj..." style="width:80%; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
+        <input type="text" id="search" placeholder="Szukaj..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
     </div>
 
@@ -106,7 +106,7 @@
             
             <div class="control-group">
                 <button onclick="changeTrans(-1)" class="btn-icon"><i class="fas fa-minus"></i></button>
-                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:30px; text-align:center; cursor:pointer; padding: 0 5px;" title="Kliknij, aby resetować">0</span>
+                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:30px; text-align:center; cursor:pointer; padding: 0 5px;" title="Reset">0</span>
                 <button onclick="changeTrans(1)" class="btn-icon"><i class="fas fa-plus"></i></button>
             </div>
 
@@ -149,16 +149,53 @@
     let allSongs = [];
     let currentLibrary = "piosenki.json";
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
-    let currentId = null, transpose = 0, showChords = true;
+    let currentId = null, lastId = null, transpose = 0, showChords = true;
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
+    let currentFontSize = 18;
 
     // HISTORY & GESTURES
     window.addEventListener('popstate', (e) => { if (document.body.classList.contains('song-active')) backToList(false); });
-    let touchStartX = 0;
-    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+
+    let touchStartX = 0, initialPinchDist = -1;
+
+    document.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].screenX;
+        } else if (e.touches.length === 2) {
+            initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        }
+    }, {passive: false});
+
+    document.addEventListener('touchmove', e => {
+        if (e.touches.length === 2 && initialPinchDist > 0) {
+            e.preventDefault();
+            let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            let diff = dist - initialPinchDist;
+            if (Math.abs(diff) > 20) {
+                let newSize = currentFontSize + (diff > 0 ? 1 : -1);
+                if (newSize >= 12 && newSize <= 60) {
+                    setFontSize(newSize);
+                    initialPinchDist = dist;
+                }
+            }
+        }
+    }, {passive: false});
+
     document.addEventListener('touchend', e => {
-        let touchEndX = e.changedTouches[0].screenX;
-        if (touchEndX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList();
+        if (e.changedTouches.length === 1) {
+            let touchEndX = e.changedTouches[0].screenX;
+            let diff = touchEndX - touchStartX;
+            
+            // GEST: W prawo > 100px (Powrót do listy)
+            if (diff > 100 && document.body.classList.contains('song-active')) {
+                backToList();
+            } 
+            // GEST: W lewo > 100px (Powrót do ostatniej piosenki)
+            else if (diff < -100 && !document.body.classList.contains('song-active') && lastId) {
+                selectSong(lastId);
+            }
+        }
+        initialPinchDist = -1;
     }, false);
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -209,16 +246,23 @@
     }
 
     function selectSong(id) {
-        stopAutoScroll(); currentId = id; transpose = 0;
+        stopAutoScroll(); 
+        lastId = currentId || lastId; // Zapamiętaj poprzednią piosenkę
+        currentId = id; 
+        transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
-        history.pushState({view: 'song'}, ''); 
+        if (!history.state || history.state.view !== 'song') {
+            history.pushState({view: 'song'}, ''); 
+        }
         updateView(); renderList();
         document.getElementById('main-content').scrollTop = 0;
     }
 
     function backToList(doPopState = true) {
-        document.body.classList.remove('song-active'); stopAutoScroll();
+        lastId = currentId; // Zapamiętaj piosenkę przy wyjściu
+        document.body.classList.remove('song-active'); 
+        stopAutoScroll();
         if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
@@ -243,9 +287,15 @@
     function changeTrans(v) { transpose += v; updateView(); }
     function resetTrans() { transpose = 0; updateView(); }
     
+    function setFontSize(v) { 
+        currentFontSize = parseInt(v);
+        document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px'); 
+        document.getElementById('font-size-val').textContent = currentFontSize + 'px'; 
+        document.getElementById('font-size-slider').value = currentFontSize;
+    }
+
     function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
     function openSettings(e) { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); }
-    function setFontSize(v) { document.documentElement.style.setProperty('--lyrics-font-size', v + 'px'); document.getElementById('font-size-val').textContent = v + 'px'; }
     function toggleChordsDisplay() { showChords = !showChords; updateView(); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function toggleScroll() { isScrolling = !isScrolling; if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value); else clearInterval(scrollInterval); }
