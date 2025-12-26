@@ -32,6 +32,9 @@
         }
         .mobile-only { display: none; }
 
+        /* Nagłówek Biblioteki w Sidebarze */
+        .sidebar-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+
         #controls-bar { display: flex; gap: 8px; padding: 10px; background: #eee; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 30; align-items: center; overflow-x: auto; }
         body.dark-mode #controls-bar { background: #252525; border-color: #444; }
 
@@ -49,6 +52,7 @@
         button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); }
         .btn-icon { border: none; background: transparent; font-size: 18px; padding: 5px 8px; }
 
+        #song-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
         #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         #song-list li.selected { background: var(--accent-blue); color: white; }
         .fav-star { color: #ccc; transition: 0.2s; padding: 5px; }
@@ -67,7 +71,7 @@
 <div id="progress-overlay">
     <h2 id="progress-text">Eksportowanie...</h2>
     <p id="progress-count">0/0</p>
-    <p style="font-size:12px; opacity:0.7;">Proszę nie zamykać strony</p>
+    <p style="font-size:12px; opacity:0.7;">Proszę nie zamykać okna</p>
 </div>
 
 <div id="editor-modal">
@@ -85,10 +89,14 @@
 
 <div id="app-container">
     <div id="sidebar">
-        <select id="collection-select" style="width:100%; padding:10px; margin-bottom:10px; font-weight: bold;">
-            <option value="local">📁 Moja Biblioteka</option>
-            <option value="favorites">⭐ Ulubione</option>
-        </select>
+        <div class="sidebar-header">
+            <select id="collection-select" style="flex-grow:1; padding:10px; font-weight: bold;">
+                <option value="local">📁 Moja Biblioteka</option>
+                <option value="favorites">⭐ Ulubione</option>
+            </select>
+            <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
+        </div>
+        
         <input type="text" id="search" placeholder="Szukaj piosenki..." style="width:100%; padding:12px; box-sizing: border-box; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
     </div>
@@ -115,7 +123,7 @@
             </div>
 
             <div style="flex-grow: 1;"></div>
-            <button id="btn-settings" class="btn-icon"><i class="fas fa-cog"></i></button>
+            <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
 
         <div id="settings-menu">
@@ -126,14 +134,14 @@
                 <label style="font-size:13px; font-weight:bold;">Akordy</label>
                 <button id="btn-toggle-chords" onclick="toggleChordsDisplay()" style="width:80px;">Ukryj</button>
             </div>
-            <button id="btn-dark-mode" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
+            <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
             <hr style="opacity:0.1;">
             <button onclick="startEditCurrent()" style="background:#ffc107; color:black;"><i class="fas fa-edit"></i> Edytuj piosenkę</button>
             <button onclick="startNewSong()"><i class="fas fa-plus-circle"></i> Dodaj nową</button>
             <button onclick="document.getElementById('import-file').click()"><i class="fas fa-file-import"></i> Importuj JSON</button>
             <input type="file" id="import-file" style="display:none" onchange="importJSON(this)">
-            <button onclick="exportJSON()" class="btn-blue" style="background:var(--accent-blue); color:white;"><i class="fas fa-file-download"></i> Pobierz JSON</button>
-            <button onclick="exportAllJPG()" class="btn-green" style="background:var(--accent-success); color:white;"><i class="fas fa-images"></i> Eksportuj wszystkie (JPG)</button>
+            <button onclick="exportJSON()" style="background:var(--accent-blue); color:white;"><i class="fas fa-file-download"></i> Pobierz JSON</button>
+            <button onclick="exportAllJPG()" style="background:var(--accent-success); color:white;"><i class="fas fa-images"></i> Eksportuj wszystkie (JPG)</button>
             <button onclick="saveCurrentAsJpg()" style="background:#666; color:white;"><i class="fas fa-image"></i> Pobierz tę (JPG)</button>
         </div>
 
@@ -155,16 +163,12 @@
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
-    // Inicjalizacja
     document.addEventListener('DOMContentLoaded', () => {
         renderList();
-        const colSelect = document.getElementById('collection-select');
-        colSelect.onchange = renderList;
+        document.getElementById('collection-select').onchange = renderList;
     });
 
-    function saveToLocal() {
-        localStorage.setItem('mySongs', JSON.stringify(allSongs));
-    }
+    function saveToLocal() { localStorage.setItem('mySongs', JSON.stringify(allSongs)); }
 
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
@@ -186,9 +190,7 @@
 
     async function selectSong(id) {
         stopAutoScroll();
-        if ('wakeLock' in navigator) {
-            try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
-        }
+        if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){} }
         currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
@@ -221,7 +223,24 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
-    // Metronom
+    function openSettings(e) { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); }
+    function setFontSize(size) { currentFontSize = parseInt(size); document.documentElement.style.setProperty('--lyrics-font-size', size + 'px'); document.getElementById('font-size-val').textContent = size + 'px'; }
+    function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
+    function changeTrans(v) { transpose += v; updateView(); }
+    function resetTrans() { transpose = 0; updateView(); }
+    function toggleChordsDisplay() { showChords = !showChords; document.getElementById('btn-toggle-chords').textContent = showChords ? "Ukryj" : "Pokaż"; updateView(); }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    
+    function toggleScroll() { 
+        isScrolling = !isScrolling;
+        if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value);
+        else clearInterval(scrollInterval);
+        document.getElementById('btn-scroll-toggle').innerHTML = `<i class="fas fa-${isScrolling ? 'pause' : 'play'}"></i>`;
+    }
+
+    function stopAutoScroll() { if(isScrolling) toggleScroll(); }
+    function backToList() { document.body.classList.remove('song-active'); stopAutoScroll(); if(wakeLock) wakeLock.release(); }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function toggleMetronome() {
         if (isMetroActive) { clearInterval(metroInterval); isMetroActive = false; }
@@ -238,28 +257,6 @@
         document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
-    function setFontSize(size) {
-        currentFontSize = parseInt(size);
-        document.documentElement.style.setProperty('--lyrics-font-size', size + 'px');
-        document.getElementById('font-size-val').textContent = size + 'px';
-    }
-
-    function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
-    function changeTrans(v) { transpose += v; updateView(); }
-    function resetTrans() { transpose = 0; updateView(); }
-    function toggleChordsDisplay() { showChords = !showChords; document.getElementById('btn-toggle-chords').textContent = showChords ? "Ukryj" : "Pokaż"; updateView(); }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-    
-    function toggleScroll() { 
-        isScrolling = !isScrolling;
-        if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value);
-        else clearInterval(scrollInterval);
-        document.getElementById('btn-scroll-toggle').innerHTML = `<i class="fas fa-${isScrolling ? 'pause' : 'play'}"></i>`;
-    }
-    function stopAutoScroll() { if(isScrolling) toggleScroll(); }
-    function backToList() { document.body.classList.remove('song-active'); stopAutoScroll(); if(wakeLock) wakeLock.release(); }
-
-    // Eksporty
     async function saveCurrentAsJpg() {
         const el = document.getElementById('song-capture-area');
         const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: document.body.classList.contains('dark-mode') ? '#181818' : '#ffffff' });
@@ -269,22 +266,22 @@
     }
 
     async function exportAllJPG() {
-        if (allSongs.length === 0) return alert("Brak piosenek do eksportu!");
+        if (allSongs.length === 0) return alert("Brak piosenek!");
         const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
         const originalId = currentId;
         for (let i = 0; i < allSongs.length; i++) {
             document.getElementById('progress-count').textContent = `${i+1} z ${allSongs.length}`;
             currentId = allSongs[i].id; updateView();
-            await new Promise(r => setTimeout(r, 600)); // Czas na render
+            await new Promise(r => setTimeout(r, 600));
             await saveCurrentAsJpg();
         }
         currentId = originalId; updateView(); ov.style.display = 'none';
-        alert("Eksport zakończony!");
+        alert("Gotowe!");
     }
 
     function exportJSON() {
         const blob = new Blob([JSON.stringify(allSongs, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "moj_spiewnik.json"; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "spiewnik.json"; a.click();
     }
 
     function importJSON(input) {
@@ -293,13 +290,12 @@
             try {
                 const data = JSON.parse(e.target.result);
                 allSongs = data.map((s, i) => ({ ...s, id: "id" + Date.now() + i }));
-                saveToLocal(); renderList(); alert("Zaimportowano " + allSongs.length + " piosenek!");
-            } catch(err) { alert("Błąd pliku JSON!"); }
+                saveToLocal(); renderList(); alert("Zaimportowano!");
+            } catch(err) { alert("Błąd!"); }
         };
         reader.readAsText(input.files[0]);
     }
 
-    // Edytor
     let editingId = null;
     function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
     function startEditCurrent() { 
@@ -314,7 +310,7 @@
     function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
-        if(!title) return alert("Tytuł jest wymagany!");
+        if(!title) return;
         const artist = document.getElementById('edit-artist').value;
         const lyrics = document.getElementById('edit-lyrics').value;
         if (editingId) {
@@ -330,12 +326,10 @@
     function showChordInfo(e, chord) {
         e.stopPropagation();
         const tip = document.getElementById('chord-tooltip');
-        tip.innerHTML = `<strong>${chord}</strong><br><div style='font-size:11px; margin-top:5px;'>[Diagram dla: ${chord}]</div>`;
+        tip.innerHTML = `<strong>${chord}</strong><br><div style='font-size:11px; margin-top:5px;'></div>`;
         tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 120) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
     }
 
-    // Eventy UI
-    document.getElementById('btn-settings').onclick = (e) => { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); };
     document.addEventListener('click', () => { 
         document.getElementById('settings-menu').classList.remove('active'); 
         document.getElementById('chord-tooltip').style.display = 'none'; 
