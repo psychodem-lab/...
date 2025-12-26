@@ -91,7 +91,7 @@
             <select id="collection-select" style="flex-grow:1; padding:10px; font-weight: bold;">
                 <option value="piosenki.json">📁 Piosenki (Główna)</option>
                 <option value="koledy.json">🎄 Kolędy</option>
-                <option value="lukasz.json">👤 Inne</option>
+                <option value="lukasz.json">👤 Biblioteka Łukasza</option>
                 <option value="favorites">⭐ Ulubione</option>
             </select>
             <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
@@ -106,9 +106,8 @@
             
             <div class="control-group">
                 <button onclick="changeTrans(-1)" class="btn-icon"><i class="fas fa-minus"></i></button>
-                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:20px; text-align:center; cursor:pointer;">0</span>
+                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:30px; text-align:center; cursor:pointer; padding: 0 5px;" title="Kliknij, aby resetować">0</span>
                 <button onclick="changeTrans(1)" class="btn-icon"><i class="fas fa-plus"></i></button>
-                <button onclick="resetTrans()" class="btn-icon" title="Resetuj tonację" style="margin-left:2px;"><i class="fas fa-sync-alt" style="font-size:14px;"></i></button>
             </div>
 
             <div class="control-group">
