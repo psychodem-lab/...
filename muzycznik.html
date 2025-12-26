@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik Pro - Pełna Funkcjonalność</title>
+    <title>Śpiewnik Pro 2025</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -57,13 +57,17 @@
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; }
         #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
+        
+        #progress-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; z-index: 2100; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="chord-tooltip"></div>
-<div id="progress-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <h2 id="progress-text">Eksportowanie...</h2><p id="progress-count">0/0</p>
+<div id="progress-overlay">
+    <h2 id="progress-text">Eksportowanie...</h2>
+    <p id="progress-count">0/0</p>
+    <p style="font-size:12px; opacity:0.7;">Proszę nie zamykać strony</p>
 </div>
 
 <div id="editor-modal">
@@ -82,6 +86,7 @@
 <div id="app-container">
     <div id="sidebar">
         <select id="collection-select" style="width:100%; padding:10px; margin-bottom:10px; font-weight: bold;">
+            <option value="local">📁 Moja Biblioteka</option>
             <option value="favorites">⭐ Ulubione</option>
         </select>
         <input type="text" id="search" placeholder="Szukaj piosenki..." style="width:100%; padding:12px; box-sizing: border-box; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
@@ -134,15 +139,15 @@
 
         <div id="song-capture-area">
             <div id="song-display">
-                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę z listy.</div>
+                <div style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę lub zaimportuj plik JSON.</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const COLLECTIONS = [{ name: "Główny Zbiór", file: 'piosenki.json' },{ name: "Kolędy", file: 'koledy.json' },{ name: "Inne", file: 'lukasz.json' }];
-    let allSongs = [], currentId = null, transpose = 0, showChords = true, currentFontSize = 18;
+    let allSongs = JSON.parse(localStorage.getItem('mySongs') || '[]');
+    let currentId = null, transpose = 0, showChords = true, currentFontSize = 18;
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
     let wakeLock = null;
@@ -150,25 +155,26 @@
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
 
-    const colSelect = document.getElementById('collection-select');
-    COLLECTIONS.forEach(c => colSelect.add(new Option(c.name, c.file)));
-    colSelect.onchange = (e) => e.target.value === 'favorites' ? renderList() : loadSongs(e.target.value);
+    // Inicjalizacja
+    document.addEventListener('DOMContentLoaded', () => {
+        renderList();
+        const colSelect = document.getElementById('collection-select');
+        colSelect.onchange = renderList;
+    });
 
-    async function loadSongs(file) {
-        try {
-            const response = await fetch(file);
-            const data = await response.json();
-            allSongs = data.map((s, i) => ({ ...s, id: "s"+Date.now()+i, searchKey: (s.title + " " + (s.artist||"")).toLowerCase() }));
-            renderList();
-        } catch (e) { console.error(e); }
+    function saveToLocal() {
+        localStorage.setItem('mySongs', JSON.stringify(allSongs));
     }
 
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
-        const isFavView = colSelect.value === 'favorites';
-        let filtered = allSongs.filter(s => s.searchKey.includes(term));
-        if (isFavView) filtered = filtered.filter(s => favorites.includes(s.id));
+        const isFavView = document.getElementById('collection-select').value === 'favorites';
+        
+        let filtered = allSongs.filter(s => {
+            const match = (s.title + " " + (s.artist||"")).toLowerCase().includes(term);
+            return isFavView ? (match && favorites.includes(s.id)) : match;
+        });
 
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
@@ -178,9 +184,11 @@
         `).join('');
     }
 
-    function selectSong(id) {
+    async function selectSong(id) {
         stopAutoScroll();
-        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(lock => wakeLock = lock).catch(()=>{});
+        if ('wakeLock' in navigator) {
+            try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+        }
         currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
@@ -199,7 +207,6 @@
         
         let html = `<h2>${song.title} <small style="opacity:0.7">(${song.artist || ''})</small></h2>`;
         
-        // Przywrócenie sekcji akordów na górze
         if (song.chords && showChords) {
             const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
@@ -213,27 +220,6 @@
         document.getElementById('song-display').innerHTML = html + `<div class="lyrics-content">${lyr}</div>`;
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
-
-    // GESTY I UI
-    function setFontSize(size) {
-        currentFontSize = parseInt(size);
-        document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px');
-        document.getElementById('font-size-val').textContent = currentFontSize + 'px';
-        document.getElementById('font-size-slider').value = currentFontSize;
-    }
-
-    // Pinch zoom
-    let initialDist = -1;
-    document.getElementById('main-content').addEventListener('touchstart', e => {
-        if (e.touches.length === 2) initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-    }, {passive: true});
-    document.getElementById('main-content').addEventListener('touchmove', e => {
-        if (e.touches.length === 2 && initialDist > 0) {
-            const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-            setFontSize(currentFontSize + (dist - initialDist) / 10);
-            initialDist = dist;
-        }
-    }, {passive: false});
 
     // Metronom
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -252,12 +238,18 @@
         document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
-    // Inne funkcje
+    function setFontSize(size) {
+        currentFontSize = parseInt(size);
+        document.documentElement.style.setProperty('--lyrics-font-size', size + 'px');
+        document.getElementById('font-size-val').textContent = size + 'px';
+    }
+
     function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
     function changeTrans(v) { transpose += v; updateView(); }
     function resetTrans() { transpose = 0; updateView(); }
     function toggleChordsDisplay() { showChords = !showChords; document.getElementById('btn-toggle-chords').textContent = showChords ? "Ukryj" : "Pokaż"; updateView(); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    
     function toggleScroll() { 
         isScrolling = !isScrolling;
         if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value);
@@ -270,47 +262,50 @@
     // Eksporty
     async function saveCurrentAsJpg() {
         const el = document.getElementById('song-capture-area');
-        el.style.width = "800px"; el.style.background = "#ffffff";
-        const canvas = await html2canvas(el, { scale: 2 });
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: document.body.classList.contains('dark-mode') ? '#181818' : '#ffffff' });
         const link = document.createElement('a');
-        link.download = allSongs.find(s=>s.id===currentId).title + ".jpg";
+        link.download = (allSongs.find(s=>s.id===currentId)?.title || "piosenka") + ".jpg";
         link.href = canvas.toDataURL("image/jpeg", 0.9); link.click();
-        el.style.width = ""; el.style.background = "";
     }
 
     async function exportAllJPG() {
+        if (allSongs.length === 0) return alert("Brak piosenek do eksportu!");
         const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
+        const originalId = currentId;
         for (let i = 0; i < allSongs.length; i++) {
-            document.getElementById('progress-count').textContent = `${i+1}/${allSongs.length}`;
+            document.getElementById('progress-count').textContent = `${i+1} z ${allSongs.length}`;
             currentId = allSongs[i].id; updateView();
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 600)); // Czas na render
             await saveCurrentAsJpg();
         }
-        ov.style.display = 'none';
+        currentId = originalId; updateView(); ov.style.display = 'none';
+        alert("Eksport zakończony!");
     }
 
     function exportJSON() {
-        const clean = allSongs.map(({title, artist, chords, lyrics}) => ({title, artist, chords, lyrics}));
-        const blob = new Blob([JSON.stringify(clean, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "spiewnik_eksport.json"; a.click();
+        const blob = new Blob([JSON.stringify(allSongs, null, 2)], {type: "application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "moj_spiewnik.json"; a.click();
     }
 
     function importJSON(input) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            const data = JSON.parse(e.target.result);
-            allSongs = data.map((s, i) => ({ ...s, id: "imp"+Date.now()+i, searchKey: (s.title + " " + (s.artist||"")).toLowerCase() }));
-            renderList(); alert("Zaimportowano!");
+            try {
+                const data = JSON.parse(e.target.result);
+                allSongs = data.map((s, i) => ({ ...s, id: "id" + Date.now() + i }));
+                saveToLocal(); renderList(); alert("Zaimportowano " + allSongs.length + " piosenek!");
+            } catch(err) { alert("Błąd pliku JSON!"); }
         };
         reader.readAsText(input.files[0]);
     }
 
     // Edytor
     let editingId = null;
-    function startNewSong() { editingId = null; document.getElementById('edit-title').value = ""; document.getElementById('edit-lyrics').value = ""; document.getElementById('editor-modal').style.display='flex'; }
+    function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
     function startEditCurrent() { 
         const s = allSongs.find(x=>x.id===currentId); 
-        editingId = currentId; 
+        if(!s) return;
+        editingId = currentId;
         document.getElementById('edit-title').value = s.title; 
         document.getElementById('edit-artist').value = s.artist || ""; 
         document.getElementById('edit-lyrics').value = s.lyrics || ""; 
@@ -319,30 +314,33 @@
     function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
+        if(!title) return alert("Tytuł jest wymagany!");
         const artist = document.getElementById('edit-artist').value;
         const lyrics = document.getElementById('edit-lyrics').value;
         if (editingId) {
             const s = allSongs.find(x=>x.id===editingId);
-            s.title = title; s.artist = artist; s.lyrics = lyrics; s.searchKey = (title+" "+artist).toLowerCase();
+            s.title = title; s.artist = artist; s.lyrics = lyrics;
         } else {
-            const n = {title, artist, lyrics, id: "n"+Date.now(), searchKey: (title+" "+artist).toLowerCase()};
+            const n = { title, artist, lyrics, id: "n"+Date.now() };
             allSongs.push(n); selectSong(n.id);
         }
-        renderList(); updateView(); closeEditor();
+        saveToLocal(); renderList(); updateView(); closeEditor();
     }
 
     function showChordInfo(e, chord) {
         e.stopPropagation();
         const tip = document.getElementById('chord-tooltip');
-        tip.innerHTML = `<strong>${chord}</strong><br>`;
-        tip.style.display = 'block'; tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px';
+        tip.innerHTML = `<strong>${chord}</strong><br><div style='font-size:11px; margin-top:5px;'>[Diagram dla: ${chord}]</div>`;
+        tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 120) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
     }
 
+    // Eventy UI
     document.getElementById('btn-settings').onclick = (e) => { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); };
-    document.addEventListener('click', () => { document.getElementById('settings-menu').classList.remove('active'); document.getElementById('chord-tooltip').style.display = 'none'; });
+    document.addEventListener('click', () => { 
+        document.getElementById('settings-menu').classList.remove('active'); 
+        document.getElementById('chord-tooltip').style.display = 'none'; 
+    });
     document.getElementById('search').oninput = renderList;
-
-    loadSongs(COLLECTIONS[0].file);
 </script>
 </body>
 </html>
