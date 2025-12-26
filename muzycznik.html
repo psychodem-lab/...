@@ -19,11 +19,11 @@
             --bg-body: #121212; --bg-sidebar: #1e1e1e; --bg-main: #181818; --bg-song-area: #181818;
             --text-main: #e0e0e0; --text-song: #ffffff; --text-chords: #ff9f43; --border-color: #444;
         }
-        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; }
+        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; text-align: left; }
         #app-container { display: flex; height: 100vh; width: 100vw; position: relative; }
         
-        #sidebar { width: 320px; border-right: 1px solid var(--border-color); background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 20; }
-        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); scroll-behavior: smooth; position: relative; z-index: 10; touch-action: pan-y; }
+        #sidebar { width: 320px; border-right: 1px solid var(--border-color); background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 20; text-align: left; }
+        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); scroll-behavior: smooth; position: relative; z-index: 10; touch-action: pan-y; text-align: left; }
 
         @media (max-width: 768px) {
             #sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; box-sizing: border-box; }
@@ -40,34 +40,37 @@
 
         .control-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
 
-        #settings-menu { display: none; position: absolute; top: 55px; right: 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.3); flex-direction: column; gap: 12px; min-width: 260px; z-index: 100; overflow-y: auto; max-height: 80vh; }
+        #settings-menu { display: none; position: absolute; top: 55px; right: 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.3); flex-direction: column; gap: 12px; min-width: 260px; z-index: 100; overflow-y: auto; max-height: 80vh; text-align: left; }
         #settings-menu.active { display: flex; }
 
-        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; }
-        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; }
-        #active-chords-content { font-family: 'Courier New', monospace; font-size: calc(var(--lyrics-font-size) * 0.9); white-space: pre-wrap; margin: 0; color: var(--text-song); }
-        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); }
+        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; text-align: left; }
+        .song-header { text-align: center; margin-bottom: 20px; } /* Tylko nagłówek wycentrowany */
+        
+        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; text-align: left; }
+        #active-chords-content { font-family: 'Courier New', monospace; font-size: calc(var(--lyrics-font-size) * 0.9); white-space: pre-wrap; margin: 0; color: var(--text-song); text-align: left; }
+        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); text-align: left; }
         .inline-chord { font-weight: bold; color: var(--text-chords); cursor: pointer; }
 
-        button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); font-size: 14px; }
+        button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); font-size: 14px; text-align: center; }
         .btn-icon { border: none; background: transparent; font-size: 18px; padding: 5px 8px; }
 
-        #song-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        #song-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; text-align: left; }
+        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
         #song-list li.selected { background: var(--accent-blue); color: white; }
         .fav-star { color: #ccc; transition: 0.2s; padding: 5px; }
         .fav-star.active { color: #ffc107; }
 
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; }
+        .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
         #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
-        #progress-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; z-index: 2100; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="chord-tooltip"></div>
-<div id="progress-overlay"><h2 id="progress-text">Eksport...</h2><p id="progress-count">0/0</p></div>
+<div id="progress-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; z-index:2100; flex-direction:column; align-items:center; justify-content:center;">
+    <h2>Eksport...</h2><p id="progress-count">0/0</p>
+</div>
 
 <div id="editor-modal">
     <div class="modal-content">
@@ -120,17 +123,17 @@
             <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
             <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
             <hr style="opacity:0.2">
-            <button onclick="startEditCurrent()" style="background:#ffc107; color:black;">Edytuj piosenkę</button>
+            <button onclick="startEditCurrent()">Edytuj piosenkę</button>
             <button onclick="startNewSong()">Dodaj nową</button>
             <button onclick="document.getElementById('import-file').click()">Importuj JSON</button>
             <input type="file" id="import-file" style="display:none" onchange="importJSON(this)">
             <button onclick="exportJSON()">Pobierz JSON</button>
-            <button onclick="exportAllJPG()" style="background:var(--accent-success); color:white;">Eksportuj wszystkie (JPG)</button>
+            <button onclick="exportAllJPG()" style="background:var(--accent-success); color:white;">Eksport JPG</button>
             <button onclick="resetFromServer()" style="background:#dc3545; color:white;">Resetuj z serwera</button>
         </div>
 
         <div id="song-capture-area">
-            <div id="song-display" style="padding:40px; text-align:center; color:#888;">Wybierz bibliotekę i piosenkę.</div>
+            <div id="song-display"></div>
         </div>
     </div>
 </div>
@@ -144,7 +147,7 @@
     let allSongs = [];
     let currentLibrary = "piosenki.json";
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
-    let currentId = null, transpose = 0, showChords = true, currentFontSize = 18;
+    let currentId = null, transpose = 0, showChords = true;
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let wakeLock = null;
 
@@ -180,27 +183,15 @@
         try {
             const res = await fetch(fileName);
             const data = await res.json();
-            allSongs = data.map((s, i) => ({ ...s, id: fileName + "_" + i + "_" + Date.now() }));
+            allSongs = data.map((s, i) => ({ ...s, id: fileName + "_" + i }));
             saveToLocal();
             renderList();
         } catch (e) {
-            document.getElementById('song-display').innerHTML = "Błąd ładowania pliku " + fileName;
+            document.getElementById('song-display').innerHTML = "Błąd pliku " + fileName;
         }
     }
 
-    function resetFromServer() {
-        if (currentLibrary === "favorites") return;
-        if (confirm("Resetuj tę bibliotekę do wersji z serwera?")) {
-            localStorage.removeItem('db_' + currentLibrary);
-            loadFromServer(currentLibrary);
-        }
-    }
-
-    function saveToLocal() {
-        if (currentLibrary !== "favorites") {
-            localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs));
-        }
-    }
+    function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
 
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
@@ -214,9 +205,8 @@
         `).join('');
     }
 
-    async function selectSong(id) {
+    function selectSong(id) {
         stopAutoScroll();
-        if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e){} }
         currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
@@ -230,7 +220,7 @@
     function updateView() {
         const song = allSongs.find(s => s.id === currentId);
         if (!song) return;
-        let html = `<h2>${song.title} <small>(${song.artist || ''})</small></h2>`;
+        let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
             const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
@@ -243,21 +233,15 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
-    function toggleFav(e, id) { 
-        e.stopPropagation(); 
-        favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); 
-        localStorage.setItem('favSongs', JSON.stringify(favorites)); 
-        renderList(); 
-    }
-
+    function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
     function openSettings(e) { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); }
-    function setFontSize(v) { currentFontSize = v; document.documentElement.style.setProperty('--lyrics-font-size', v + 'px'); document.getElementById('font-size-val').textContent = v + 'px'; }
+    function setFontSize(v) { document.documentElement.style.setProperty('--lyrics-font-size', v + 'px'); document.getElementById('font-size-val').textContent = v + 'px'; }
     function changeTrans(v) { transpose += v; updateView(); }
     function toggleChordsDisplay() { showChords = !showChords; updateView(); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function toggleScroll() { isScrolling = !isScrolling; if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value); else clearInterval(scrollInterval); }
     function stopAutoScroll() { if(isScrolling) toggleScroll(); }
-    function backToList() { document.body.classList.remove('song-active'); stopAutoScroll(); if(wakeLock) wakeLock.release(); }
+    function backToList() { document.body.classList.remove('song-active'); stopAutoScroll(); }
 
     function toggleMetronome() {
         if (isMetroActive) { clearInterval(metroInterval); isMetroActive = false; }
@@ -271,6 +255,7 @@
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             }, 500);
         }
+        document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
     async function exportAllJPG() {
@@ -297,7 +282,8 @@
         r.readAsText(input.files[0]);
     }
 
-    let editingId = null;
+    function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
+
     function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
     function startEditCurrent() { 
         const s = allSongs.find(x=>x.id===currentId); 
