@@ -1,0 +1,15 @@
+{
+  "name": "Śpiewnik Pro 2025",
+  "short_name": "Śpiewnik",
+  "start_url": "muzycznik.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3844/3844724.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
