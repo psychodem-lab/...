@@ -44,7 +44,7 @@
         #settings-menu.active { display: flex; }
 
         #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; text-align: left; }
-        .song-header { text-align: center; margin-bottom: 20px; } /* Tylko nagłówek wycentrowany */
+        .song-header { text-align: center; margin-bottom: 20px; }
         
         .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; text-align: left; }
         #active-chords-content { font-family: 'Courier New', monospace; font-size: calc(var(--lyrics-font-size) * 0.9); white-space: pre-wrap; margin: 0; color: var(--text-song); text-align: left; }
@@ -91,7 +91,7 @@
             <select id="collection-select" style="flex-grow:1; padding:10px; font-weight: bold;">
                 <option value="piosenki.json">📁 Piosenki (Główna)</option>
                 <option value="koledy.json">🎄 Kolędy</option>
-                <option value="lukasz.json">👤 Biblioteka Łukasza</option>
+                <option value="lukasz.json">👤 Inne</option>
                 <option value="favorites">⭐ Ulubione</option>
             </select>
             <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
@@ -103,11 +103,14 @@
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
             <button onclick="backToList()" class="mobile-only btn-icon"><i class="fas fa-arrow-left"></i></button>
+            
             <div class="control-group">
                 <button onclick="changeTrans(-1)" class="btn-icon"><i class="fas fa-minus"></i></button>
-                <span id="transpose-val" style="font-weight:bold; min-width:20px; text-align:center;">0</span>
+                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:20px; text-align:center; cursor:pointer;">0</span>
                 <button onclick="changeTrans(1)" class="btn-icon"><i class="fas fa-plus"></i></button>
+                <button onclick="resetTrans()" class="btn-icon" title="Resetuj tonację" style="margin-left:2px;"><i class="fas fa-sync-alt" style="font-size:14px;"></i></button>
             </div>
+
             <div class="control-group">
                 <button id="btn-scroll-toggle" onclick="toggleScroll()" class="btn-icon"><i class="fas fa-play"></i></button>
                 <input type="range" id="scroll-speed" min="1" max="50" value="10" style="width:50px;">
@@ -133,7 +136,7 @@
         </div>
 
         <div id="song-capture-area">
-            <div id="song-display"></div>
+            <div id="song-display" style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę...</div>
         </div>
     </div>
 </div>
@@ -149,7 +152,15 @@
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
     let currentId = null, transpose = 0, showChords = true;
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
-    let wakeLock = null;
+
+    // HISTORY & GESTURES
+    window.addEventListener('popstate', (e) => { if (document.body.classList.contains('song-active')) backToList(false); });
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+    document.addEventListener('touchend', e => {
+        let touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX - touchStartX > 100 && document.body.classList.contains('song-active')) backToList();
+    }, false);
 
     document.addEventListener('DOMContentLoaded', () => {
         const selector = document.getElementById('collection-select');
@@ -170,12 +181,8 @@
             renderList();
         } else {
             const saved = localStorage.getItem('db_' + lib);
-            if (saved) {
-                allSongs = JSON.parse(saved);
-                renderList();
-            } else {
-                await loadFromServer(lib);
-            }
+            if (saved) { allSongs = JSON.parse(saved); renderList(); } 
+            else { await loadFromServer(lib); }
         }
     }
 
@@ -184,11 +191,8 @@
             const res = await fetch(fileName);
             const data = await res.json();
             allSongs = data.map((s, i) => ({ ...s, id: fileName + "_" + i }));
-            saveToLocal();
-            renderList();
-        } catch (e) {
-            document.getElementById('song-display').innerHTML = "Błąd pliku " + fileName;
-        }
+            saveToLocal(); renderList();
+        } catch (e) { console.log("Błąd pliku " + fileName); }
     }
 
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
@@ -206,13 +210,17 @@
     }
 
     function selectSong(id) {
-        stopAutoScroll();
-        currentId = id; transpose = 0;
+        stopAutoScroll(); currentId = id; transpose = 0;
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
-        updateView();
-        renderList();
+        history.pushState({view: 'song'}, ''); 
+        updateView(); renderList();
         document.getElementById('main-content').scrollTop = 0;
+    }
+
+    function backToList(doPopState = true) {
+        document.body.classList.remove('song-active'); stopAutoScroll();
+        if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
     function transChord(c, s) { return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { let base = b.toUpperCase().replace('H', 'B'); let i = scale.indexOf(base); if (i === -1) return m; i = (i + s % 12 + 12) % 12; let res = dScale[i]; if (b === b.toLowerCase()) res = res.toLowerCase(); return res + (mod || ''); }); }
@@ -233,15 +241,16 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
+    function changeTrans(v) { transpose += v; updateView(); }
+    function resetTrans() { transpose = 0; updateView(); }
+    
     function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
     function openSettings(e) { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); }
     function setFontSize(v) { document.documentElement.style.setProperty('--lyrics-font-size', v + 'px'); document.getElementById('font-size-val').textContent = v + 'px'; }
-    function changeTrans(v) { transpose += v; updateView(); }
     function toggleChordsDisplay() { showChords = !showChords; updateView(); }
     function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function toggleScroll() { isScrolling = !isScrolling; if (isScrolling) scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value); else clearInterval(scrollInterval); }
-    function stopAutoScroll() { if(isScrolling) toggleScroll(); }
-    function backToList() { document.body.classList.remove('song-active'); stopAutoScroll(); }
+    function stopAutoScroll() { if(isScrolling) { clearInterval(scrollInterval); isScrolling = false; } }
 
     function toggleMetronome() {
         if (isMetroActive) { clearInterval(metroInterval); isMetroActive = false; }
@@ -261,8 +270,7 @@
     async function exportAllJPG() {
         const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
         for (let i = 0; i < allSongs.length; i++) {
-            currentId = allSongs[i].id; updateView();
-            await new Promise(r => setTimeout(r, 600));
+            currentId = allSongs[i].id; updateView(); await new Promise(r => setTimeout(r, 600));
             const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
             const link = document.createElement('a'); link.download = allSongs[i].title + ".jpg";
             link.href = canvas.toDataURL("image/jpeg"); link.click();
@@ -277,19 +285,17 @@
     }
 
     function importJSON(input) {
-        const r = new FileReader();
-        r.onload = (e) => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
+        const r = new FileReader(); r.onload = (e) => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
         r.readAsText(input.files[0]);
     }
 
     function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
-
+    
+    let editingId = null;
     function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
     function startEditCurrent() { 
-        const s = allSongs.find(x=>x.id===currentId); 
-        if(!s) return;
-        editingId = currentId;
-        document.getElementById('edit-title').value = s.title; 
+        const s = allSongs.find(x=>x.id===currentId); if(!s) return;
+        editingId = currentId; document.getElementById('edit-title').value = s.title; 
         document.getElementById('edit-artist').value = s.artist || ""; 
         document.getElementById('edit-lyrics').value = s.lyrics || ""; 
         document.getElementById('editor-modal').style.display='flex'; 
@@ -300,11 +306,9 @@
         const artist = document.getElementById('edit-artist').value;
         const lyrics = document.getElementById('edit-lyrics').value;
         if (editingId) {
-            const s = allSongs.find(x=>x.id===editingId);
-            s.title = title; s.artist = artist; s.lyrics = lyrics;
+            const s = allSongs.find(x=>x.id===editingId); s.title = title; s.artist = artist; s.lyrics = lyrics;
         } else {
-            const n = { title, artist, lyrics, id: "n"+Date.now() };
-            allSongs.push(n); selectSong(n.id);
+            const n = { title, artist, lyrics, id: "n"+Date.now() }; allSongs.push(n); selectSong(n.id);
         }
         saveToLocal(); renderList(); updateView(); closeEditor();
     }
@@ -312,7 +316,7 @@
     function showChordInfo(e, chord) {
         e.stopPropagation();
         const tip = document.getElementById('chord-tooltip');
-        tip.innerHTML = `<strong>${chord}</strong><br>`;
+        tip.innerHTML = `<strong>${chord}</strong><br>[Diagram...]`;
         tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
     }
 
