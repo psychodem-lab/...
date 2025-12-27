@@ -2,47 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Kalkulator Przekroju Przewodu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Przewodu Miedzianego</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background-color: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .result { font-weight: bold; color: #2c3e50; margin-top: 15px; font-size: 1.1em; }
-        .standard { color: #7f8c8d; font-size: 0.9em; margin-top: 5px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .result-box { margin-top: 25px; padding: 15px; background: #f8fafc; border-left: 5px solid #3498db; border-radius: 4px; }
+        .highlight { font-size: 1.2em; color: #2980b9; font-weight: bold; }
+        .info { font-size: 0.85em; color: #7f8c8d; margin-top: 10px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h3>Kalkulator Przekroju</h3>
-    <label>Podaj natężenie (Ampery):</label>
-    <input type="number" id="amps" placeholder="Wpisz Ampery..." oninput="calculate()">
+<div class="container">
+    <h2>Kalkulator Przewodu</h2>
     
-    <div class="result" id="calcResult">Wynik: - mm²</div>
-    <div class="standard" id="stdResult">Najbliższy standard: -</div>
+    <label>Natężenie prądu (Ampery):</label>
+    <input type="number" id="amps" placeholder="np. 16" oninput="calculate()">
+    
+    <label>Długość przewodu (Metry):</label>
+    <input type="number" id="length" placeholder="np. 20" oninput="calculate()">
+    
+    <label>Napięcie układu (Wolty):</label>
+    <select id="voltage" onchange="calculate()">
+        <option value="230">230V (Jednofazowe)</option>
+        <option value="400">400V (Trójfazowe)</option>
+        <option value="12">12V (DC)</option>
+        <option value="24">24V (DC)</option>
+    </select>
+
+    <div class="result-box">
+        <div>Teoretyczny przekrój: <span id="rawResult" class="highlight">-</span> mm²</div>
+        <div style="margin-top:10px;">Zalecany standard: <span id="stdResult" class="highlight">-</span> mm²</div>
+    </div>
+
+    <div class="info">
+        * Obliczenia uwzględniają rezystywność miedzi $\rho = 0.0175 \, \Omega \cdot mm^2/m$ oraz dopuszczalny spadek napięcia $3\%$.
+    </div>
 </div>
 
 <script>
 function calculate() {
-    const amps = document.getElementById('amps').value;
-    const resultDiv = document.getElementById('calcResult');
-    const stdDiv = document.getElementById('stdResult');
+    const I = parseFloat(document.getElementById('amps').value);
+    const L = parseFloat(document.getElementById('length').value);
+    const U = parseFloat(document.getElementById('voltage').value);
     
-    // Szereg standardowych przekrojów przewodów miedzianych (mm2)
-    const standardSizes = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120];
-
-    if (amps > 0) {
-        // Obliczenie na podstawie gęstości prądu 6A/mm2 (bezpieczna norma dla miedzi)
-        let area = amps / 6;
-        resultDiv.innerText = "Wynik: " + area.toFixed(2) + " mm²";
-        
-        // Znalezienie najbliższego wyższego standardu z szeregu
-        let recommended = standardSizes.find(size => size >= area);
-        stdDiv.innerText = recommended ? "Najbliższy standard: " + recommended + " mm²" : "Poza zakresem standardowym";
-    } else {
-        resultDiv.innerText = "Wynik: - mm²";
-        stdDiv.innerText = "Najbliższy standard: -";
+    const rawRes = document.getElementById('rawResult');
+    const stdRes = document.getElementById('stdResult');
+    
+    if (!I || !L || I <= 0 || L <= 0) {
+        rawRes.innerText = "-";
+        stdRes.innerText = "-";
+        return;
     }
+
+    const standardSizes = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120];
+    const rho = 0.0175; // Rezystywność miedzi
+    const maxDrop = 0.03; // 3% spadku napięcia
+
+    // 1. Przekrój ze względu na dopuszczalny spadek napięcia (Wzór: S = (2 * L * I * rho) / (U * maxDrop))
+    // Dla 400V (3-fazy) wzór się zmienia, ale dla uproszczenia i bezpieczeństwa stosujemy model 2-żyłowy (najgorszy przypadek).
+    let s_drop = (2 * L * I * rho) / (U * maxDrop);
+    
+    // 2. Przekrój ze względu na gęstość prądu (bezpieczeństwo termiczne 6A/mm2)
+    let s_thermal = I / 6;
+
+    // Wybieramy większy z dwóch wyników
+    let finalS = Math.max(s_drop, s_thermal);
+
+    rawRes.innerText = finalS.toFixed(3);
+    
+    // Znalezienie standardu
+    let recommended = standardSizes.find(size => size >= finalS);
+    stdRes.innerText = recommended ? recommended + " mm²" : "Poza skalą (>120mm²)";
 }
 </script>
 
