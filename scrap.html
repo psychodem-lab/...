@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Scraper z Filtrem Wykonawcy</title>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background: #0f172a; color: #f8fafc; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .app-card { background: #1e293b; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        h1 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #38bdf8; }
+        .input-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; box-sizing: border-box; }
+        .button-group { display: flex; gap: 10px; margin-top: 1rem; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        #scrapBtn { background: #38bdf8; color: #0f172a; }
+        #scrapBtn:disabled { background: #475569; cursor: not-allowed; }
+        #downloadBtn { background: #22c55e; color: white; display: none; }
+        .progress-box { margin-top: 1.5rem; display: none; }
+        .bar-bg { background: #334155; height: 12px; border-radius: 6px; overflow: hidden; }
+        #bar-fill { width: 0%; height: 100%; background: #38bdf8; transition: width 0.3s; }
+        #console { background: #000; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 11px; height: 150px; overflow-y: auto; margin-top: 1.5rem; border: 1px solid #334155; color: #10b981; }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1>🎵 Song Scraper Pro</h1>
+    
+    <div class="input-group">
+        <label>URL Śpiewnika (Strona główna lub kategoria):</label>
+        <input type="text" id="targetUrl" value="http://spiewnik.autodetekcja.pl/">
+    </div>
+
+    <div class="input-group">
+        <label>Filtruj wykonawcę (zostaw puste, aby pobrać wszystkich):</label>
+        <input type="text" id="artistFilter" placeholder="np. Perfect lub Nieznany">
+    </div>
+    
+    <div class="button-group">
+        <button id="scrapBtn" onclick="runScraper()">Generuj JSON</button>
+        <button id="downloadBtn" onclick="saveJson()">Pobierz .json</button>
+    </div>
+
+    <div class="progress-box" id="pBox">
+        <div class="bar-bg"><div id="bar-fill"></div></div>
+        <div id="status-text" style="font-size: 12px; text-align: center; margin-top: 5px; color: #94a3b8;">Przygotowanie...</div>
+    </div>
+
+    <div id="console">Gotowy do pracy.</div>
+</div>
+
+<script>
+    let songs = [];
+    const PROXY = "https://api.allorigins.win/get?url=";
+
+    function print(msg) {
+        const c = document.getElementById('console');
+        c.innerHTML += `<div>> ${msg}</div>`;
+        c.scrollTop = c.scrollHeight;
+    }
+
+    async function getHtml(url) {
+        const resp = await fetch(PROXY + encodeURIComponent(url));
+        const data = await resp.json();
+        return data.contents;
+    }
+
+    function findLinks(html, base) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const links = [];
+        const domain = new URL(base).hostname;
+        doc.querySelectorAll('a').forEach(a => {
+            try {
+                const url = new URL(a.href, base).href;
+                if (url.includes(domain) && !url.includes('#') && url.length > base.length + 3) {
+                    if (!links.includes(url) && !url.includes('/category/') && !url.includes('/tag/')) links.push(url);
+                }
+            } catch(e) {}
+        });
+        return links;
+    }
+
+    function parseSong(html, id) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const fullTitle = doc.querySelector('.entry-title')?.innerText || "Bez tytułu";
+        const parts = fullTitle.split('–');
+        const title = parts[0].trim();
+        const artist = parts[1] ? parts[1].trim() : "Nieznany";
+        const contentDiv = doc.querySelector('.entry-content');
+        if (!contentDiv) return null;
+        const rawText = contentDiv.innerText;
+        const chordRegex = /\b[A-Ga-g][b#]?(m|maj|min|dim|aug|sus|7|6|4|2|add9)?\b/g;
+        const foundChords = [...new Set(rawText.match(chordRegex))].sort().join(" ");
+        let formatted = rawText.replace(/\b([A-Ga-g][b#]?(m|maj|min|dim|aug|sus|7|6|4|2|add9)?)\.?\b/g, "[$1]");
+
+        return { id: `song_${id}`, title, artist, chords: foundChords, lyrics: formatted.trim() };
+    }
+
+    async function runScraper() {
+        const url = document.getElementById('targetUrl').value;
+        const filter = document.getElementById('artistFilter').value.toLowerCase().trim();
+        
+        songs = [];
+        document.getElementById('scrapBtn').disabled = true;
+        document.getElementById('pBox').style.display = "block";
+        document.getElementById('downloadBtn').style.display = "none";
+        print("Skanowanie listy utworów...");
+
+        try {
+            const indexHtml = await getHtml(url);
+            const links = findLinks(indexHtml, url);
+            print(`Znaleziono ${links.length} linków. Rozpoczynam pobieranie...`);
+
+            for(let i=0; i < links.length; i++) {
+                const progress = ((i+1)/links.length)*100;
+                document.getElementById('bar-fill').style.width = progress + "%";
+                document.getElementById('status-text').innerText = `Pobrano ${songs.length} pasujących utworów (skanowanie ${i+1}/${links.length})`;
+                
+                const sHtml = await getHtml(links[i]);
+                const song = parseSong(sHtml, i);
+
+                if (song) {
+                    // Logika FILTROWANIA
+                    if (filter === "" || song.artist.toLowerCase().includes(filter)) {
+                        songs.push(song);
+                        print(`DODANO: ${song.title} (${song.artist})`);
+                    } else {
+                        print(`POMINIĘTO: ${song.title} (Wykonawca: ${song.artist})`);
+                    }
+                }
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            print(`ZAKOŃCZONO. Znaleziono ${songs.length} utworów pasujących do filtra.`);
+            if(songs.length > 0) document.getElementById('downloadBtn').style.display = "block";
+        } catch(e) {
+            print("BŁĄD: " + e.message);
+        } finally {
+            document.getElementById('scrapBtn').disabled = false;
+        }
+    }
+
+    function saveJson() {
+        const blob = new Blob([JSON.stringify(songs, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "piosenki_filtered.json";
+        a.click();
+    }
+</script>
+
+</body>
+</html>
