@@ -166,7 +166,6 @@
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    // Anglosaska skala bazowa do obliczeń
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     let allSongs = [];
@@ -194,13 +193,20 @@
         if(btn) btn.textContent = `Styl: ${chordStyle === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
     }
 
-    // Funkcja transpozycji z uwzględnieniem mapowania A# -> B i B -> H w stylu PL
     function transChord(chordStr, steps) {
-        return chordStr.replace(/([A-G][b#]?|[H])/g, (match) => {
-            // Normalizacja wejścia: Polskie H i B na standard angielski do obliczeń
+        // Zmieniony RegEx: teraz łapie litery A-G, H oraz opcjonalnie krzyżyk (#) lub małe 'b' (bemol)
+        return chordStr.replace(/([A-G][#b]?|[H])/g, (match) => {
             let base = match;
-            if (match === 'H') base = 'B';
-            else if (match === 'B' && chordStyle === 'PL') base = 'A#'; // Jeśli w PL jest "B", to znaczy Bb/A#
+            
+            // Mapowanie wejściowe: normalizacja do 12-tonowej skali SCALE
+            if (match === 'H') {
+                base = 'B';
+            } else if (match === 'Bb' || match === 'Bb') {
+                base = 'A#';
+            } else if (match === 'B' && chordStyle === 'PL') {
+                // W polskim stylu samo "B" to Bb (czyli A#)
+                base = 'A#';
+            }
             
             let idx = SCALE.indexOf(base);
             if (idx === -1) return match;
@@ -210,8 +216,11 @@
             
             // Mapowanie wyjściowe dla stylu Polskiego
             if (chordStyle === 'PL') {
-                if (res === 'B') return 'H';   // Angielskie B -> Polskie H
-                if (res === 'A#') return 'B';  // Angielskie A# -> Polskie B
+                if (res === 'B') return 'H';   
+                if (res === 'A#') return 'B';  
+            } else {
+                // W stylu angielskim A# opcjonalnie można zamienić na Bb dla czytelności
+                if (res === 'A#') return 'Bb';
             }
             return res;
         });
@@ -338,7 +347,8 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            const tc = song.chords.replace(/([A-G][b#]?[\w\d\/#\-]*|[H][\w\d\/#\-]*)/g, m => transChord(m, transpose));
+            // RegEx dopasowany do akordów z uwzględnieniem bemoli
+            const tc = song.chords.replace(/([A-G][#b]?[\w\d\/#\-]*|[H][\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
         const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => {
@@ -432,7 +442,6 @@
         }
     }
 
-    // Funkcje edycji i eksportu pozostały bez zmian
     function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
     function startNewSong() {
         currentId = null;
@@ -480,11 +489,9 @@
     async function resetFromServer() { if(confirm("Czy na pewno?")) { localStorage.removeItem('db_'+currentLibrary); await loadFromServer(currentLibrary); } }
     
     async function exportAllJPG() {
-        const list = document.getElementById('song-list').querySelectorAll('li');
         const overlay = document.getElementById('progress-overlay');
         const countDisp = document.getElementById('progress-count');
         overlay.style.display = 'flex';
-        const zip = []; 
         for(let i=0; i<allSongs.length; i++) {
             countDisp.textContent = `${i+1} / ${allSongs.length}`;
             selectSong(allSongs[i].id);
