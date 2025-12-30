@@ -194,17 +194,18 @@
     }
 
     function transChord(chordStr, steps) {
-        // Zmieniony RegEx: teraz łapie litery A-G, H oraz opcjonalnie krzyżyk (#) lub małe 'b' (bemol)
-        return chordStr.replace(/([A-G][#b]?|[H])/g, (match) => {
-            let base = match;
+        // RegEx łapie teraz małe i wielkie litery A-G, H oraz znaki # i b
+        return chordStr.replace(/([a-gA-G][#b]?|[hH])/g, (match) => {
+            const isLowercase = (match === match.toLowerCase());
+            let base = match.toUpperCase();
             
-            // Mapowanie wejściowe: normalizacja do 12-tonowej skali SCALE
-            if (match === 'H') {
+            // Normalizacja do skali angielskiej SCALE
+            if (base === 'H') {
                 base = 'B';
-            } else if (match === 'Bb' || match === 'Bb') {
+            } else if (base === 'BB') {
                 base = 'A#';
-            } else if (match === 'B' && chordStyle === 'PL') {
-                // W polskim stylu samo "B" to Bb (czyli A#)
+            } else if (base === 'B' && chordStyle === 'PL') {
+                // W polskim stylu samo B to Bb (A#)
                 base = 'A#';
             }
             
@@ -216,13 +217,14 @@
             
             // Mapowanie wyjściowe dla stylu Polskiego
             if (chordStyle === 'PL') {
-                if (res === 'B') return 'H';   
-                if (res === 'A#') return 'B';  
+                if (res === 'B') res = 'H';   
+                else if (res === 'A#') res = 'B';  
             } else {
-                // W stylu angielskim A# opcjonalnie można zamienić na Bb dla czytelności
-                if (res === 'A#') return 'Bb';
+                if (res === 'A#') res = 'Bb';
             }
-            return res;
+            
+            // Przywróć małą literę jeśli wejście było małą literą (molowe)
+            return isLowercase ? res.toLowerCase() : res;
         });
     }
 
@@ -347,8 +349,8 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            // RegEx dopasowany do akordów z uwzględnieniem bemoli
-            const tc = song.chords.replace(/([A-G][#b]?[\w\d\/#\-]*|[H][\w\d\/#\-]*)/g, m => transChord(m, transpose));
+            // RegEx dopasowany do akordów z uwzględnieniem bemoli i małych liter
+            const tc = song.chords.replace(/([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
         const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => {
