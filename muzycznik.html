@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#007bff">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
         :root {
@@ -63,6 +64,9 @@
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
         #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
+        
+        .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
+        .connected { background: #28a745; }
     </style>
 </head>
 <body>
@@ -97,11 +101,11 @@
             <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-    <button onclick="setSearch('male')" style="flex:1; padding: 5px; font-size: 12px;">♂ Męski</button>
-    <button onclick="setSearch('female')" style="flex:1; padding: 5px; font-size: 12px;">♀ Żeński</button>
-    <button onclick="setSearch('')" style="flex:1; padding: 5px; font-size: 12px; background: #eee; color: #000;">Wszystkie</button>
-    </div>
-        <input type="text" id="search" placeholder="Szukaj..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
+            <button onclick="setSearch('male')" style="flex:1; padding: 5px; font-size: 12px;">♂ Męski</button>
+            <button onclick="setSearch('female')" style="flex:1; padding: 5px; font-size: 12px;">♀ Żeński</button>
+            <button onclick="setSearch('')" style="flex:1; padding: 5px; font-size: 12px; background: #eee; color: #000;">Wszystkie</button>
+        </div>
+        <input type="text" id="search" placeholder="Szukaj..." style="width: 100%; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color); box-sizing: border-box;">
         <ul id="song-list"></ul>
     </div>
 
@@ -128,7 +132,21 @@
             <div style="font-size:12px; font-weight:bold;">Czcionka: <span id="font-size-val">18px</span></div>
             <input type="range" id="font-size-slider" min="12" max="60" value="18" oninput="setFontSize(this.value)">
             <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
+            <button onclick="toggleChordStyle()" id="btn-chord-style">Styl: Polski (H)</button>
             <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
+            
+            <div id="mqtt-sync-section" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 5px; margin-top: 5px; background: rgba(0,0,0,0.02);">
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 5px;">
+                    <span id="conn-status-dot" class="connection-dot"></span> SYNCHRONIZACJA
+                </div>
+                <input type="text" id="mqtt-room-code" placeholder="Hasło zespołu" style="width:100%; padding:6px; margin-bottom:6px; box-sizing:border-box; border-radius:4px; border:1px solid var(--border-color);">
+                <div style="display:flex; gap:5px;">
+                    <button onclick="connectMQTT(true)" style="flex:1; background:var(--accent-blue); color:white;">LIDER</button>
+                    <button onclick="connectMQTT(false)" style="flex:1;">SŁUCHACZ</button>
+                </div>
+                <div id="mqtt-status-text" style="font-size:10px; color:green; margin-top:5px; min-height:12px;"></div>
+            </div>
+
             <hr style="opacity:0.2">
             <button onclick="startEditCurrent()">Edytuj piosenkę</button>
             <button onclick="startNewSong()">Dodaj nową</button>
@@ -148,76 +166,102 @@
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
+    const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     let allSongs = [];
     let currentLibrary = "piosenki.json";
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
     let currentId = null, lastId = null, transpose = 0, showChords = true;
+    let chordStyle = localStorage.getItem('chordStyle') || 'PL'; 
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let currentFontSize = 18;
+    let mqttClient = null, isMaster = false, mqttTopic = "";
 
-    // HISTORY API
-    window.addEventListener('popstate', (e) => { 
-        if (document.body.classList.contains('song-active')) {
-            backToList(false); 
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        updateChordStyleButton();
     });
 
-    // ZAAWANSOWANA OBSŁUGA GESTÓW
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let initialPinchDist = -1;
+    function toggleChordStyle() {
+        chordStyle = chordStyle === 'PL' ? 'EN' : 'PL';
+        localStorage.setItem('chordStyle', chordStyle);
+        updateChordStyleButton();
+        if (currentId) updateView();
+    }
 
+    function updateChordStyleButton() {
+        const btn = document.getElementById('btn-chord-style');
+        if(btn) btn.textContent = `Styl: ${chordStyle === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
+    }
+
+    function transChord(chordStr, steps) {
+        // RegEx łapie teraz małe i wielkie litery A-G, H oraz znaki # i b
+        return chordStr.replace(/([a-gA-G][#b]?|[hH])/g, (match) => {
+            const isLowercase = (match === match.toLowerCase());
+            let base = match.toUpperCase();
+            
+            // Normalizacja do skali angielskiej SCALE
+            if (base === 'H') {
+                base = 'B';
+            } else if (base === 'BB') {
+                base = 'A#';
+            } else if (base === 'B' && chordStyle === 'PL') {
+                // W polskim stylu samo B to Bb (A#)
+                base = 'A#';
+            }
+            
+            let idx = SCALE.indexOf(base);
+            if (idx === -1) return match;
+            
+            let newIdx = (idx + steps % 12 + 12) % 12;
+            let res = SCALE[newIdx];
+            
+            // Mapowanie wyjściowe dla stylu Polskiego
+            if (chordStyle === 'PL') {
+                if (res === 'B') res = 'H';   
+                else if (res === 'A#') res = 'B';  
+            } else {
+                if (res === 'A#') res = 'Bb';
+            }
+            
+            // Przywróć małą literę jeśli wejście było małą literą (molowe)
+            return isLowercase ? res.toLowerCase() : res;
+        });
+    }
+
+    window.addEventListener('popstate', (e) => { 
+        if (document.body.classList.contains('song-active')) backToList(false); 
+    });
+
+    let touchStartX = 0, touchStartY = 0, initialPinchDist = -1;
     document.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
             touchStartX = e.touches[0].screenX;
             touchStartY = e.touches[0].screenY;
         } else if (e.touches.length === 2) {
-            initialPinchDist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
         }
     }, {passive: false});
 
     document.addEventListener('touchmove', e => {
         if (e.touches.length === 2 && initialPinchDist > 0) {
-            e.preventDefault(); // Blokuj scroll przy zoomowaniu
-            let dist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            e.preventDefault(); 
+            let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
             let diff = dist - initialPinchDist;
-            
-            if (Math.abs(diff) > 15) { // Próg czułości
+            if (Math.abs(diff) > 15) { 
                 let step = diff > 0 ? 1 : -1;
                 let newSize = currentFontSize + step;
-                if (newSize >= 12 && newSize <= 60) {
-                    setFontSize(newSize);
-                    initialPinchDist = dist; 
-                }
+                if (newSize >= 12 && newSize <= 60) { setFontSize(newSize); initialPinchDist = dist; }
             }
         }
     }, {passive: false});
 
     document.addEventListener('touchend', e => {
         if (e.changedTouches.length === 1) {
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-            let diffX = touchEndX - touchStartX;
-            let diffY = Math.abs(touchEndY - touchStartY);
-
-            // Tylko jeśli ruch był głównie poziomy (unikamy pomyłek ze scrollem)
+            let diffX = e.changedTouches[0].screenX - touchStartX;
+            let diffY = Math.abs(e.changedTouches[0].screenY - touchStartY);
             if (Math.abs(diffX) > 80 && diffY < 100) {
-                if (diffX > 80 && document.body.classList.contains('song-active')) {
-                    // Swipe w prawo: Powrót do listy
-                    backToList();
-                } else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) {
-                    // Swipe w lewo: Powrót do ostatniej piosenki
-                    selectSong(lastId);
-                }
+                if (diffX > 80 && document.body.classList.contains('song-active')) backToList();
+                else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) selectSong(lastId);
             }
         }
         initialPinchDist = -1;
@@ -228,6 +272,8 @@
         switchLibrary(selector.value);
         selector.onchange = (e) => switchLibrary(e.target.value);
         document.getElementById('search').oninput = renderList;
+        document.getElementById('settings-menu').addEventListener('click', e => e.stopPropagation());
+        if(localStorage.getItem('mqttRoom')) document.getElementById('mqtt-room-code').value = localStorage.getItem('mqttRoom');
     });
 
     async function switchLibrary(lib) {
@@ -257,12 +303,7 @@
     }
 
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
-
-    function setSearch(val) {
-    const searchInput = document.getElementById('search');
-    searchInput.value = val;
-    renderList(); // Odświeża listę z nowym filtrem
-}
+    function setSearch(val) { document.getElementById('search').value = val; renderList(); }
     
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
@@ -270,17 +311,9 @@
         let filtered = allSongs.filter(s => {
             const title = (s.title || "").toLowerCase();
             const artist = (s.artist || "").toLowerCase();
-            const genre = (s.genre || "").toLowerCase();
             const vocal = (s.vocal_type || "").toLowerCase();
-
-            // Jeśli szukamy "male", sprawdź czy vocal_type to dokładnie "male" 
-            // lub czy fraza występuje w innych polach
-            if (term === "male") {
-                return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
-            }
-
-            // Standardowe wyszukiwanie dla innych fraz
-            return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal.includes(term);
+            if (term === "male" || term === "female") return vocal === term;
+            return title.includes(term) || artist.includes(term);
         });       
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
@@ -290,42 +323,25 @@
         `).join('');
     }
 
-    function selectSong(id) {
+    function selectSong(id, fromSync = false) {
         stopAutoScroll(); 
         if (currentId && currentId !== id) lastId = currentId; 
         currentId = id; 
-        transpose = 0;
+        if(!fromSync) transpose = 0; 
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
-        
-        if (!history.state || history.state.view !== 'song') {
-            history.pushState({view: 'song'}, ''); 
-        }
-        
+        if (!history.state || history.state.view !== 'song') history.pushState({view: 'song'}, ''); 
         updateView(); 
         renderList();
         document.getElementById('main-content').scrollTop = 0;
+        if(!fromSync) broadcastState();
     }
 
     function backToList(doPopState = true) {
         if (currentId) lastId = currentId;
         document.body.classList.remove('song-active'); 
         stopAutoScroll();
-        if (doPopState && history.state && history.state.view === 'song') {
-            history.back();
-        }
-    }
-
-    function transChord(c, s) { 
-        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { 
-            let base = b.toUpperCase(); 
-            let i = scale.indexOf(base); 
-            if (i === -1) return m; 
-            i = (i + s % 12 + 12) % 12; 
-            let res = dScale[i]; 
-            if (b === b.toLowerCase()) res = res.toLowerCase(); 
-            return res + (mod || ''); 
-        }); 
+        if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
     function updateView() {
@@ -333,7 +349,8 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
+            // RegEx dopasowany do akordów z uwzględnieniem bemoli i małych liter
+            const tc = song.chords.replace(/([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
         const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => {
@@ -344,15 +361,14 @@
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
-    function changeTrans(v) { transpose += v; updateView(); }
-    function resetTrans() { transpose = 0; updateView(); }
+    function changeTrans(v) { transpose += v; updateView(); broadcastState(); }
+    function resetTrans() { transpose = 0; updateView(); broadcastState(); }
     
     function setFontSize(v) { 
         currentFontSize = parseInt(v);
         document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px'); 
         document.getElementById('font-size-val').textContent = currentFontSize + 'px'; 
-        const slider = document.getElementById('font-size-slider');
-        if(slider) slider.value = currentFontSize;
+        if(document.getElementById('font-size-slider')) document.getElementById('font-size-slider').value = currentFontSize;
     }
 
     function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
@@ -395,65 +411,102 @@
         document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
-    async function exportAllJPG() {
-        const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
-        const currentBackup = currentId;
-        for (let i = 0; i < allSongs.length; i++) {
-            currentId = allSongs[i].id; updateView(); await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
-            const link = document.createElement('a'); link.download = allSongs[i].title + ".jpg";
-            link.href = canvas.toDataURL("image/jpeg"); link.click();
-            document.getElementById('progress-count').textContent = (i+1) + "/" + allSongs.length;
+    function connectMQTT(masterMode) {
+        const roomCode = document.getElementById('mqtt-room-code').value.trim();
+        if (!roomCode) return alert("Wpisz hasło pokoju!");
+        localStorage.setItem('mqttRoom', roomCode);
+        isMaster = masterMode;
+        mqttTopic = "muzycznik_sync_2025/" + roomCode; 
+        document.getElementById('mqtt-status-text').textContent = "Łączenie...";
+        if (mqttClient) mqttClient.end();
+        mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+        mqttClient.on('connect', () => {
+            document.getElementById('conn-status-dot').classList.add('connected');
+            document.getElementById('mqtt-status-text').textContent = isMaster ? "LIDER: Aktywny" : "SŁUCHACZ: Aktywny";
+            if (!isMaster) mqttClient.subscribe(mqttTopic);
+            else broadcastState();
+        });
+        mqttClient.on('message', (topic, message) => {
+            if (!isMaster && topic === mqttTopic) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    const found = allSongs.find(s => s.title === data.title);
+                    if (found) { transpose = data.t; selectSong(found.id, true); }
+                } catch (e) { console.error("MQTT Error", e); }
+            }
+        });
+    }
+
+    function broadcastState() {
+        if (isMaster && mqttClient && mqttClient.connected) {
+            const song = allSongs.find(s => s.id === currentId);
+            if (song) mqttClient.publish(mqttTopic, JSON.stringify({ title: song.title, t: transpose }), { retain: true });
         }
-        currentId = currentBackup; updateView();
-        ov.style.display = 'none';
     }
 
-    function exportJSON() {
-        const b = new Blob([JSON.stringify(allSongs, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = currentLibrary; a.click();
+    function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
+    function startNewSong() {
+        currentId = null;
+        document.getElementById('edit-title').value = '';
+        document.getElementById('edit-artist').value = '';
+        document.getElementById('edit-lyrics').value = '';
+        document.getElementById('editor-modal').style.display = 'flex';
     }
-
-    function importJSON(input) {
-        const r = new FileReader(); r.onload = (e) => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
-        r.readAsText(input.files[0]);
+    function startEditCurrent() {
+        const s = allSongs.find(x => x.id === currentId);
+        if(!s) return;
+        document.getElementById('edit-title').value = s.title;
+        document.getElementById('edit-artist').value = s.artist || '';
+        document.getElementById('edit-lyrics').value = (s.chords ? "---CHORDS---\n" + s.chords + "\n---LYRICS---\n" : "") + s.lyrics;
+        document.getElementById('editor-modal').style.display = 'flex';
     }
-
-    function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
-    
-    let editingId = null;
-    function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
-    function startEditCurrent() { 
-        const s = allSongs.find(x=>x.id===currentId); if(!s) return;
-        editingId = currentId; document.getElementById('edit-title').value = s.title; 
-        document.getElementById('edit-artist').value = s.artist || ""; 
-        document.getElementById('edit-lyrics').value = s.lyrics || ""; 
-        document.getElementById('editor-modal').style.display='flex'; 
-    }
-    function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
         const artist = document.getElementById('edit-artist').value;
-        const lyrics = document.getElementById('edit-lyrics').value;
-        if (editingId) {
-            const s = allSongs.find(x=>x.id===editingId); s.title = title; s.artist = artist; s.lyrics = lyrics;
-        } else {
-            const n = { title, artist, lyrics, id: "n"+Date.now() }; allSongs.push(n); selectSong(n.id);
+        let raw = document.getElementById('edit-lyrics').value;
+        let chords = "", lyrics = raw;
+        if(raw.includes("---CHORDS---")) {
+            const parts = raw.split("---LYRICS---");
+            chords = parts[0].replace("---CHORDS---", "").trim();
+            lyrics = parts[1] ? parts[1].trim() : "";
         }
-        saveToLocal(); renderList(); updateView(); closeEditor();
+        const newSong = { id: currentId || Date.now().toString(), title, artist, chords, lyrics };
+        if(currentId) {
+            const idx = allSongs.findIndex(x => x.id === currentId);
+            allSongs[idx] = newSong;
+        } else {
+            allSongs.push(newSong);
+        }
+        saveToLocal(); renderList(); closeEditor();
     }
-
-    function showChordInfo(e, chord) {
-        e.stopPropagation();
-        const tip = document.getElementById('chord-tooltip');
-        tip.innerHTML = `<strong>${chord}</strong><br>Diagram akordu`;
-        tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(allSongs, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentLibrary; a.click();
     }
-
-    document.addEventListener('click', () => { 
-        document.getElementById('settings-menu').classList.remove('active'); 
-        document.getElementById('chord-tooltip').style.display = 'none'; 
-    });
+    function importJSON(input) {
+        const reader = new FileReader();
+        reader.onload = e => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
+        reader.readAsText(input.files[0]);
+    }
+    async function resetFromServer() { if(confirm("Czy na pewno?")) { localStorage.removeItem('db_'+currentLibrary); await loadFromServer(currentLibrary); } }
+    
+    async function exportAllJPG() {
+        const overlay = document.getElementById('progress-overlay');
+        const countDisp = document.getElementById('progress-count');
+        overlay.style.display = 'flex';
+        for(let i=0; i<allSongs.length; i++) {
+            countDisp.textContent = `${i+1} / ${allSongs.length}`;
+            selectSong(allSongs[i].id);
+            await new Promise(r => setTimeout(r, 300));
+            const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
+            const link = document.createElement('a');
+            link.download = `${allSongs[i].title}.jpg`;
+            link.href = canvas.toDataURL("image/jpeg", 0.8);
+            link.click();
+            await new Promise(r => setTimeout(r, 100));
+        }
+        overlay.style.display = 'none';
+    }
 </script>
 </body>
 </html>
