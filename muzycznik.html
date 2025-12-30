@@ -256,7 +256,15 @@
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
-        let filtered = allSongs.filter(s => (s.title + " " + (s.artist||"")).toLowerCase().includes(term));
+        let filtered = allSongs.filter(s => {
+            const searchText = [
+                s.title,
+                s.artist,
+                s.genre,
+                s.vocal_type
+            ].join(' ').toLowerCase();
+            return searchText.includes(term);
+        });        
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
                 <span>${s.title}</span>
