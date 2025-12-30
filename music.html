@@ -32,7 +32,6 @@
             body.song-active #main-content { transform: translateX(0); }
             body.song-active #sidebar { transform: translateX(-100%); }
             .mobile-only { display: inline-block !important; }
-            /* Ustawienia na środku ekranu w wersji mobilnej dla lepszej widoczności */
             #settings-menu { right: 10px !important; left: 10px !important; width: auto !important; }
         }
         .mobile-only { display: none; }
@@ -81,6 +80,7 @@
         <h3>➕ Edytor</h3>
         <input type="text" id="edit-title" placeholder="Tytuł" style="width:100%; margin-bottom:10px; padding:8px;">
         <input type="text" id="edit-artist" placeholder="Wykonawca" style="width:100%; margin-bottom:10px; padding:8px;">
+        <input type="number" id="edit-bpm" placeholder="BPM (np. 120)" style="width:100%; margin-bottom:10px; padding:8px;">
         <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami..." style="width:100%; margin-bottom:10px; padding:8px; height:150px; font-family:monospace;"></textarea>
         <div style="display:flex; gap:10px;">
             <button onclick="closeEditor()" style="flex:1">Anuluj</button>
@@ -129,8 +129,14 @@
         </div>
 
         <div id="settings-menu">
+            <div style="font-size:12px; font-weight:bold;">Tempo (BPM): <span id="bpm-val">120</span></div>
+            <input type="range" id="bpm-slider" min="40" max="240" value="120" oninput="setBPM(this.value)">
+            
+            <hr style="opacity:0.2">
+            
             <div style="font-size:12px; font-weight:bold;">Czcionka: <span id="font-size-val">18px</span></div>
             <input type="range" id="font-size-slider" min="12" max="60" value="18" oninput="setFontSize(this.value)">
+            
             <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
             <button onclick="toggleChordStyle()" id="btn-chord-style">Styl: Polski (H)</button>
             <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
@@ -175,16 +181,26 @@
     let chordStyle = localStorage.getItem('chordStyle') || 'PL'; 
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let currentFontSize = 18;
+    let currentBPM = 120;
     let mqttClient = null, isMaster = false, mqttTopic = "";
 
     document.addEventListener('DOMContentLoaded', () => {
         updateChordStyleButton();
-        // Zamknięcie menu przy kliknięciu poza nie
         document.addEventListener('click', () => {
             const menu = document.getElementById('settings-menu');
             if (menu.classList.contains('active')) menu.classList.remove('active');
         });
     });
+
+    function setBPM(val) {
+        currentBPM = parseInt(val);
+        document.getElementById('bpm-val').textContent = currentBPM;
+        document.getElementById('bpm-slider').value = currentBPM;
+        if (isMetroActive) {
+            stopMetronome();
+            startMetronome();
+        }
+    }
 
     function toggleChordStyle() {
         chordStyle = chordStyle === 'PL' ? 'EN' : 'PL';
@@ -202,24 +218,19 @@
         return chordStr.replace(/([a-gA-G][#b]?|[hH])/g, (match) => {
             const isLowercase = (match === match.toLowerCase());
             let base = match.toUpperCase();
-            
             if (base === 'H') base = 'B';
             else if (base === 'BB') base = 'A#';
             else if (base === 'B' && chordStyle === 'PL') base = 'A#';
-            
             let idx = SCALE.indexOf(base);
             if (idx === -1) return match;
-            
             let newIdx = (idx + steps % 12 + 12) % 12;
             let res = SCALE[newIdx];
-            
             if (chordStyle === 'PL') {
                 if (res === 'B') res = 'H';   
                 else if (res === 'A#') res = 'B';  
             } else {
                 if (res === 'A#') res = 'Bb';
             }
-            
             return isLowercase ? res.toLowerCase() : res;
         });
     }
@@ -324,6 +335,11 @@
         if (currentId && currentId !== id) lastId = currentId; 
         currentId = id; 
         if(!fromSync) transpose = 0; 
+        
+        const song = allSongs.find(s => s.id === id);
+        if(song && song.bpm) setBPM(song.bpm);
+        else setBPM(120);
+
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
         if (!history.state || history.state.view !== 'song') history.pushState({view: 'song'}, ''); 
@@ -337,6 +353,7 @@
         if (currentId) lastId = currentId;
         document.body.classList.remove('song-active'); 
         stopAutoScroll();
+        stopMetronome();
         if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
@@ -392,18 +409,32 @@
     }
 
     function toggleMetronome() {
-        if (isMetroActive) { clearInterval(metroInterval); isMetroActive = false; }
-        else {
-            isMetroActive = true;
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            metroInterval = setInterval(() => {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.frequency.value = 1000; gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            }, 500);
-        }
-        document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
+        if (isMetroActive) stopMetronome();
+        else startMetronome();
+    }
+
+    function startMetronome() {
+        isMetroActive = true;
+        document.getElementById('btn-metro-toggle').style.color = "var(--accent-success)";
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const intervalMs = (60 / currentBPM) * 1000;
+        
+        metroInterval = setInterval(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 1000;
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }, intervalMs);
+    }
+
+    function stopMetronome() {
+        clearInterval(metroInterval);
+        isMetroActive = false;
+        document.getElementById('btn-metro-toggle').style.color = "inherit";
     }
 
     function connectMQTT(masterMode) {
@@ -444,6 +475,7 @@
         currentId = null;
         document.getElementById('edit-title').value = '';
         document.getElementById('edit-artist').value = '';
+        document.getElementById('edit-bpm').value = '';
         document.getElementById('edit-lyrics').value = '';
         document.getElementById('editor-modal').style.display = 'flex';
     }
@@ -452,12 +484,14 @@
         if(!s) return;
         document.getElementById('edit-title').value = s.title;
         document.getElementById('edit-artist').value = s.artist || '';
+        document.getElementById('edit-bpm').value = s.bpm || '';
         document.getElementById('edit-lyrics').value = (s.chords ? "---CHORDS---\n" + s.chords + "\n---LYRICS---\n" : "") + s.lyrics;
         document.getElementById('editor-modal').style.display = 'flex';
     }
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
         const artist = document.getElementById('edit-artist').value;
+        const bpm = document.getElementById('edit-bpm').value;
         let raw = document.getElementById('edit-lyrics').value;
         let chords = "", lyrics = raw;
         if(raw.includes("---CHORDS---")) {
@@ -465,7 +499,7 @@
             chords = parts[0].replace("---CHORDS---", "").trim();
             lyrics = parts[1] ? parts[1].trim() : "";
         }
-        const newSong = { id: currentId || Date.now().toString(), title, artist, chords, lyrics };
+        const newSong = { id: currentId || Date.now().toString(), title, artist, bpm, chords, lyrics };
         if(currentId) {
             const idx = allSongs.findIndex(x => x.id === currentId);
             allSongs[idx] = newSong;
