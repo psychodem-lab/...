@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik Pro 2025 (Sync Fix)</title>
+    <title>Muzycznik</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -22,11 +22,12 @@
         }
         body { font-family: Arial, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); transition: 0.3s; overflow: hidden; text-align: left; }
         #app-container { display: flex; height: 100vh; width: 100vw; position: relative; }
-        #sidebar { width: 320px; border-right: 1px solid var(--border-color); background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column; z-index: 20; }
-        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); scroll-behavior: smooth; position: relative; z-index: 10; touch-action: pan-y; }
+        
+        #sidebar { width: 320px; border-right: 1px solid var(--border-color); background: var(--bg-sidebar); padding: 15px; display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 20; text-align: left; }
+        #main-content { flex-grow: 1; overflow-y: auto; background: var(--bg-main); scroll-behavior: smooth; position: relative; z-index: 10; touch-action: pan-y; text-align: left; }
 
         @media (max-width: 768px) {
-            #sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; box-sizing: border-box; transition: transform 0.3s ease; }
+            #sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; box-sizing: border-box; }
             #main-content { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transform: translateX(100%); transition: transform 0.3s ease; }
             body.song-active #main-content { transform: translateX(0); }
             body.song-active #sidebar { transform: translateX(-100%); }
@@ -34,99 +35,242 @@
         }
         .mobile-only { display: none; }
 
-        #controls-bar { display: flex; gap: 8px; padding: 10px; background: #eee; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 30; align-items: center; }
+        .sidebar-header { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        #controls-bar { display: flex; gap: 8px; padding: 10px; background: #eee; border-bottom: 1px solid #ccc; position: sticky; top: 0; z-index: 30; align-items: center; overflow-x: auto; }
         body.dark-mode #controls-bar { background: #252525; border-color: #444; }
 
-        #settings-menu { display: none; position: absolute; top: 55px; right: 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.3); flex-direction: column; gap: 12px; min-width: 260px; z-index: 100; max-height: 80vh; overflow-y: auto; }
+        .control-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+
+        #settings-menu { display: none; position: absolute; top: 55px; right: 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.3); flex-direction: column; gap: 12px; min-width: 260px; z-index: 100; overflow-y: auto; max-height: 80vh; text-align: left; }
         #settings-menu.active { display: flex; }
 
-        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; }
-        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; }
-        #active-chords-content { font-family: 'Courier New', monospace; font-size: calc(var(--lyrics-font-size) * 0.9); white-space: pre-wrap; margin: 0; }
-        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; }
-        .inline-chord { font-weight: bold; color: var(--text-chords); }
-
-        button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); }
-        #song-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; }
-        #song-list li.selected { background: var(--accent-blue); color: white; }
+        #song-capture-area { padding: 25px; background: var(--bg-song-area); color: var(--text-song); min-height: 100%; text-align: left; }
+        .song-header { text-align: center; margin-bottom: 20px; }
         
+        .chords-container { background: rgba(128,128,128,0.1); border: 1px solid var(--border-color); padding: 15px; margin: 15px 0; border-radius: 5px; text-align: left; }
+        #active-chords-content { font-family: 'Courier New', monospace; font-size: calc(var(--lyrics-font-size) * 0.9); white-space: pre-wrap; margin: 0; color: var(--text-song); text-align: left; }
+        .lyrics-content { white-space: pre-wrap; font-size: var(--lyrics-font-size); line-height: 1.6; margin-top: 20px; color: var(--text-song); text-align: left; }
+        .inline-chord { font-weight: bold; color: var(--text-chords); cursor: pointer; }
+
+        button { cursor: pointer; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-sidebar); color: var(--text-main); font-size: 14px; text-align: center; }
+        .btn-icon { border: none; background: transparent; font-size: 18px; padding: 5px 8px; }
+
+        #song-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; text-align: left; }
+        #song-list li { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        #song-list li.selected { background: var(--accent-blue); color: white; }
+        .fav-star { color: #ccc; transition: 0.2s; padding: 5px; }
+        .fav-star.active { color: #ffc107; }
+
+        #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
+        #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
+        
+        /* Dodatkowy styl dla kropki statusu */
         .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
         .connected { background: #28a745; }
     </style>
 </head>
 <body>
 
-<div id="settings-menu">
-    <div style="font-size:12px; font-weight:bold;">Rozmiar tekstu</div>
-    <input type="range" id="font-size-slider" min="12" max="60" value="18" oninput="setFontSize(this.value)">
-    <button onclick="toggleChordsDisplay()">Ukryj/Pokaż akordy</button>
-    <button onclick="toggleDarkMode()">Tryb nocny</button>
-    
-    <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 5px; margin-top: 10px;">
-        <div style="font-size: 11px; font-weight: bold;"><span id="conn-status-dot" class="connection-dot"></span> SYNCHRONIZACJA</div>
-        <input type="text" id="mqtt-room-code" placeholder="Hasło zespołu" style="width:100%; margin: 5px 0; padding:5px; box-sizing: border-box;">
-        <div style="display:flex; gap:5px;">
-            <button onclick="connectMQTT(true)" style="flex:1; background:#007bff; color:white;">LIDER</button>
-            <button onclick="connectMQTT(false)" style="flex:1;">SŁUCHACZ</button>
+<div id="chord-tooltip"></div>
+<div id="progress-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; z-index:2100; flex-direction:column; align-items:center; justify-content:center;">
+    <h2>Eksport...</h2><p id="progress-count">0/0</p>
+</div>
+
+<div id="editor-modal">
+    <div class="modal-content">
+        <h3>➕ Edytor</h3>
+        <input type="text" id="edit-title" placeholder="Tytuł" style="width:100%; margin-bottom:10px; padding:8px;">
+        <input type="text" id="edit-artist" placeholder="Wykonawca" style="width:100%; margin-bottom:10px; padding:8px;">
+        <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami..." style="width:100%; margin-bottom:10px; padding:8px; height:150px; font-family:monospace;"></textarea>
+        <div style="display:flex; gap:10px;">
+            <button onclick="closeEditor()" style="flex:1">Anuluj</button>
+            <button onclick="saveSongData()" style="flex:1; background:var(--accent-success); color:white;">Zapisz</button>
         </div>
-        <div id="mqtt-status-text" style="font-size:10px; color:green; margin-top:5px;"></div>
     </div>
-    <button onclick="exportJSON()">Pobierz bazę (JSON)</button>
-    <button onclick="resetFromServer()" style="color:red;">Resetuj bazę</button>
 </div>
 
 <div id="app-container">
     <div id="sidebar">
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <select id="collection-select" style="flex-grow:1; padding:8px;">
-                <option value="piosenki.json">Główna</option>
-                <option value="koledy.json">Kolędy</option>
-                <option value="lukasz.json">Inne</option>
+        <div class="sidebar-header">
+            <select id="collection-select" style="flex-grow:1; padding:10px; font-weight: bold;">
+                <option value="piosenki.json">📁 Piosenki (Główna)</option>
+                <option value="koledy.json">🎄 Kolędy</option>
+                <option value="lukasz.json">👤 Inne</option>
                 <option value="favorites">⭐ Ulubione</option>
             </select>
-            <button onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
+            <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
-        <input type="text" id="search" placeholder="Szukaj..." style="padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <button onclick="setSearch('male')" style="flex:1; padding: 5px; font-size: 12px;">♂ Męski</button>
+            <button onclick="setSearch('female')" style="flex:1; padding: 5px; font-size: 12px;">♀ Żeński</button>
+            <button onclick="setSearch('')" style="flex:1; padding: 5px; font-size: 12px; background: #eee; color: #000;">Wszystkie</button>
+        </div>
+        <input type="text" id="search" placeholder="Szukaj..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
     </div>
 
     <div id="main-content">
         <div id="controls-bar" style="display:none;">
-            <button onclick="backToList()" class="mobile-only">Lista</button>
-            <button onclick="changeTrans(-1)">-1</button>
-            <span id="transpose-val" style="font-weight:bold; min-width:20px; text-align:center;">0</span>
-            <button onclick="changeTrans(1)">+1</button>
-            <button onclick="toggleScroll()" id="btn-scroll-toggle"><i class="fas fa-play"></i></button>
-            <div style="flex-grow:1"></div>
-            <button onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
+            <button onclick="backToList()" class="mobile-only btn-icon"><i class="fas fa-arrow-left"></i></button>
+            
+            <div class="control-group">
+                <button onclick="changeTrans(-1)" class="btn-icon"><i class="fas fa-minus"></i></button>
+                <span id="transpose-val" onclick="resetTrans()" style="font-weight:bold; min-width:30px; text-align:center; cursor:pointer; padding: 0 5px;" title="Reset">0</span>
+                <button onclick="changeTrans(1)" class="btn-icon"><i class="fas fa-plus"></i></button>
+            </div>
+
+            <div class="control-group">
+                <button id="btn-scroll-toggle" onclick="toggleScroll()" class="btn-icon"><i class="fas fa-play"></i></button>
+                <input type="range" id="scroll-speed" min="1" max="50" value="10" style="width:50px;">
+            </div>
+            <button onclick="toggleMetronome()" id="btn-metro-toggle" class="btn-icon"><i class="fas fa-drum"></i></button>
+            <div style="flex-grow: 1;"></div>
+            <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
+
+        <div id="settings-menu">
+            <div style="font-size:12px; font-weight:bold;">Czcionka: <span id="font-size-val">18px</span></div>
+            <input type="range" id="font-size-slider" min="12" max="60" value="18" oninput="setFontSize(this.value)">
+            <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
+            <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
+            
+            <div id="mqtt-sync-section" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 5px; margin-top: 5px; background: rgba(0,0,0,0.02);">
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 5px;">
+                    <span id="conn-status-dot" class="connection-dot"></span> SYNCHRONIZACJA
+                </div>
+                <input type="text" id="mqtt-room-code" placeholder="Hasło zespołu" style="width:100%; padding:6px; margin-bottom:6px; box-sizing:border-box; border-radius:4px; border:1px solid var(--border-color);">
+                <div style="display:flex; gap:5px;">
+                    <button onclick="connectMQTT(true)" style="flex:1; background:var(--accent-blue); color:white;">LIDER</button>
+                    <button onclick="connectMQTT(false)" style="flex:1;">SŁUCHACZ</button>
+                </div>
+                <div id="mqtt-status-text" style="font-size:10px; color:green; margin-top:5px; min-height:12px;"></div>
+            </div>
+
+            <hr style="opacity:0.2">
+            <button onclick="startEditCurrent()">Edytuj piosenkę</button>
+            <button onclick="startNewSong()">Dodaj nową</button>
+            <button onclick="document.getElementById('import-file').click()">Importuj JSON</button>
+            <input type="file" id="import-file" style="display:none" onchange="importJSON(this)">
+            <button onclick="exportJSON()">Pobierz JSON</button>
+            <button onclick="exportAllJPG()" style="background:var(--accent-success); color:white;">Eksport JPG</button>
+            <button onclick="resetFromServer()" style="background:#dc3545; color:white;">Resetuj z serwera</button>
+        </div>
+
         <div id="song-capture-area">
-            <div id="song-display" style="padding:40px; text-align:center; color:#999;">Wybierz piosenkę</div>
+            <div id="song-display" style="padding:40px; text-align:center; color:#888;">Wybierz piosenkę...</div>
         </div>
     </div>
 </div>
 
 <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
+    const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
-    let allSongs = [], currentLibrary = "piosenki.json", favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
-    let currentId = null, transpose = 0, showChords = true, currentFontSize = 18;
-    let mqttClient = null, isMaster = false, mqttTopic = "";
+    
+    let allSongs = [];
+    let currentLibrary = "piosenki.json";
+    let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
+    let currentId = null, lastId = null, transpose = 0, showChords = true;
+    let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
+    let currentFontSize = 18;
+
+    // --- ZMIENNE MQTT ---
+    let mqttClient = null;
+    let isMaster = false;
+    let mqttTopic = "";
+
+    // HISTORY API
+    window.addEventListener('popstate', (e) => { 
+        if (document.body.classList.contains('song-active')) {
+            backToList(false); 
+        }
+    });
+
+    // ZAAWANSOWANA OBSŁUGA GESTÓW
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let initialPinchDist = -1;
+
+    document.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].screenX;
+            touchStartY = e.touches[0].screenY;
+        } else if (e.touches.length === 2) {
+            initialPinchDist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX, 
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+        }
+    }, {passive: false});
+
+    document.addEventListener('touchmove', e => {
+        if (e.touches.length === 2 && initialPinchDist > 0) {
+            e.preventDefault(); 
+            let dist = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX, 
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            let diff = dist - initialPinchDist;
+            
+            if (Math.abs(diff) > 15) { 
+                let step = diff > 0 ? 1 : -1;
+                let newSize = currentFontSize + step;
+                if (newSize >= 12 && newSize <= 60) {
+                    setFontSize(newSize);
+                    initialPinchDist = dist; 
+                }
+            }
+        }
+    }, {passive: false});
+
+    document.addEventListener('touchend', e => {
+        if (e.changedTouches.length === 1) {
+            let touchEndX = e.changedTouches[0].screenX;
+            let touchEndY = e.changedTouches[0].screenY;
+            let diffX = touchEndX - touchStartX;
+            let diffY = Math.abs(touchEndY - touchStartY);
+
+            if (Math.abs(diffX) > 80 && diffY < 100) {
+                if (diffX > 80 && document.body.classList.contains('song-active')) {
+                    backToList();
+                } else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) {
+                    selectSong(lastId);
+                }
+            }
+        }
+        initialPinchDist = -1;
+    }, false);
 
     document.addEventListener('DOMContentLoaded', () => {
-        const sel = document.getElementById('collection-select');
-        switchLibrary(sel.value);
-        sel.onchange = (e) => switchLibrary(e.target.value);
+        const selector = document.getElementById('collection-select');
+        switchLibrary(selector.value);
+        selector.onchange = (e) => switchLibrary(e.target.value);
         document.getElementById('search').oninput = renderList;
+        
+        // Blokada zamykania menu przy kliknięciu w ustawieniach (szczególnie w inputy)
         document.getElementById('settings-menu').addEventListener('click', e => e.stopPropagation());
+        
+        // Wczytaj zapamiętany pokój
         if(localStorage.getItem('mqttRoom')) document.getElementById('mqtt-room-code').value = localStorage.getItem('mqttRoom');
     });
 
     async function switchLibrary(lib) {
         currentLibrary = lib;
-        const saved = localStorage.getItem('db_' + lib);
-        if (saved) { allSongs = JSON.parse(saved); renderList(); } 
-        else { await loadFromServer(lib); }
+        if (lib === "favorites") {
+            const allSaved = [];
+            ["piosenki.json", "koledy.json", "lukasz.json"].forEach(key => {
+                const data = JSON.parse(localStorage.getItem('db_' + key) || '[]');
+                allSaved.push(...data);
+            });
+            allSongs = allSaved.filter(s => favorites.includes(s.id));
+            renderList();
+        } else {
+            const saved = localStorage.getItem('db_' + lib);
+            if (saved) { allSongs = JSON.parse(saved); renderList(); } 
+            else { await loadFromServer(lib); }
+        }
     }
 
     async function loadFromServer(fileName) {
@@ -134,107 +278,256 @@
             const res = await fetch(fileName);
             const data = await res.json();
             allSongs = data.map((s, i) => ({ ...s, id: fileName + "_" + i }));
-            localStorage.setItem('db_' + fileName, JSON.stringify(allSongs));
-            renderList();
-        } catch (e) { console.log("Brak pliku na serwerze"); }
+            saveToLocal(); renderList();
+        } catch (e) { console.error("Błąd ładowania:", e); }
     }
 
+    function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
+
+    function setSearch(val) {
+        const searchInput = document.getElementById('search');
+        searchInput.value = val;
+        renderList();
+    }
+    
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
-        list.innerHTML = allSongs.filter(s => s.title.toLowerCase().includes(term)).map(s => `
+        let filtered = allSongs.filter(s => {
+            const title = (s.title || "").toLowerCase();
+            const artist = (s.artist || "").toLowerCase();
+            const genre = (s.genre || "").toLowerCase();
+            const vocal = (s.vocal_type || "").toLowerCase();
+            if (term === "male") return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
+            return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal.includes(term);
+        });       
+        list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
-                <b>${s.title}</b><span>${s.artist || ''}</span>
+                <span>${s.title}</span>
+                <i class="fas fa-star fav-star ${favorites.includes(s.id) ? 'active' : ''}" onclick="toggleFav(event, '${s.id}')"></i>
             </li>
         `).join('');
     }
 
     function selectSong(id, fromSync = false) {
-        currentId = id;
-        if(!fromSync) transpose = 0;
+        stopAutoScroll(); 
+        if (currentId && currentId !== id) lastId = currentId; 
+        currentId = id; 
+        if(!fromSync) transpose = 0; 
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
-        updateView();
+        
+        if (!history.state || history.state.view !== 'song') {
+            history.pushState({view: 'song'}, ''); 
+        }
+        
+        updateView(); 
         renderList();
+        document.getElementById('main-content').scrollTop = 0;
+        
+        // Wyślij stan przez MQTT, jeśli jesteś liderem i to nie jest zmiana wymuszona synchronizacją
         if(!fromSync) broadcastState();
+    }
+
+    function backToList(doPopState = true) {
+        if (currentId) lastId = currentId;
+        document.body.classList.remove('song-active'); 
+        stopAutoScroll();
+        if (doPopState && history.state && history.state.view === 'song') {
+            history.back();
+        }
+    }
+
+    function transChord(c, s) { 
+        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { 
+            let base = b.toUpperCase(); 
+            let i = scale.indexOf(base); 
+            if (i === -1) return m; 
+            i = (i + s % 12 + 12) % 12; 
+            let res = dScale[i]; 
+            if (b === b.toLowerCase()) res = res.toLowerCase(); 
+            return res + (mod || ''); 
+        }); 
     }
 
     function updateView() {
         const song = allSongs.find(s => s.id === currentId);
         if (!song) return;
-        let html = `<div style="text-align:center"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
+        let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d]*)/g, m => transChord(m, transpose));
+            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
-        const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => `<span class="inline-chord">${transChord(c, transpose)}</span>` : '');
+        const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => {
+            const tc = transChord(c, transpose);
+            return `<span class="inline-chord" onclick="showChordInfo(event, '${tc}')">${tc}</span>`;
+        } : '');
         document.getElementById('song-display').innerHTML = html + `<div class="lyrics-content">${lyr}</div>`;
-        document.getElementById('transpose-val').textContent = transpose;
-    }
-
-    function transChord(c, s) {
-        return c.replace(/[A-GHa-gh][b#]?/, b => {
-            let base = b.toUpperCase();
-            let i = dScale.indexOf(base);
-            if (i === -1) return b;
-            return dScale[(i + s % 12 + 12) % 12];
-        });
+        document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
     }
 
     function changeTrans(v) { transpose += v; updateView(); broadcastState(); }
-    function setFontSize(v) { currentFontSize = v; document.documentElement.style.setProperty('--lyrics-font-size', v + 'px'); }
+    function resetTrans() { transpose = 0; updateView(); broadcastState(); }
+    
+    function setFontSize(v) { 
+        currentFontSize = parseInt(v);
+        document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px'); 
+        document.getElementById('font-size-val').textContent = currentFontSize + 'px'; 
+        const slider = document.getElementById('font-size-slider');
+        if(slider) slider.value = currentFontSize;
+    }
+
+    function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
     function openSettings(e) { e.stopPropagation(); document.getElementById('settings-menu').classList.toggle('active'); }
-    function backToList() { document.body.classList.remove('song-active'); }
-    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     function toggleChordsDisplay() { showChords = !showChords; updateView(); }
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    
+    function toggleScroll() { 
+        isScrolling = !isScrolling; 
+        const btn = document.getElementById('btn-scroll-toggle');
+        if (isScrolling) {
+            btn.innerHTML = '<i class="fas fa-pause"></i>';
+            scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value); 
+        } else {
+            btn.innerHTML = '<i class="fas fa-play"></i>';
+            clearInterval(scrollInterval); 
+        }
+    }
+    
+    function stopAutoScroll() { 
+        if(isScrolling) { 
+            clearInterval(scrollInterval); 
+            isScrolling = false; 
+            document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>';
+        } 
+    }
 
-    document.addEventListener('click', () => document.getElementById('settings-menu').classList.remove('active'));
+    function toggleMetronome() {
+        if (isMetroActive) { clearInterval(metroInterval); isMetroActive = false; }
+        else {
+            isMetroActive = true;
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            metroInterval = setInterval(() => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.value = 1000; gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            }, 500);
+        }
+        document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
+    }
 
-    // --- SYNCHRONIZACJA PO TYTULE (MQTT) ---
-    function connectMQTT(master) {
-        const room = document.getElementById('mqtt-room-code').value.trim();
-        if(!room) return alert("Podaj hasło!");
-        isMaster = master;
-        mqttTopic = "spiewnik_pro_2025/" + room;
+    // --- LOGIKA MQTT (SYNCHRONIZACJA) ---
+    function connectMQTT(masterMode) {
+        const roomCode = document.getElementById('mqtt-room-code').value.trim();
+        if (!roomCode) return alert("Wpisz hasło pokoju!");
+
+        localStorage.setItem('mqttRoom', roomCode);
+        isMaster = masterMode;
+        mqttTopic = "muzycznik_sync_2025/" + roomCode; 
+
+        document.getElementById('mqtt-status-text').textContent = "Łączenie...";
+        if (mqttClient) mqttClient.end();
         
-        if(mqttClient) mqttClient.end();
         mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
 
-        mqttClient.on('connect', () => {
+        mqttClient.on('connect', function () {
             document.getElementById('conn-status-dot').classList.add('connected');
-            document.getElementById('mqtt-status-text').textContent = isMaster ? "LIDER AKTYWNY" : "SŁUCHACZ AKTYWNY";
-            if(!isMaster) mqttClient.subscribe(mqttTopic);
+            document.getElementById('mqtt-status-text').textContent = isMaster ? "LIDER: Aktywny" : "SŁUCHACZ: Aktywny";
+            if (!isMaster) mqttClient.subscribe(mqttTopic);
+            else broadcastState();
         });
 
-        mqttClient.on('message', (topic, msg) => {
-            if(!isMaster) {
-                const data = JSON.parse(msg.toString());
-                // Szukaj piosenki po tytule zamiast po ID
-                const found = allSongs.find(s => s.title === data.title);
-                if(found) {
-                    transpose = data.t;
-                    selectSong(found.id, true);
-                }
+        mqttClient.on('message', function (topic, message) {
+            if (!isMaster && topic === mqttTopic) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    // Szukanie po tytule - najbardziej niezawodne między bazami
+                    const found = allSongs.find(s => s.title === data.title);
+                    if (found) {
+                        transpose = data.t;
+                        selectSong(found.id, true);
+                    }
+                } catch (e) { console.error("MQTT Error", e); }
             }
+        });
+
+        mqttClient.on('error', () => {
+            document.getElementById('conn-status-dot').classList.remove('connected');
+            document.getElementById('mqtt-status-text').textContent = "Błąd połączenia";
         });
     }
 
     function broadcastState() {
-        if(isMaster && mqttClient && mqttClient.connected) {
+        if (isMaster && mqttClient && mqttClient.connected) {
             const song = allSongs.find(s => s.id === currentId);
-            if(song) {
-                mqttClient.publish(mqttTopic, JSON.stringify({
-                    title: song.title,
-                    t: transpose
-                }), { retain: true });
+            if (song) {
+                const payload = JSON.stringify({ title: song.title, t: transpose });
+                mqttClient.publish(mqttTopic, payload, { retain: true });
             }
         }
     }
 
-    function exportJSON() {
-        const b = new Blob([JSON.stringify(allSongs)], {type:"application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "spiewnik.json"; a.click();
+    // --- RESZTA FUNKCJI ---
+    async function exportAllJPG() {
+        const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
+        const currentBackup = currentId;
+        for (let i = 0; i < allSongs.length; i++) {
+            currentId = allSongs[i].id; updateView(); await new Promise(r => setTimeout(r, 600));
+            const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
+            const link = document.createElement('a'); link.download = allSongs[i].title + ".jpg";
+            link.href = canvas.toDataURL("image/jpeg"); link.click();
+            document.getElementById('progress-count').textContent = (i+1) + "/" + allSongs.length;
+        }
+        currentId = currentBackup; updateView();
+        ov.style.display = 'none';
     }
+
+    function exportJSON() {
+        const b = new Blob([JSON.stringify(allSongs, null, 2)], {type: "application/json"});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = currentLibrary; a.click();
+    }
+
+    function importJSON(input) {
+        const r = new FileReader(); r.onload = (e) => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
+        r.readAsText(input.files[0]);
+    }
+
+    function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
+    
+    let editingId = null;
+    function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
+    function startEditCurrent() { 
+        const s = allSongs.find(x=>x.id===currentId); if(!s) return;
+        editingId = currentId; document.getElementById('edit-title').value = s.title; 
+        document.getElementById('edit-artist').value = s.artist || ""; 
+        document.getElementById('edit-lyrics').value = s.lyrics || ""; 
+        document.getElementById('editor-modal').style.display='flex'; 
+    }
+    function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
+    function saveSongData() {
+        const title = document.getElementById('edit-title').value;
+        const artist = document.getElementById('edit-artist').value;
+        const lyrics = document.getElementById('edit-lyrics').value;
+        if (editingId) {
+            const s = allSongs.find(x=>x.id===editingId); s.title = title; s.artist = artist; s.lyrics = lyrics;
+        } else {
+            const n = { title, artist, lyrics, id: "n"+Date.now() }; allSongs.push(n); selectSong(n.id);
+        }
+        saveToLocal(); renderList(); updateView(); closeEditor();
+    }
+
+    function showChordInfo(e, chord) {
+        e.stopPropagation();
+        const tip = document.getElementById('chord-tooltip');
+        tip.innerHTML = `<strong>${chord}</strong><br>Diagram akordu`;
+        tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
+    }
+
+    document.addEventListener('click', () => { 
+        document.getElementById('settings-menu').classList.remove('active'); 
+        document.getElementById('chord-tooltip').style.display = 'none'; 
+    });
 </script>
 </body>
 </html>
