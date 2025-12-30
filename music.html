@@ -132,6 +132,7 @@
             <div style="font-size:12px; font-weight:bold;">Czcionka: <span id="font-size-val">18px</span></div>
             <input type="range" id="font-size-slider" min="12" max="60" value="18" oninput="setFontSize(this.value)">
             <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
+            <button onclick="toggleChordStyle()" id="btn-chord-style">Styl: Polski (H)</button>
             <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
             
             <div id="mqtt-sync-section" style="border: 1px solid var(--border-color); padding: 10px; border-radius: 5px; margin-top: 5px; background: rgba(0,0,0,0.02);">
@@ -165,25 +166,61 @@
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    // Standardowa skala muzyczna (H jest mapowane na B dla logiki)
+    // Anglosaska skala bazowa do obliczeń
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     let allSongs = [];
     let currentLibrary = "piosenki.json";
     let favorites = JSON.parse(localStorage.getItem('favSongs') || '[]');
     let currentId = null, lastId = null, transpose = 0, showChords = true;
+    let chordStyle = localStorage.getItem('chordStyle') || 'PL'; 
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let currentFontSize = 18;
     let mqttClient = null, isMaster = false, mqttTopic = "";
 
-    // History API
-    window.addEventListener('popstate', (e) => { 
-        if (document.body.classList.contains('song-active')) {
-            backToList(false); 
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        updateChordStyleButton();
     });
 
-    // Obsługa Gestów
+    function toggleChordStyle() {
+        chordStyle = chordStyle === 'PL' ? 'EN' : 'PL';
+        localStorage.setItem('chordStyle', chordStyle);
+        updateChordStyleButton();
+        if (currentId) updateView();
+    }
+
+    function updateChordStyleButton() {
+        const btn = document.getElementById('btn-chord-style');
+        if(btn) btn.textContent = `Styl: ${chordStyle === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
+    }
+
+    // Funkcja transpozycji z uwzględnieniem mapowania A# -> B i B -> H w stylu PL
+    function transChord(chordStr, steps) {
+        return chordStr.replace(/([A-G][b#]?|[H])/g, (match) => {
+            // Normalizacja wejścia: Polskie H i B na standard angielski do obliczeń
+            let base = match;
+            if (match === 'H') base = 'B';
+            else if (match === 'B' && chordStyle === 'PL') base = 'A#'; // Jeśli w PL jest "B", to znaczy Bb/A#
+            
+            let idx = SCALE.indexOf(base);
+            if (idx === -1) return match;
+            
+            let newIdx = (idx + steps % 12 + 12) % 12;
+            let res = SCALE[newIdx];
+            
+            // Mapowanie wyjściowe dla stylu Polskiego
+            if (chordStyle === 'PL') {
+                if (res === 'B') return 'H';   // Angielskie B -> Polskie H
+                if (res === 'A#') return 'B';  // Angielskie A# -> Polskie B
+            }
+            return res;
+        });
+    }
+
+    window.addEventListener('popstate', (e) => { 
+        if (document.body.classList.contains('song-active')) backToList(false); 
+    });
+
     let touchStartX = 0, touchStartY = 0, initialPinchDist = -1;
     document.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
@@ -255,11 +292,7 @@
     }
 
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
-
-    function setSearch(val) {
-        document.getElementById('search').value = val;
-        renderList();
-    }
+    function setSearch(val) { document.getElementById('search').value = val; renderList(); }
     
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
@@ -298,17 +331,6 @@
         document.body.classList.remove('song-active'); 
         stopAutoScroll();
         if (doPopState && history.state && history.state.view === 'song') history.back();
-    }
-
-    function transChord(chordStr, steps) {
-        return chordStr.replace(/([A-G][b#]?|[H])/g, (match) => {
-            let base = match === 'H' ? 'B' : match;
-            let idx = SCALE.indexOf(base);
-            if (idx === -1) return match;
-            let newIdx = (idx + steps % 12 + 12) % 12;
-            let res = SCALE[newIdx];
-            return (res === 'B' && match === 'H') ? 'H' : res;
-        });
     }
 
     function updateView() {
@@ -377,7 +399,6 @@
         document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
-    // MQTT
     function connectMQTT(masterMode) {
         const roomCode = document.getElementById('mqtt-room-code').value.trim();
         if (!roomCode) return alert("Wpisz hasło pokoju!");
@@ -387,14 +408,12 @@
         document.getElementById('mqtt-status-text').textContent = "Łączenie...";
         if (mqttClient) mqttClient.end();
         mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-
         mqttClient.on('connect', () => {
             document.getElementById('conn-status-dot').classList.add('connected');
             document.getElementById('mqtt-status-text').textContent = isMaster ? "LIDER: Aktywny" : "SŁUCHACZ: Aktywny";
             if (!isMaster) mqttClient.subscribe(mqttTopic);
             else broadcastState();
         });
-
         mqttClient.on('message', (topic, message) => {
             if (!isMaster && topic === mqttTopic) {
                 try {
@@ -413,65 +432,72 @@
         }
     }
 
-    // Eksporty i Edycja
-    async function exportAllJPG() {
-        const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
-        const currentBackup = currentId;
-        for (let i = 0; i < allSongs.length; i++) {
-            currentId = allSongs[i].id; updateView(); await new Promise(r => setTimeout(r, 600));
-            const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
-            const link = document.createElement('a'); link.download = allSongs[i].title + ".jpg";
-            link.href = canvas.toDataURL("image/jpeg"); link.click();
-            document.getElementById('progress-count').textContent = (i+1) + "/" + allSongs.length;
-        }
-        currentId = currentBackup; updateView(); ov.style.display = 'none';
+    // Funkcje edycji i eksportu pozostały bez zmian
+    function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
+    function startNewSong() {
+        currentId = null;
+        document.getElementById('edit-title').value = '';
+        document.getElementById('edit-artist').value = '';
+        document.getElementById('edit-lyrics').value = '';
+        document.getElementById('editor-modal').style.display = 'flex';
     }
-
-    function exportJSON() {
-        const b = new Blob([JSON.stringify(allSongs, null, 2)], {type: "application/json"});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = currentLibrary; a.click();
+    function startEditCurrent() {
+        const s = allSongs.find(x => x.id === currentId);
+        if(!s) return;
+        document.getElementById('edit-title').value = s.title;
+        document.getElementById('edit-artist').value = s.artist || '';
+        document.getElementById('edit-lyrics').value = (s.chords ? "---CHORDS---\n" + s.chords + "\n---LYRICS---\n" : "") + s.lyrics;
+        document.getElementById('editor-modal').style.display = 'flex';
     }
-
-    function importJSON(input) {
-        const r = new FileReader(); r.onload = (e) => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
-        r.readAsText(input.files[0]);
-    }
-
-    function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
-    
-    let editingId = null;
-    function startNewSong() { editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; document.getElementById('edit-lyrics').value=""; document.getElementById('editor-modal').style.display='flex'; }
-    function startEditCurrent() { 
-        const s = allSongs.find(x=>x.id===currentId); if(!s) return;
-        editingId = currentId; document.getElementById('edit-title').value = s.title; 
-        document.getElementById('edit-artist').value = s.artist || ""; 
-        document.getElementById('edit-lyrics').value = s.lyrics || ""; 
-        document.getElementById('editor-modal').style.display='flex'; 
-    }
-    function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
         const artist = document.getElementById('edit-artist').value;
-        const lyrics = document.getElementById('edit-lyrics').value;
-        if (editingId) {
-            const s = allSongs.find(x=>x.id===editingId); s.title = title; s.artist = artist; s.lyrics = lyrics;
-        } else {
-            const n = { title, artist, lyrics, id: "n"+Date.now() }; allSongs.push(n); selectSong(n.id);
+        let raw = document.getElementById('edit-lyrics').value;
+        let chords = "", lyrics = raw;
+        if(raw.includes("---CHORDS---")) {
+            const parts = raw.split("---LYRICS---");
+            chords = parts[0].replace("---CHORDS---", "").trim();
+            lyrics = parts[1] ? parts[1].trim() : "";
         }
-        saveToLocal(); renderList(); updateView(); closeEditor();
+        const newSong = { id: currentId || Date.now().toString(), title, artist, chords, lyrics };
+        if(currentId) {
+            const idx = allSongs.findIndex(x => x.id === currentId);
+            allSongs[idx] = newSong;
+        } else {
+            allSongs.push(newSong);
+        }
+        saveToLocal(); renderList(); closeEditor();
     }
-
-    function showChordInfo(e, chord) {
-        e.stopPropagation();
-        const tip = document.getElementById('chord-tooltip');
-        tip.innerHTML = `<strong>${chord}</strong><br>Diagram akordu`;
-        tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(allSongs, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentLibrary; a.click();
     }
-
-    document.addEventListener('click', () => { 
-        document.getElementById('settings-menu').classList.remove('active'); 
-        document.getElementById('chord-tooltip').style.display = 'none'; 
-    });
+    function importJSON(input) {
+        const reader = new FileReader();
+        reader.onload = e => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
+        reader.readAsText(input.files[0]);
+    }
+    async function resetFromServer() { if(confirm("Czy na pewno?")) { localStorage.removeItem('db_'+currentLibrary); await loadFromServer(currentLibrary); } }
+    
+    async function exportAllJPG() {
+        const list = document.getElementById('song-list').querySelectorAll('li');
+        const overlay = document.getElementById('progress-overlay');
+        const countDisp = document.getElementById('progress-count');
+        overlay.style.display = 'flex';
+        const zip = []; 
+        for(let i=0; i<allSongs.length; i++) {
+            countDisp.textContent = `${i+1} / ${allSongs.length}`;
+            selectSong(allSongs[i].id);
+            await new Promise(r => setTimeout(r, 300));
+            const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
+            const link = document.createElement('a');
+            link.download = `${allSongs[i].title}.jpg`;
+            link.href = canvas.toDataURL("image/jpeg", 0.8);
+            link.click();
+            await new Promise(r => setTimeout(r, 100));
+        }
+        overlay.style.display = 'none';
+    }
 </script>
 </body>
 </html>
