@@ -63,8 +63,12 @@
         .fav-star.active { color: #ffc107; }
 
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
+        .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 600px; text-align: left; max-height: 90vh; overflow-y: auto; }
         
+        .editor-field { margin-bottom: 15px; }
+        .editor-field label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; opacity: 0.7; }
+        .editor-field input, .editor-field textarea { width: 100%; padding: 10px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-main); }
+
         .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
         .connected { background: #28a745; }
     </style>
@@ -77,14 +81,32 @@
 
 <div id="editor-modal">
     <div class="modal-content">
-        <h3>➕ Edytor</h3>
-        <input type="text" id="edit-title" placeholder="Tytuł" style="width:100%; margin-bottom:10px; padding:8px;">
-        <input type="text" id="edit-artist" placeholder="Wykonawca" style="width:100%; margin-bottom:10px; padding:8px;">
-        <input type="number" id="edit-bpm" placeholder="BPM (np. 120)" style="width:100%; margin-bottom:10px; padding:8px;">
-        <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami..." style="width:100%; margin-bottom:10px; padding:8px; height:150px; font-family:monospace;"></textarea>
-        <div style="display:flex; gap:10px;">
+        <h3 style="margin-top:0">➕ Edytor Utworu</h3>
+        
+        <div class="editor-field">
+            <label>TYTUŁ</label>
+            <input type="text" id="edit-title" placeholder="np. Dzisiaj w Betlejem">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="editor-field" style="flex: 2;">
+                <label>WYKONAWCA</label>
+                <input type="text" id="edit-artist" placeholder="np. Kolęda">
+            </div>
+            <div class="editor-field" style="flex: 1;">
+                <label>BPM (Tempo)</label>
+                <input type="number" id="edit-bpm" placeholder="120">
+            </div>
+        </div>
+
+        <div class="editor-field">
+            <label>TREŚĆ (Używaj [C] dla akordów w tekście lub sekcji ---CHORDS---)</label>
+            <textarea id="edit-lyrics" style="height: 250px; font-family: monospace;" placeholder="Wpisz tekst piosenki..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top: 20px;">
             <button onclick="closeEditor()" style="flex:1">Anuluj</button>
-            <button onclick="saveSongData()" style="flex:1; background:var(--accent-success); color:white;">Zapisz</button>
+            <button onclick="saveSongData()" style="flex:1; background:var(--accent-success); color:white; font-weight:bold;">ZAPISZ ZMIANY</button>
         </div>
     </div>
 </div>
@@ -186,14 +208,16 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         updateChordStyleButton();
-        document.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
             const menu = document.getElementById('settings-menu');
-            if (menu.classList.contains('active')) menu.classList.remove('active');
+            if (menu.classList.contains('active') && !menu.contains(e.target) && !e.target.closest('.btn-icon')) {
+                menu.classList.remove('active');
+            }
         });
     });
 
     function setBPM(val) {
-        currentBPM = parseInt(val);
+        currentBPM = parseInt(val) || 120;
         document.getElementById('bpm-val').textContent = currentBPM;
         document.getElementById('bpm-slider').value = currentBPM;
         if (isMetroActive) {
@@ -321,7 +345,7 @@
             const vocal = (s.vocal_type || "").toLowerCase();
             if (term === "male" || term === "female") return vocal === term;
             return title.includes(term) || artist.includes(term);
-        });       
+        });        
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
                 <span>${s.title}</span>
@@ -471,53 +495,93 @@
     }
 
     function closeEditor() { document.getElementById('editor-modal').style.display = 'none'; }
+    
     function startNewSong() {
         currentId = null;
         document.getElementById('edit-title').value = '';
         document.getElementById('edit-artist').value = '';
-        document.getElementById('edit-bpm').value = '';
+        document.getElementById('edit-bpm').value = '120';
         document.getElementById('edit-lyrics').value = '';
         document.getElementById('editor-modal').style.display = 'flex';
     }
+    
     function startEditCurrent() {
         const s = allSongs.find(x => x.id === currentId);
         if(!s) return;
         document.getElementById('edit-title').value = s.title;
         document.getElementById('edit-artist').value = s.artist || '';
-        document.getElementById('edit-bpm').value = s.bpm || '';
-        document.getElementById('edit-lyrics').value = (s.chords ? "---CHORDS---\n" + s.chords + "\n---LYRICS---\n" : "") + s.lyrics;
+        document.getElementById('edit-bpm').value = s.bpm || '120';
+        
+        let content = "";
+        if (s.chords) {
+            content = "---CHORDS---\n" + s.chords + "\n---LYRICS---\n" + s.lyrics;
+        } else {
+            content = s.lyrics;
+        }
+        
+        document.getElementById('edit-lyrics').value = content;
         document.getElementById('editor-modal').style.display = 'flex';
     }
+
     function saveSongData() {
-        const title = document.getElementById('edit-title').value;
-        const artist = document.getElementById('edit-artist').value;
-        const bpm = document.getElementById('edit-bpm').value;
+        const title = document.getElementById('edit-title').value.trim();
+        const artist = document.getElementById('edit-artist').value.trim();
+        const bpm = document.getElementById('edit-bpm').value.trim();
         let raw = document.getElementById('edit-lyrics').value;
+        
+        if (!title) return alert("Tytuł jest wymagany!");
+
         let chords = "", lyrics = raw;
         if(raw.includes("---CHORDS---")) {
             const parts = raw.split("---LYRICS---");
             chords = parts[0].replace("---CHORDS---", "").trim();
             lyrics = parts[1] ? parts[1].trim() : "";
         }
-        const newSong = { id: currentId || Date.now().toString(), title, artist, bpm, chords, lyrics };
+        
+        const newSong = { 
+            id: currentId || "id_" + Date.now(), 
+            title, 
+            artist, 
+            bpm: bpm ? parseInt(bpm) : 120, 
+            chords, 
+            lyrics 
+        };
+
         if(currentId) {
             const idx = allSongs.findIndex(x => x.id === currentId);
-            allSongs[idx] = newSong;
+            if (idx !== -1) allSongs[idx] = newSong;
+            else allSongs.push(newSong);
         } else {
             allSongs.push(newSong);
+            currentId = newSong.id;
         }
-        saveToLocal(); renderList(); closeEditor();
+
+        saveToLocal(); 
+        renderList(); 
+        updateView();
+        closeEditor();
     }
+
     function exportJSON() {
         const blob = new Blob([JSON.stringify(allSongs, null, 2)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = currentLibrary; a.click();
     }
+
     function importJSON(input) {
+        if (!input.files[0]) return;
         const reader = new FileReader();
-        reader.onload = e => { allSongs = JSON.parse(e.target.result); saveToLocal(); renderList(); };
+        reader.onload = e => { 
+            try {
+                allSongs = JSON.parse(e.target.result); 
+                saveToLocal(); 
+                renderList(); 
+                alert("Zaimportowano!");
+            } catch(err) { alert("Błędny plik JSON"); }
+        };
         reader.readAsText(input.files[0]);
     }
-    async function resetFromServer() { if(confirm("Czy na pewno?")) { localStorage.removeItem('db_'+currentLibrary); await loadFromServer(currentLibrary); } }
+
+    async function resetFromServer() { if(confirm("Czy na pewno? Spowoduje to utratę lokalnych zmian.")) { localStorage.removeItem('db_'+currentLibrary); await loadFromServer(currentLibrary); } }
     
     async function exportAllJPG() {
         const overlay = document.getElementById('progress-overlay');
@@ -526,13 +590,13 @@
         for(let i=0; i<allSongs.length; i++) {
             countDisp.textContent = `${i+1} / ${allSongs.length}`;
             selectSong(allSongs[i].id);
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise(r => setTimeout(r, 400));
             const canvas = await html2canvas(document.getElementById('song-capture-area'), {scale: 2});
             const link = document.createElement('a');
             link.download = `${allSongs[i].title}.jpg`;
             link.href = canvas.toDataURL("image/jpeg", 0.8);
             link.click();
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 200));
         }
         overlay.style.display = 'none';
     }
