@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Śpiewnik Pro 2025 (Sync & Fixed B/H)</title>
+    <title>Śpiewnik Pro 2025 (MQTT Sync)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     
     <style>
         :root {
@@ -65,9 +66,12 @@
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
         #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
         
-        /* Styl dla tagów wyszukiwania */
         .filter-tags { display: flex; gap: 5px; margin-bottom: 10px; }
         .filter-tags button { flex: 1; padding: 5px; font-size: 12px; }
+        
+        /* Status połączenia */
+        .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
+        .connected { background: #28a745; }
     </style>
 </head>
 <body>
@@ -82,15 +86,14 @@
         <h3>➕ Edytor</h3>
         <input type="text" id="edit-title" placeholder="Tytuł" style="width:100%; margin-bottom:10px; padding:8px;">
         <input type="text" id="edit-artist" placeholder="Wykonawca" style="width:100%; margin-bottom:10px; padding:8px;">
-        <input type="text" id="edit-genre" placeholder="Gatunek (np. Pop, Rock, Kolędy)" style="width:100%; margin-bottom:10px; padding:8px;">
+        <input type="text" id="edit-genre" placeholder="Gatunek (np. Pop, Rock)" style="width:100%; margin-bottom:10px; padding:8px;">
         <select id="edit-vocal" style="width:100%; margin-bottom:10px; padding:8px;">
             <option value="">Wybierz typ wokalu...</option>
             <option value="male">Męski (male)</option>
             <option value="female">Żeński (female)</option>
             <option value="duo">Duet / Inne</option>
         </select>
-        
-        <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami... {Komentarze w klamrach}" style="width:100%; margin-bottom:10px; padding:8px; height:150px; font-family:monospace;"></textarea>
+        <textarea id="edit-lyrics" placeholder="Tekst [C]z akordami... {Komentarze}" style="width:100%; margin-bottom:10px; padding:8px; height:150px; font-family:monospace;"></textarea>
         <div style="display:flex; gap:10px;">
             <button onclick="closeEditor()" style="flex:1">Anuluj</button>
             <button onclick="saveSongData()" style="flex:1; background:var(--accent-success); color:white;">Zapisz</button>
@@ -116,7 +119,7 @@
             <button onclick="setSearch('')" style="background:#eee; color:black;">Wszystkie</button>
         </div>
 
-        <input type="text" id="search" placeholder="Szukaj (Tytuł, Artysta, Typ)..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
+        <input type="text" id="search" placeholder="Szukaj (Tytuł, Artysta)..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
     </div>
 
@@ -145,12 +148,17 @@
             <button onclick="toggleChordsDisplay()" id="btn-toggle-chords">Ukryj akordy</button>
             <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Tryb nocny</button>
             
-            <div style="border-top: 1px solid var(--border-color); margin-top: 10px; padding-top: 10px;">
-                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">SYNCHRONIZACJA (P2P)</div>
-                <div id="peer-id-display" style="font-size: 10px; color: #888; margin-bottom: 5px;">ID: (nie połączono)</div>
-                <button onclick="startAsMaster()" style="width:100%; margin-bottom:5px; background: #e2e6ea; color: #333;">Zostań Liderem</button>
-                <input type="text" id="master-id-input" placeholder="Wklej ID Lidera" style="width:100%; box-sizing:border-box; padding:5px; margin-bottom:5px;">
-                <button onclick="joinMaster()" style="width:100%;">Dołącz do Lidera</button>
+            <div style="border-top: 1px solid var(--border-color); margin-top: 10px; padding-top: 10px; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 5px;">
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px; display:flex; align-items:center;">
+                    <span id="conn-status-dot" class="connection-dot"></span> SYNCHRONIZACJA
+                </div>
+                <div style="font-size: 11px; margin-bottom: 5px; color:#666;">Wpisz to samo hasło na wszystkich tabletach:</div>
+                <input type="text" id="mqtt-room-code" placeholder="Np. Zespol1" style="width:100%; padding:5px; margin-bottom:5px; box-sizing:border-box;">
+                <div style="display:flex; gap:5px;">
+                    <button onclick="connectMQTT(true)" style="flex:1; background:#007bff; color:white;">Lider</button>
+                    <button onclick="connectMQTT(false)" style="flex:1;">Słuchacz</button>
+                </div>
+                <div id="mqtt-status-text" style="font-size:10px; color:green; margin-top:5px; min-height:15px;"></div>
             </div>
 
             <hr style="opacity:0.2; margin-top: 10px;">
@@ -172,10 +180,8 @@
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    // Dwie tablice - scale (obliczeniowa) i dScale (wyświetlania)
-    // ZGODNIE Z PROŚBĄ: B zostaje B, H zostaje H w tablicy dScale
+    // Ustawienia Skali (B/H Fix)
     const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    // Twoja preferowana tablica wyświetlania (B=10, H=11)
     const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
     
     let allSongs = [];
@@ -185,19 +191,12 @@
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let currentFontSize = 18;
 
-    // --- ZMIENNE P2P ---
-    let peer = null;
-    let conn = null; // Dla ucznia
-    let connections = []; // Dla lidera
+    // --- ZMIENNE MQTT ---
+    let mqttClient = null;
+    let isMaster = false;
+    let mqttTopic = "";
 
-    // HISTORY API
-    window.addEventListener('popstate', (e) => { 
-        if (document.body.classList.contains('song-active')) {
-            backToList(false); 
-        }
-    });
-
-    // ZAAWANSOWANA OBSŁUGA GESTÓW
+    // Gesty dotykowe (szczypanie i przesuwanie)
     let touchStartX = 0;
     let touchStartY = 0;
     let initialPinchDist = -1;
@@ -207,28 +206,20 @@
             touchStartX = e.touches[0].screenX;
             touchStartY = e.touches[0].screenY;
         } else if (e.touches.length === 2) {
-            initialPinchDist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
         }
     }, {passive: false});
 
     document.addEventListener('touchmove', e => {
         if (e.touches.length === 2 && initialPinchDist > 0) {
             e.preventDefault(); 
-            let dist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
             let diff = dist - initialPinchDist;
             if (Math.abs(diff) > 15) { 
                 let step = diff > 0 ? 1 : -1;
                 let newSize = currentFontSize + step;
-                if (newSize >= 12 && newSize <= 60) {
-                    setFontSize(newSize);
-                    initialPinchDist = dist; 
-                }
+                if (newSize >= 12 && newSize <= 60) setFontSize(newSize);
+                initialPinchDist = dist; 
             }
         }
     }, {passive: false});
@@ -236,16 +227,10 @@
     document.addEventListener('touchend', e => {
         if (e.changedTouches.length === 1) {
             let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
             let diffX = touchEndX - touchStartX;
-            let diffY = Math.abs(touchEndY - touchStartY);
-
-            if (Math.abs(diffX) > 80 && diffY < 100) {
-                if (diffX > 80 && document.body.classList.contains('song-active')) {
-                    backToList();
-                } else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) {
-                    selectSong(lastId);
-                }
+            if (Math.abs(diffX) > 80) {
+                if (diffX > 80 && document.body.classList.contains('song-active')) backToList();
+                else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) selectSong(lastId);
             }
         }
         initialPinchDist = -1;
@@ -256,6 +241,9 @@
         switchLibrary(selector.value);
         selector.onchange = (e) => switchLibrary(e.target.value);
         document.getElementById('search').oninput = renderList;
+        
+        // Przywróć kod pokoju z pamięci
+        if(localStorage.getItem('mqttRoom')) document.getElementById('mqtt-room-code').value = localStorage.getItem('mqttRoom');
     });
 
     async function switchLibrary(lib) {
@@ -286,7 +274,6 @@
 
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
 
-    // --- NOWA FUNKCJA WYSZUKIWANIA I FILTROWANIA ---
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase().trim();
         const list = document.getElementById('song-list');
@@ -297,16 +284,8 @@
             const genre = (s.genre || "").toLowerCase();
             const vocal = (s.vocal_type || "").toLowerCase();
 
-            // Precyzyjne filtrowanie dla 'male' żeby nie łapało 'female'
-            if (term === "male") {
-                return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
-            }
-            
-            // Standardowe dla reszty
-            return title.includes(term) || 
-                   artist.includes(term) || 
-                   genre.includes(term) || 
-                   vocal.includes(term);
+            if (term === "male") return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
+            return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal.includes(term);
         });
 
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
@@ -329,49 +308,40 @@
         renderList();
     }
 
-    function selectSong(id) {
+    function selectSong(id, fromMqtt = false) {
         stopAutoScroll(); 
         if (currentId && currentId !== id) lastId = currentId; 
         currentId = id; 
-        // Resetujemy transpozycję tylko jeśli zmiana nie pochodzi z synchronizacji (chyba że to nowa piosenka)
-        // W tym prostym modelu resetujemy, a lider wyśle update
-        transpose = 0;
+        // Jeśli wybiera użytkownik, resetujemy transpozycję. Jeśli MQTT, czekamy na update transpozycji (lub wysyłamy 0)
+        if(!fromMqtt) transpose = 0; 
         
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
         
-        if (!history.state || history.state.view !== 'song') {
-            history.pushState({view: 'song'}, ''); 
-        }
+        if (!history.state || history.state.view !== 'song') history.pushState({view: 'song'}, ''); 
         
         updateView(); 
         renderList();
         document.getElementById('main-content').scrollTop = 0;
         
-        // P2P: Wyślij informację o zmianie piosenki
-        broadcastChange();
+        // MQTT: Wyślij informację (jeśli jesteś liderem)
+        if (!fromMqtt) broadcastState();
     }
 
     function backToList(doPopState = true) {
         if (currentId) lastId = currentId;
         document.body.classList.remove('song-active'); 
         stopAutoScroll();
-        if (doPopState && history.state && history.state.view === 'song') {
-            history.back();
-        }
+        if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
     // --- POPRAWIONA FUNKCJA TRANSPOZYCJI (B/H Fix) ---
     function transChord(c, s) { 
-        // Regex łapie też H (A-GHa-gh)
         return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { 
             let base = b.toUpperCase(); 
-            // Szukamy BEZPOŚREDNIO w dScale (tam gdzie użytkownik ma swoje B i H)
             let i = dScale.indexOf(base); 
             if (i === -1) return m; 
-            
             i = (i + s % 12 + 12) % 12; 
-            
             let res = dScale[i]; 
             if (b === b.toLowerCase()) res = res.toLowerCase(); 
             return res + (mod || ''); 
@@ -383,18 +353,16 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         
-        // Obsługa akordów z ignorowaniem komentarzy w {}
         if (song.chords && showChords) {
             const tc = song.chords.replace(/\{.*?\}|([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, (m, chord) => {
-                if (chord) return transChord(chord, transpose); // Akord -> transponuj
-                return m; // Komentarz {} lub inny tekst -> zostaw
+                if (chord) return transChord(chord, transpose); 
+                return m; 
             });
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
         
-        // Obsługa tekstu z ignorowaniem komentarzy w {}
         const lyr = (song.lyrics || "")
-            .replace(/\{(.*?)\}/g, '<span style="color: gray; font-style: italic;">$1</span>') // Szare komentarze
+            .replace(/\{(.*?)\}/g, '<span style="color: gray; font-style: italic;">$1</span>') 
             .replace(/\[(.*?)\]/g, showChords ? (m, c) => {
                 const tc = transChord(c, transpose);
                 return `<span class="inline-chord" onclick="showChordInfo(event, '${tc}')">${tc}</span>`;
@@ -407,13 +375,13 @@
     function changeTrans(v) { 
         transpose += v; 
         updateView(); 
-        broadcastChange(); // P2P Update
+        broadcastState(); 
     }
     
     function resetTrans() { 
         transpose = 0; 
         updateView(); 
-        broadcastChange(); // P2P Update
+        broadcastState(); 
     }
     
     function setFontSize(v) { 
@@ -442,11 +410,7 @@
     }
     
     function stopAutoScroll() { 
-        if(isScrolling) { 
-            clearInterval(scrollInterval); 
-            isScrolling = false; 
-            document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>';
-        } 
+        if(isScrolling) { clearInterval(scrollInterval); isScrolling = false; document.getElementById('btn-scroll-toggle').innerHTML = '<i class="fas fa-play"></i>'; } 
     }
 
     function toggleMetronome() {
@@ -488,32 +452,23 @@
         r.readAsText(input.files[0]);
     }
 
-    function resetFromServer() { if (confirm("Resetuj tę bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
+    function resetFromServer() { if (confirm("Resetuj bibliotekę?")) { localStorage.removeItem('db_' + currentLibrary); loadFromServer(currentLibrary); } }
     
     let editingId = null;
     function startNewSong() { 
-        editingId = null; 
-        document.getElementById('edit-title').value=""; 
-        document.getElementById('edit-artist').value=""; 
-        document.getElementById('edit-lyrics').value=""; 
-        document.getElementById('edit-genre').value=""; 
-        document.getElementById('edit-vocal').value="";
+        editingId = null; document.getElementById('edit-title').value=""; document.getElementById('edit-artist').value=""; 
+        document.getElementById('edit-lyrics').value=""; document.getElementById('edit-genre').value=""; document.getElementById('edit-vocal').value="";
         document.getElementById('editor-modal').style.display='flex'; 
     }
-    
     function startEditCurrent() { 
         const s = allSongs.find(x=>x.id===currentId); if(!s) return;
         editingId = currentId; 
-        document.getElementById('edit-title').value = s.title; 
-        document.getElementById('edit-artist').value = s.artist || ""; 
-        document.getElementById('edit-lyrics').value = s.lyrics || ""; 
-        document.getElementById('edit-genre').value = s.genre || "";
+        document.getElementById('edit-title').value = s.title; document.getElementById('edit-artist').value = s.artist || ""; 
+        document.getElementById('edit-lyrics').value = s.lyrics || ""; document.getElementById('edit-genre').value = s.genre || "";
         document.getElementById('edit-vocal').value = s.vocal_type || "";
         document.getElementById('editor-modal').style.display='flex'; 
     }
-    
     function closeEditor() { document.getElementById('editor-modal').style.display='none'; }
-    
     function saveSongData() {
         const title = document.getElementById('edit-title').value;
         const artist = document.getElementById('edit-artist').value;
@@ -523,97 +478,95 @@
         
         if (editingId) {
             const s = allSongs.find(x=>x.id===editingId); 
-            s.title = title; s.artist = artist; s.lyrics = lyrics;
-            s.genre = genre; s.vocal_type = vocal_type;
+            s.title = title; s.artist = artist; s.lyrics = lyrics; s.genre = genre; s.vocal_type = vocal_type;
         } else {
             const n = { title, artist, lyrics, genre, vocal_type, id: "n"+Date.now() }; 
-            allSongs.push(n); 
-            selectSong(n.id);
+            allSongs.push(n); selectSong(n.id);
         }
         saveToLocal(); renderList(); updateView(); closeEditor();
     }
-
     function showChordInfo(e, chord) {
         e.stopPropagation();
         const tip = document.getElementById('chord-tooltip');
         tip.innerHTML = `<strong>${chord}</strong><br>Diagram akordu`;
         tip.style.display = 'block'; tip.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px'; tip.style.top = (e.clientY + 20) + 'px';
     }
+    document.addEventListener('click', () => { document.getElementById('settings-menu').classList.remove('active'); document.getElementById('chord-tooltip').style.display = 'none'; });
 
-    document.addEventListener('click', () => { 
-        document.getElementById('settings-menu').classList.remove('active'); 
-        document.getElementById('chord-tooltip').style.display = 'none'; 
-    });
+    // --- LOGIKA MQTT (STABILNA SYNCHRONIZACJA) ---
+    function connectMQTT(masterMode) {
+        const roomCode = document.getElementById('mqtt-room-code').value.trim();
+        if (!roomCode) return alert("Wpisz hasło pokoju (np. Zespol1)!");
 
-    // --- LOGIKA PEERJS (P2P) ---
-    function initPeer() {
-        if(peer) return; // Już zainicjowany
-        peer = new Peer();
+        localStorage.setItem('mqttRoom', roomCode);
+        isMaster = masterMode;
+        // Unikalny topic dla Waszego zespołu
+        mqttTopic = "spiewnik_pro_app_sync/" + roomCode; 
+
+        const options = {
+            clean: true,
+            connectTimeout: 4000,
+            // Darmowy publiczny broker MQTT (WebSockets Secure)
+            clientId: 'client_' + Math.random().toString(16).substr(2, 8)
+        };
+
+        // Łączymy się z darmowym brokerem EMQX
+        const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
         
-        peer.on('open', (id) => {
-            document.getElementById('peer-id-display').textContent = "Twoje ID: " + id;
-        });
+        document.getElementById('mqtt-status-text').textContent = "Łączenie z chmurą...";
+        
+        if (mqttClient) mqttClient.end();
+        mqttClient = mqtt.connect(brokerUrl, options);
 
-        // LIDER: Ktoś się łączy
-        peer.on('connection', (c) => {
-            connections.push(c);
-            console.log("Uczeń dołączył: " + c.peer);
-            // Wyślij mu od razu obecny stan
-            if(currentId) {
-                c.send({ type: 'SELECT_SONG', songId: currentId, transpose: transpose });
+        mqttClient.on('connect', function () {
+            document.getElementById('conn-status-dot').classList.add('connected');
+            document.getElementById('mqtt-status-text').textContent = isMaster ? "Połączono jako Lider" : "Połączono jako Słuchacz";
+            console.log("MQTT Connected to " + mqttTopic);
+            
+            // Słuchacz subskrybuje kanał
+            if (!isMaster) {
+                mqttClient.subscribe(mqttTopic, (err) => {
+                    if (!err) console.log("Subskrypcja OK");
+                });
+            } else {
+                // Lider wysyła od razu obecny stan
+                broadcastState();
             }
         });
-    }
 
-    function startAsMaster() {
-        if (!peer) initPeer();
-        alert("Poczekaj na wygenerowanie ID, a potem podaj je pozostałym.");
-    }
-
-    function joinMaster() {
-        if (!peer) initPeer();
-        const masterId = document.getElementById('master-id-input').value;
-        if(!masterId) return alert("Wpisz ID Lidera!");
-        
-        conn = peer.connect(masterId);
-        document.getElementById('peer-id-display').textContent = "Łączenie...";
-
-        conn.on('open', () => {
-             document.getElementById('peer-id-display').textContent = "Połączono z Liderem!";
-        });
-
-        conn.on('data', (data) => {
-            if (data.type === 'SELECT_SONG') {
-                // Odbieramy komendę
-                transpose = data.transpose;
-                // Ważne: nie wywołujemy selectSong standardowo, bo to zapętliłoby sygnał (gdybyśmy byli liderem)
-                // Ale tutaj jesteśmy uczniem.
-                // Musimy tylko uważać, aby selectSong nie wywołał broadcastChange jako uczeń.
-                // W tym prostym kodzie broadcast wysyła tylko do connections, a uczeń nie ma connections (ma conn), więc jest OK.
-                
-                if (currentId !== data.songId) {
-                    currentId = data.songId;
-                    if (!history.state || history.state.view !== 'song') {
-                         history.pushState({view: 'song'}, '');
+        mqttClient.on('message', function (topic, message) {
+            // Tylko słuchacz reaguje na wiadomości
+            if (!isMaster && topic === mqttTopic) {
+                try {
+                    const data = JSON.parse(message.toString());
+                    console.log("Odebrano:", data);
+                    
+                    if (data.id && data.id !== currentId) {
+                        selectSong(data.id, true); // true = fromMqtt
                     }
-                    document.body.classList.add('song-active');
-                    document.getElementById('controls-bar').style.display = "flex";
-                }
-                updateView();
-                renderList();
+                    if (data.t !== undefined && data.t !== transpose) {
+                        transpose = data.t;
+                        updateView();
+                        document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
+                    }
+                } catch (e) { console.error("Błąd danych MQTT", e); }
             }
+        });
+
+        mqttClient.on('error', (err) => {
+            console.error('MQTT Error: ', err);
+            document.getElementById('mqtt-status-text').textContent = "Błąd połączenia";
+            document.getElementById('conn-status-dot').classList.remove('connected');
         });
     }
 
-    function broadcastChange() {
-        // Tylko jeśli mamy podłączonych uczniów (czyli jesteśmy Liderem)
-        if (connections.length > 0) {
-            const data = {
-                type: 'SELECT_SONG',
-                songId: currentId,
-                transpose: transpose
-            };
-            connections.forEach(c => c.send(data));
+    function broadcastState() {
+        if (isMaster && mqttClient && mqttClient.connected) {
+            const payload = JSON.stringify({
+                id: currentId,
+                t: transpose
+            });
+            mqttClient.publish(mqttTopic, payload, { retain: true }); // retain: true sprawia, że nowy słuchacz dostanie ostatni stan od razu po wejściu
         }
     }
 </script>
