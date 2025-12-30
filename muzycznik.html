@@ -96,6 +96,11 @@
             </select>
             <button class="btn-icon" onclick="openSettings(event)"><i class="fas fa-cog"></i></button>
         </div>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+    <button onclick="setSearch('male')" style="flex:1; padding: 5px; font-size: 12px;">♂ Męski</button>
+    <button onclick="setSearch('female')" style="flex:1; padding: 5px; font-size: 12px;">♀ Żeński</button>
+    <button onclick="setSearch('')" style="flex:1; padding: 5px; font-size: 12px; background: #eee; color: #000;">Wszystkie</button>
+    </div>
         <input type="text" id="search" placeholder="Szukaj..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
         <ul id="song-list"></ul>
     </div>
@@ -253,6 +258,12 @@
 
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
 
+    function setSearch(val) {
+    const searchInput = document.getElementById('search');
+    searchInput.value = val;
+    renderList(); // Odświeża listę z nowym filtrem
+}
+    
     function renderList() {
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
