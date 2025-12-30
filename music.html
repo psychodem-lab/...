@@ -65,7 +65,6 @@
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
         #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
         
-        /* Dodatkowy styl dla kropki statusu */
         .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
         .connected { background: #28a745; }
     </style>
@@ -106,7 +105,7 @@
             <button onclick="setSearch('female')" style="flex:1; padding: 5px; font-size: 12px;">♀ Żeński</button>
             <button onclick="setSearch('')" style="flex:1; padding: 5px; font-size: 12px; background: #eee; color: #000;">Wszystkie</button>
         </div>
-        <input type="text" id="search" placeholder="Szukaj..." style="width: 150px; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color);">
+        <input type="text" id="search" placeholder="Szukaj..." style="width: 100%; padding:12px; margin-bottom:10px; border-radius: 20px; border: 1px solid var(--border-color); box-sizing: border-box;">
         <ul id="song-list"></ul>
     </div>
 
@@ -166,8 +165,8 @@
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const dScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
+    // Standardowa skala muzyczna (H jest mapowane na B dla logiki)
+    const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     
     let allSongs = [];
     let currentLibrary = "piosenki.json";
@@ -175,69 +174,46 @@
     let currentId = null, lastId = null, transpose = 0, showChords = true;
     let scrollInterval = null, isScrolling = false, metroInterval = null, isMetroActive = false;
     let currentFontSize = 18;
+    let mqttClient = null, isMaster = false, mqttTopic = "";
 
-    // --- ZMIENNE MQTT ---
-    let mqttClient = null;
-    let isMaster = false;
-    let mqttTopic = "";
-
-    // HISTORY API
+    // History API
     window.addEventListener('popstate', (e) => { 
         if (document.body.classList.contains('song-active')) {
             backToList(false); 
         }
     });
 
-    // ZAAWANSOWANA OBSŁUGA GESTÓW
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let initialPinchDist = -1;
-
+    // Obsługa Gestów
+    let touchStartX = 0, touchStartY = 0, initialPinchDist = -1;
     document.addEventListener('touchstart', e => {
         if (e.touches.length === 1) {
             touchStartX = e.touches[0].screenX;
             touchStartY = e.touches[0].screenY;
         } else if (e.touches.length === 2) {
-            initialPinchDist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            initialPinchDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
         }
     }, {passive: false});
 
     document.addEventListener('touchmove', e => {
         if (e.touches.length === 2 && initialPinchDist > 0) {
             e.preventDefault(); 
-            let dist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX, 
-                e.touches[0].pageY - e.touches[1].pageY
-            );
+            let dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
             let diff = dist - initialPinchDist;
-            
             if (Math.abs(diff) > 15) { 
                 let step = diff > 0 ? 1 : -1;
                 let newSize = currentFontSize + step;
-                if (newSize >= 12 && newSize <= 60) {
-                    setFontSize(newSize);
-                    initialPinchDist = dist; 
-                }
+                if (newSize >= 12 && newSize <= 60) { setFontSize(newSize); initialPinchDist = dist; }
             }
         }
     }, {passive: false});
 
     document.addEventListener('touchend', e => {
         if (e.changedTouches.length === 1) {
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-            let diffX = touchEndX - touchStartX;
-            let diffY = Math.abs(touchEndY - touchStartY);
-
+            let diffX = e.changedTouches[0].screenX - touchStartX;
+            let diffY = Math.abs(e.changedTouches[0].screenY - touchStartY);
             if (Math.abs(diffX) > 80 && diffY < 100) {
-                if (diffX > 80 && document.body.classList.contains('song-active')) {
-                    backToList();
-                } else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) {
-                    selectSong(lastId);
-                }
+                if (diffX > 80 && document.body.classList.contains('song-active')) backToList();
+                else if (diffX < -80 && !document.body.classList.contains('song-active') && lastId) selectSong(lastId);
             }
         }
         initialPinchDist = -1;
@@ -248,11 +224,7 @@
         switchLibrary(selector.value);
         selector.onchange = (e) => switchLibrary(e.target.value);
         document.getElementById('search').oninput = renderList;
-        
-        // Blokada zamykania menu przy kliknięciu w ustawieniach (szczególnie w inputy)
         document.getElementById('settings-menu').addEventListener('click', e => e.stopPropagation());
-        
-        // Wczytaj zapamiętany pokój
         if(localStorage.getItem('mqttRoom')) document.getElementById('mqtt-room-code').value = localStorage.getItem('mqttRoom');
     });
 
@@ -285,8 +257,7 @@
     function saveToLocal() { if (currentLibrary !== "favorites") localStorage.setItem('db_' + currentLibrary, JSON.stringify(allSongs)); }
 
     function setSearch(val) {
-        const searchInput = document.getElementById('search');
-        searchInput.value = val;
+        document.getElementById('search').value = val;
         renderList();
     }
     
@@ -296,10 +267,9 @@
         let filtered = allSongs.filter(s => {
             const title = (s.title || "").toLowerCase();
             const artist = (s.artist || "").toLowerCase();
-            const genre = (s.genre || "").toLowerCase();
             const vocal = (s.vocal_type || "").toLowerCase();
-            if (term === "male") return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
-            return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal.includes(term);
+            if (term === "male" || term === "female") return vocal === term;
+            return title.includes(term) || artist.includes(term);
         });       
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
@@ -316,16 +286,10 @@
         if(!fromSync) transpose = 0; 
         document.getElementById('controls-bar').style.display = "flex";
         document.body.classList.add('song-active');
-        
-        if (!history.state || history.state.view !== 'song') {
-            history.pushState({view: 'song'}, ''); 
-        }
-        
+        if (!history.state || history.state.view !== 'song') history.pushState({view: 'song'}, ''); 
         updateView(); 
         renderList();
         document.getElementById('main-content').scrollTop = 0;
-        
-        // Wyślij stan przez MQTT, jeśli jesteś liderem i to nie jest zmiana wymuszona synchronizacją
         if(!fromSync) broadcastState();
     }
 
@@ -333,21 +297,18 @@
         if (currentId) lastId = currentId;
         document.body.classList.remove('song-active'); 
         stopAutoScroll();
-        if (doPopState && history.state && history.state.view === 'song') {
-            history.back();
-        }
+        if (doPopState && history.state && history.state.view === 'song') history.back();
     }
 
-    function transChord(c, s) { 
-        return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { 
-            let base = b.toUpperCase(); 
-            let i = dscale.indexOf(base); 
-            if (i === -1) return m; 
-            i = (i + s % 12 + 12) % 12; 
-            let res = dScale[i]; 
-            if (b === b.toLowerCase()) res = res.toLowerCase(); 
-            return res + (mod || ''); 
-        }); 
+    function transChord(chordStr, steps) {
+        return chordStr.replace(/([A-G][b#]?|[H])/g, (match) => {
+            let base = match === 'H' ? 'B' : match;
+            let idx = SCALE.indexOf(base);
+            if (idx === -1) return match;
+            let newIdx = (idx + steps % 12 + 12) % 12;
+            let res = SCALE[newIdx];
+            return (res === 'B' && match === 'H') ? 'H' : res;
+        });
     }
 
     function updateView() {
@@ -355,7 +316,7 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            const tc = song.chords.replace(/([A-GHa-gh][b#]?[\w\d\/#\-]*)/g, m => transChord(m, transpose));
+            const tc = song.chords.replace(/([A-G][b#]?[\w\d\/#\-]*|[H][\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
         const lyr = (song.lyrics || "").replace(/\[(.*?)\]/g, showChords ? (m, c) => {
@@ -373,8 +334,7 @@
         currentFontSize = parseInt(v);
         document.documentElement.style.setProperty('--lyrics-font-size', currentFontSize + 'px'); 
         document.getElementById('font-size-val').textContent = currentFontSize + 'px'; 
-        const slider = document.getElementById('font-size-slider');
-        if(slider) slider.value = currentFontSize;
+        if(document.getElementById('font-size-slider')) document.getElementById('font-size-slider').value = currentFontSize;
     }
 
     function toggleFav(e, id) { e.stopPropagation(); favorites.includes(id) ? favorites = favorites.filter(f=>f!==id) : favorites.push(id); localStorage.setItem('favSongs', JSON.stringify(favorites)); renderList(); }
@@ -417,58 +377,43 @@
         document.getElementById('btn-metro-toggle').style.color = isMetroActive ? "var(--accent-success)" : "inherit";
     }
 
-    // --- LOGIKA MQTT (SYNCHRONIZACJA) ---
+    // MQTT
     function connectMQTT(masterMode) {
         const roomCode = document.getElementById('mqtt-room-code').value.trim();
         if (!roomCode) return alert("Wpisz hasło pokoju!");
-
         localStorage.setItem('mqttRoom', roomCode);
         isMaster = masterMode;
         mqttTopic = "muzycznik_sync_2025/" + roomCode; 
-
         document.getElementById('mqtt-status-text').textContent = "Łączenie...";
         if (mqttClient) mqttClient.end();
-        
         mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
 
-        mqttClient.on('connect', function () {
+        mqttClient.on('connect', () => {
             document.getElementById('conn-status-dot').classList.add('connected');
             document.getElementById('mqtt-status-text').textContent = isMaster ? "LIDER: Aktywny" : "SŁUCHACZ: Aktywny";
             if (!isMaster) mqttClient.subscribe(mqttTopic);
             else broadcastState();
         });
 
-        mqttClient.on('message', function (topic, message) {
+        mqttClient.on('message', (topic, message) => {
             if (!isMaster && topic === mqttTopic) {
                 try {
                     const data = JSON.parse(message.toString());
-                    // Szukanie po tytule - najbardziej niezawodne między bazami
                     const found = allSongs.find(s => s.title === data.title);
-                    if (found) {
-                        transpose = data.t;
-                        selectSong(found.id, true);
-                    }
+                    if (found) { transpose = data.t; selectSong(found.id, true); }
                 } catch (e) { console.error("MQTT Error", e); }
             }
-        });
-
-        mqttClient.on('error', () => {
-            document.getElementById('conn-status-dot').classList.remove('connected');
-            document.getElementById('mqtt-status-text').textContent = "Błąd połączenia";
         });
     }
 
     function broadcastState() {
         if (isMaster && mqttClient && mqttClient.connected) {
             const song = allSongs.find(s => s.id === currentId);
-            if (song) {
-                const payload = JSON.stringify({ title: song.title, t: transpose });
-                mqttClient.publish(mqttTopic, payload, { retain: true });
-            }
+            if (song) mqttClient.publish(mqttTopic, JSON.stringify({ title: song.title, t: transpose }), { retain: true });
         }
     }
 
-    // --- RESZTA FUNKCJI ---
+    // Eksporty i Edycja
     async function exportAllJPG() {
         const ov = document.getElementById('progress-overlay'); ov.style.display = 'flex';
         const currentBackup = currentId;
@@ -479,8 +424,7 @@
             link.href = canvas.toDataURL("image/jpeg"); link.click();
             document.getElementById('progress-count').textContent = (i+1) + "/" + allSongs.length;
         }
-        currentId = currentBackup; updateView();
-        ov.style.display = 'none';
+        currentId = currentBackup; updateView(); ov.style.display = 'none';
     }
 
     function exportJSON() {
