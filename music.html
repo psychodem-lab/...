@@ -341,7 +341,7 @@
     function transChord(c, s) { 
         return c.replace(/([A-GHa-gh][b#]?)([\w\d\/#\-]*)?/, (m, b, mod) => { 
             let base = b.toUpperCase(); 
-            let i = scale.indexOf(base); 
+            let i = dscale.indexOf(base); 
             if (i === -1) return m; 
             i = (i + s % 12 + 12) % 12; 
             let res = dScale[i]; 
