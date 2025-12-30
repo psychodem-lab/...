@@ -32,6 +32,8 @@
             body.song-active #main-content { transform: translateX(0); }
             body.song-active #sidebar { transform: translateX(-100%); }
             .mobile-only { display: inline-block !important; }
+            /* Ustawienia na środku ekranu w wersji mobilnej dla lepszej widoczności */
+            #settings-menu { right: 10px !important; left: 10px !important; width: auto !important; }
         }
         .mobile-only { display: none; }
 
@@ -63,7 +65,6 @@
 
         #editor-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; width: 95%; max-width: 500px; text-align: left; }
-        #chord-tooltip { position: fixed; display: none; background: white; border: 2px solid #333; border-radius: 8px; padding: 10px; z-index: 2000; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-size: 14px; }
         
         .connection-dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:red; margin-right:5px; }
         .connected { background: #28a745; }
@@ -71,7 +72,6 @@
 </head>
 <body>
 
-<div id="chord-tooltip"></div>
 <div id="progress-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; z-index:2100; flex-direction:column; align-items:center; justify-content:center;">
     <h2>Eksport...</h2><p id="progress-count">0/0</p>
 </div>
@@ -179,6 +179,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         updateChordStyleButton();
+        // Zamknięcie menu przy kliknięciu poza nie
+        document.addEventListener('click', () => {
+            const menu = document.getElementById('settings-menu');
+            if (menu.classList.contains('active')) menu.classList.remove('active');
+        });
     });
 
     function toggleChordStyle() {
@@ -194,20 +199,13 @@
     }
 
     function transChord(chordStr, steps) {
-        // RegEx łapie teraz małe i wielkie litery A-G, H oraz znaki # i b
         return chordStr.replace(/([a-gA-G][#b]?|[hH])/g, (match) => {
             const isLowercase = (match === match.toLowerCase());
             let base = match.toUpperCase();
             
-            // Normalizacja do skali angielskiej SCALE
-            if (base === 'H') {
-                base = 'B';
-            } else if (base === 'BB') {
-                base = 'A#';
-            } else if (base === 'B' && chordStyle === 'PL') {
-                // W polskim stylu samo B to Bb (A#)
-                base = 'A#';
-            }
+            if (base === 'H') base = 'B';
+            else if (base === 'BB') base = 'A#';
+            else if (base === 'B' && chordStyle === 'PL') base = 'A#';
             
             let idx = SCALE.indexOf(base);
             if (idx === -1) return match;
@@ -215,7 +213,6 @@
             let newIdx = (idx + steps % 12 + 12) % 12;
             let res = SCALE[newIdx];
             
-            // Mapowanie wyjściowe dla stylu Polskiego
             if (chordStyle === 'PL') {
                 if (res === 'B') res = 'H';   
                 else if (res === 'A#') res = 'B';  
@@ -223,7 +220,6 @@
                 if (res === 'A#') res = 'Bb';
             }
             
-            // Przywróć małą literę jeśli wejście było małą literą (molowe)
             return isLowercase ? res.toLowerCase() : res;
         });
     }
@@ -349,7 +345,6 @@
         if (!song) return;
         let html = `<div class="song-header"><h2>${song.title}</h2><h4>${song.artist || ''}</h4></div>`;
         if (song.chords && showChords) {
-            // RegEx dopasowany do akordów z uwzględnieniem bemoli i małych liter
             const tc = song.chords.replace(/([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g, m => transChord(m, transpose));
             html += `<div class="chords-container"><pre id="active-chords-content">${tc}</pre></div>`;
         }
