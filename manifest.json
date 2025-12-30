@@ -1,6 +1,6 @@
 {
-  "name": "Śpiewnik Pro 2025",
-  "short_name": "Śpiewnik",
+  "name": "Muzycznik Deme",
+  "short_name": "Muzycznik",
   "start_url": "muzycznik.html",
   "display": "standalone",
   "background_color": "#ffffff",
