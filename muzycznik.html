@@ -257,14 +257,20 @@
         const term = document.getElementById('search').value.toLowerCase();
         const list = document.getElementById('song-list');
         let filtered = allSongs.filter(s => {
-            const searchText = [
-                s.title,
-                s.artist,
-                s.genre,
-                s.vocal_type
-            ].join(' ').toLowerCase();
-            return searchText.includes(term);
-        });        
+            const title = (s.title || "").toLowerCase();
+            const artist = (s.artist || "").toLowerCase();
+            const genre = (s.genre || "").toLowerCase();
+            const vocal = (s.vocal_type || "").toLowerCase();
+
+            // Jeśli szukamy "male", sprawdź czy vocal_type to dokładnie "male" 
+            // lub czy fraza występuje w innych polach
+            if (term === "male") {
+                return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal === "male";
+            }
+
+            // Standardowe wyszukiwanie dla innych fraz
+            return title.includes(term) || artist.includes(term) || genre.includes(term) || vocal.includes(term);
+        });       
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
                 <span>${s.title}</span>
