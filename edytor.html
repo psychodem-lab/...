@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song JSON Editor</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; margin: 20px; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .controls { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .song-selector { margin-bottom: 20px; width: 100%; padding: 10px; }
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .field-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        #lyrics-editor { border: 1px solid #ccc; min-height: 300px; padding: 10px; border-radius: 4px; background: #fff; overflow-y: auto; }
+        .toolbar { margin-bottom: 5px; }
+        .toolbar button { padding: 5px 10px; cursor: pointer; background: #eee; border: 1px solid #bbb; border-radius: 3px; }
+        .btn-main { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-main:hover { background: #2ecc71; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Edytor Piosenek JSON</h2>
+    
+    <div class="controls">
+        <input type="file" id="fileInput" accept=".json">
+        <button class="btn-main" onclick="downloadJSON()">Pobierz zaktualizowany JSON</button>
+    </div>
+
+    <select id="songSelect" class="song-selector" onchange="loadSelectedSong()">
+        <option value="">-- Wybierz piosenkę --</option>
+    </select>
+
+    <div class="editor-grid" id="editorContainer" style="display:none;">
+        <div class="left-panel">
+            <div class="field-group">
+                <label>Tytuł</label>
+                <input type="text" id="edit-title" oninput="updateCurrentSong()">
+            </div>
+            <div class="field-group">
+                <label>Artysta</label>
+                <input type="text" id="edit-artist" oninput="updateCurrentSong()">
+            </div>
+            <div class="field-group">
+                <label>Akordy</label>
+                <textarea id="edit-chords" rows="5" oninput="updateCurrentSong()"></textarea>
+            </div>
+            <div class="editor-grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="field-group">
+                    <label>Tempo</label>
+                    <input type="text" id="edit-tempo" oninput="updateCurrentSong()">
+                </div>
+                <div class="field-group">
+                    <label>Klucz (Key)</label>
+                    <input type="text" id="edit-key" oninput="updateCurrentSong()">
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <label>Tekst (HTML Editor)</label>
+            <div class="toolbar">
+                <button onclick="execCmd('bold')">B</button>
+                <button onclick="execCmd('italic')">I</button>
+                <button onclick="execCmd('foreColor', '#e74c3c')">Czerwony (Refren)</button>
+                <button onclick="execCmd('foreColor', '#333')">Czarny</button>
+                <button onclick="execCmd('insertHTML', '<p><br></p>')">Akapit</button>
+            </div>
+            <div id="lyrics-editor" contenteditable="true" oninput="updateCurrentSong()"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let songsData = [];
+    let currentIndex = -1;
+
+    // Obsługa wczytywania pliku
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                songsData = JSON.parse(e.target.result);
+                populateSongSelect();
+            } catch (err) {
+                alert("Błąd podczas odczytu pliku JSON.");
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    function populateSongSelect() {
+        const select = document.getElementById('songSelect');
+        select.innerHTML = '<option value="">-- Wybierz piosenkę --</option>';
+        songsData.forEach((song, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.textContent = `${song.artist} - ${song.title}`;
+            select.appendChild(opt);
+        });
+    }
+
+    function loadSelectedSong() {
+        const select = document.getElementById('songSelect');
+        currentIndex = select.value;
+        
+        if (currentIndex === "") {
+            document.getElementById('editorContainer').style.display = 'none';
+            return;
+        }
+
+        const song = songsData[currentIndex];
+        document.getElementById('editorContainer').style.display = 'grid';
+        
+        // Mapowanie pól
+        document.getElementById('edit-title').value = song.title || "";
+        document.getElementById('edit-artist').value = song.artist || "";
+        document.getElementById('edit-chords').value = song.chords || "";
+        document.getElementById('edit-tempo').value = song.tempo || "";
+        document.getElementById('edit-key').value = song.key || "";
+        document.getElementById('lyrics-editor').innerHTML = song.lyrics || "";
+    }
+
+    function updateCurrentSong() {
+        if (currentIndex === -1) return;
+
+        songsData[currentIndex].title = document.getElementById('edit-title').value;
+        songsData[currentIndex].artist = document.getElementById('edit-artist').value;
+        songsData[currentIndex].chords = document.getElementById('edit-chords').value;
+        songsData[currentIndex].tempo = document.getElementById('edit-tempo').value;
+        songsData[currentIndex].key = document.getElementById('edit-key').value;
+        songsData[currentIndex].lyrics = document.getElementById('lyrics-editor').innerHTML;
+    }
+
+    function execCmd(command, value = null) {
+        document.execCommand(command, false, value);
+        updateCurrentSong();
+    }
+
+    function downloadJSON() {
+        if (songsData.length === 0) return alert("Brak danych do pobrania.");
+        
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songsData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "piosenki_edycja.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+</script>
+
+</body>
+</html>
