@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transpozer Akordów</title>
+    <title>Muzyczny Scyzoryk: Transpozer i Metronom</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #007bff;
+            --success: #28a745;
             --bg: #f8f9fa;
             --card-bg: #ffffff;
             --text: #333;
             --border: #dee2e6;
+            --danger: #dc3545;
+            --accent: #00d4ff;
         }
 
         body {
@@ -19,80 +22,105 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
 
         .container {
-            width: 95%;
-            max-width: 1000px;
+            width: 100%;
+            max-width: 1100px;
             background: var(--card-bg);
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 30px;
+        header { text-align: center; margin-bottom: 25px; }
+        h1 { margin: 0; color: var(--primary); font-size: 24px; }
+
+        /* Metronom Styling */
+        .metronome-box {
+            background: #f1f3f5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        h1 { margin: 0; color: var(--primary); font-size: 24px; }
-        p { color: #666; font-size: 14px; }
+        .led-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 60px;
+        }
 
+        .led {
+            width: 30px;
+            height: 30px;
+            background-color: #555;
+            border-radius: 50%;
+            transition: background-color 0.05s;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .led.active { background-color: var(--danger); box-shadow: 0 0 15px var(--danger); }
+        .led.accent { background-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+
+        .tempo-controls, .meter-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        input[type="number"], select {
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            outline: none;
+            background: transparent;
+        }
+
+        /* Editor Styling */
         .toolbar {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border: 1px solid var(--border);
             background: white;
             border-radius: 8px;
             cursor: pointer;
-            transition: 0.2s;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: 0.2s;
         }
 
-        .btn:hover { background: #f0f0f0; border-color: #bbb; }
+        .btn:hover { background: #eee; }
         .btn-primary { background: var(--primary); color: white; border: none; }
-        .btn-primary:hover { background: #0056b3; }
-
-        #transpose-val {
-            font-size: 20px;
-            font-weight: bold;
-            min-width: 40px;
-            text-align: center;
-        }
+        .btn-danger { background: var(--danger); color: white; border: none; }
+        .btn-success { background: var(--success); color: white; border: none; }
 
         .editor-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #888;
-            letter-spacing: 1px;
         }
 
         textarea {
@@ -101,61 +129,72 @@
             padding: 15px;
             border: 1px solid var(--border);
             border-radius: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            resize: none;
+            font-family: monospace;
+            font-size: 15px;
+            background: #fafafa;
             box-sizing: border-box;
-            background: var(--bg);
-            transition: border-color 0.3s;
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: white;
-        }
+        #output-chords { background: #fdfdfd; color: var(--primary); font-weight: bold; }
 
-        #output-chords {
-            background: #f1f3f5;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            .editor-grid { grid-template-columns: 1fr; }
-            .container { padding: 20px; }
-        }
+        @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1><i class="fas fa-music"></i> Transpozer Akordów</h1>
-        <p>Wklej akordy i zmień ich tonację w czasie rzeczywistym</p>
+        <h1><i class="fas fa-music"></i> Transpozer & Metronom</h1>
     </header>
+
+    <div class="metronome-box">
+        <div class="led-container">
+            <div id="metronome-led" class="led"></div>
+            <span id="beat-counter" style="font-size: 12px; font-weight: bold; color: #666;">-</span>
+        </div>
+        
+        <div class="tempo-controls">
+            <label><i class="fas fa-gauge-high"></i> BPM:</label>
+            <input type="number" id="bpm-input" value="120" min="40" max="250" onchange="updateBpm()">
+        </div>
+
+        <div class="meter-controls">
+            <label><i class="fas fa-clock"></i> Metrum:</label>
+            <select id="meter-input" onchange="updateMeter()">
+                <option value="0">Brak akcentu</option>
+                <option value="3">3/4</option>
+                <option value="4" selected>4/4</option>
+            </select>
+        </div>
+
+        <button class="btn" id="btn-metronome" onclick="toggleMetronome()">
+            <i class="fas fa-play"></i> Start
+        </button>
+
+        <button class="btn" onclick="tapTempo()">
+            <i class="fas fa-hand-pointer"></i> Tap
+        </button>
+    </div>
 
     <div class="toolbar">
         <button class="btn" onclick="changeTrans(-1)"><i class="fas fa-minus"></i> Półton</button>
-        <span id="transpose-val">0</span>
+        <span id="transpose-val" style="font-weight:bold; font-size:20px; min-width:40px; text-align:center;">0</span>
         <button class="btn" onclick="changeTrans(1)"><i class="fas fa-plus"></i> Półton</button>
-        <button class="btn" onclick="resetTrans()"><i class="fas fa-undo"></i> Reset</button>
-        <button class="btn btn-primary" id="btn-style" onclick="toggleStyle()">Styl: Polski (H)</button>
+        <button class="btn" onclick="resetTrans()"><i class="fas fa-undo"></i></button>
+        <button class="btn" id="btn-style" onclick="toggleStyle()">Styl: Polski (H)</button>
+        <button class="btn btn-success" onclick="copyToClipboard()" id="btn-copy">
+            <i class="fas fa-copy"></i> Kopiuj wynik
+        </button>
     </div>
 
     <div class="editor-grid">
-        <div class="field-group">
-            <label>Akordy wejściowe</label>
-            <textarea id="input-chords" placeholder="Wpisz np. C G Am F..." oninput="process()"></textarea>
-        </div>
-        <div class="field-group">
-            <label>Po transpozycji</label>
-            <textarea id="output-chords" readonly placeholder="Wynik pojawi się tutaj..."></textarea>
-        </div>
+        <textarea id="input-chords" placeholder="Wklej tekst z akordami tutaj..." oninput="process()"></textarea>
+        <textarea id="output-chords" readonly placeholder="Wynik transpozycji..."></textarea>
     </div>
 </div>
 
 <script>
+    // --- LOGIKA TRANSPOZYCJI (Bez zmian, Twoja sprawdzona metoda) ---
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     let transpose = 0;
     let chordStyle = 'PL';
@@ -179,38 +218,144 @@
     }
 
     function transChord(chordStr, steps) {
-        // Logika identyczna z Twoją oryginalną
         return chordStr.replace(/([a-gA-G][#b]?|[hH])/g, (match) => {
             const isLowercase = (match === match.toLowerCase());
             let base = match.toUpperCase();
-            
             if (base === 'H') base = 'B';
             else if (base === 'BB') base = 'A#';
             else if (base === 'B' && chordStyle === 'PL') base = 'A#';
-            
             let idx = SCALE.indexOf(base);
             if (idx === -1) return match;
-            
             let newIdx = (idx + steps % 12 + 12) % 12;
             let res = SCALE[newIdx];
-            
             if (chordStyle === 'PL') {
                 if (res === 'B') res = 'H';   
                 else if (res === 'A#') res = 'B';  
-            } else {
-                if (res === 'A#') res = 'Bb';
-            }
+            } else if (res === 'A#') res = 'Bb';
             return isLowercase ? res.toLowerCase() : res;
         });
     }
 
     function process() {
         const input = document.getElementById('input-chords').value;
-        // Regex wykrywający nazwy akordów (w tym molowe, z cyframi i slashami)
         const regex = /([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g;
+        document.getElementById('output-chords').value = input.replace(regex, m => transChord(m, transpose));
+    }
+
+    async function copyToClipboard() {
+        const outputText = document.getElementById('output-chords').value;
+        if (!outputText) return;
+        await navigator.clipboard.writeText(outputText);
+        const btn = document.getElementById('btn-copy');
+        btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano!';
+        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj wynik'; }, 2000);
+    }
+
+    // --- LOGIKA METRONOMU Z AKCENTEM ---
+    let audioCtx = null;
+    let isPlaying = false;
+    let nextNoteTime = 0.0;
+    let timerID = null;
+    let bpm = 120;
+    let meter = 4; // 4/4 domyślnie
+    let currentBeat = 0;
+    
+    let lastTap = 0;
+    let tapTimes = [];
+
+    function updateBpm() { bpm = parseInt(document.getElementById('bpm-input').value); }
+    function updateMeter() { 
+        meter = parseInt(document.getElementById('meter-input').value); 
+        currentBeat = 0; // Resetuj liczenie przy zmianie metrum
+    }
+
+    function playClick(isAccent) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        const output = input.replace(regex, m => transChord(m, transpose));
-        document.getElementById('output-chords').value = output;
+        const osc = audioCtx.createOscillator();
+        const envelope = audioCtx.createGain();
+
+        // Akcent: wyższy ton (1500Hz), normalny: 1000Hz
+        osc.frequency.value = isAccent ? 1500 : 1000; 
+        envelope.gain.value = 1;
+        envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+        osc.connect(envelope);
+        envelope.connect(audioCtx.destination);
+
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.1);
+
+        // Wizualizacja
+        const led = document.getElementById('metronome-led');
+        const counter = document.getElementById('beat-counter');
+        
+        if (isAccent) {
+            led.classList.add('accent');
+            counter.style.color = 'var(--accent)';
+        } else {
+            led.classList.add('active');
+            counter.style.color = '#666';
+        }
+
+        counter.textContent = meter > 0 ? (currentBeat + 1) : "•";
+
+        setTimeout(() => {
+            led.classList.remove('active', 'accent');
+        }, 100);
+    }
+
+    function scheduler() {
+        while (nextNoteTime < audioCtx.currentTime + 0.1) {
+            // Sprawdź czy to "raz"
+            const isAccent = (meter > 0 && currentBeat === 0);
+            playClick(isAccent);
+            
+            nextNoteTime += 60.0 / bpm;
+            
+            // Inkrementacja bitu
+            if (meter > 0) {
+                currentBeat = (currentBeat + 1) % meter;
+            }
+        }
+        timerID = setTimeout(scheduler, 25.0);
+    }
+
+    function toggleMetronome() {
+        const btn = document.getElementById('btn-metronome');
+        if (!isPlaying) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            isPlaying = true;
+            currentBeat = 0; // Zaczynaj od "raz"
+            nextNoteTime = audioCtx.currentTime;
+            scheduler();
+            btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+            btn.classList.add('btn-danger');
+        } else {
+            isPlaying = false;
+            clearTimeout(timerID);
+            document.getElementById('beat-counter').textContent = "-";
+            btn.innerHTML = '<i class="fas fa-play"></i> Start';
+            btn.classList.remove('btn-danger');
+        }
+    }
+
+    function tapTempo() {
+        const now = Date.now();
+        if (lastTap > 0) {
+            const diff = now - lastTap;
+            if (diff < 2000) {
+                tapTimes.push(diff);
+                if (tapTimes.length > 4) tapTimes.shift();
+                const avg = tapTimes.reduce((a, b) => a + b) / tapTimes.length;
+                const newBpm = Math.round(60000 / avg);
+                if (newBpm >= 40 && newBpm <= 250) {
+                    document.getElementById('bpm-input').value = newBpm;
+                    bpm = newBpm;
+                }
+            } else { tapTimes = []; }
+        }
+        lastTap = now;
     }
 </script>
 
