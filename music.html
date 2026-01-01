@@ -417,7 +417,7 @@
         const btn = document.getElementById('btn-scroll-toggle');
         if (isScrolling) {
             btn.innerHTML = '<i class="fas fa-pause"></i>';
-            scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 1, 105 - document.getElementById('scroll-speed').value); 
+            scrollInterval = setInterval(() => document.getElementById('main-content').scrollTop += 2, 105 - document.getElementById('scroll-speed').value); 
         } else {
             btn.innerHTML = '<i class="fas fa-play"></i>';
             clearInterval(scrollInterval); 
