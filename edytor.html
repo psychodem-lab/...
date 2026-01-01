@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Studio JSON</title>
+    <title>Song Studio JSON Pro</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -13,6 +13,7 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --accent-red: #e74c3c;
+            --accent-purple: #8b5cf6;
         }
 
         body { 
@@ -24,20 +25,11 @@
             line-height: 1.5;
         }
 
-        .container { 
-            max-width: 900px; 
-            margin: 0 auto; 
-        }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        header {
-            margin-bottom: 32px;
-            text-align: center;
-        }
-
+        header { margin-bottom: 32px; text-align: center; }
         h1 { font-weight: 800; letter-spacing: -0.025em; margin-bottom: 8px; }
-        p.subtitle { color: var(--text-muted); font-size: 0.95em; }
 
-        /* Controls Section */
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -51,99 +43,117 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
-        /* Buttons & Inputs */
+        .btn-group { display: flex; gap: 8px; }
+
         .btn {
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 14px;
+            font-size: 13px;
             border: none;
+            display: inline-flex;
+            align-items: center;
         }
 
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-primary:hover { background: #1d4ed8; }
         
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-outline:hover { background: #f1f5f9; }
+        .btn-secondary { background: var(--accent-purple); color: white; }
+        .btn-secondary:hover { background: #7c3aed; }
 
-        input[type="file"] { font-size: 14px; color: var(--text-muted); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
 
         select {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            background-color: white;
-            font-size: 16px;
-            margin-top: 8px;
+            margin-top: 16px;
             outline: none;
         }
 
-        /* Form Layout */
         .grid-meta {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
-        .field-group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+        .field-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
         
         input[type="text"], textarea {
             padding: 10px;
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 15px;
+            font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
         }
-        input[type="text"]:focus, textarea:focus { border-color: var(--primary); }
 
-        /* Full Width Lyrics Editor */
-        .lyrics-section { width: 100%; }
-        
+        /* Editor */
         .toolbar {
-            display: flex;
-            gap: 8px;
-            padding: 10px;
-            background: #f1f5f9;
-            border-radius: 8px 8px 0 0;
-            border: 1px solid var(--border);
-            border-bottom: none;
+            display: flex; gap: 6px; padding: 10px;
+            background: #f1f5f9; border-radius: 8px 8px 0 0;
+            border: 1px solid var(--border); border-bottom: none;
         }
 
         .toolbar button {
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: bold;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 5px 10px; font-size: 11px; font-weight: bold;
+            background: white; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
         }
 
         #lyrics-editor {
-            min-height: 400px;
-            padding: 24px;
-            border: 1px solid var(--border);
-            border-radius: 0 0 8px 8px;
-            background: white;
-            font-size: 16px;
-            line-height: 1.8;
-            outline: none;
-            white-space: pre-wrap;
+            min-height: 400px; padding: 24px;
+            border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+            background: white; font-size: 16px; line-height: 1.7; outline: none;
         }
 
-        #lyrics-editor:focus { border-color: var(--primary); }
+        /* Modal Styles */
+        #codeModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            z-index: 1000;
+            padding: 40px;
+            box-sizing: border-box;
+        }
 
-        .ref-btn { color: var(--accent-red); }
+        .modal-content {
+            background: #1e293b;
+            color: #f8fafc;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 80vh;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        #jsonViewer {
+            flex-grow: 1;
+            padding: 24px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+            overflow: auto;
+            white-space: pre-wrap;
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
@@ -151,13 +161,15 @@
 <div class="container">
     <header>
         <h1>Song Studio</h1>
-        <p class="subtitle">Zarządzaj swoją bazą piosenek JSON w nowoczesnym stylu</p>
     </header>
 
     <div class="card">
         <div class="file-controls">
             <input type="file" id="fileInput" accept=".json">
-            <button class="btn btn-primary" onclick="downloadJSON()">Eksportuj JSON</button>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="showCode()">Zobacz kod JSON</button>
+                <button class="btn btn-primary" onclick="downloadJSON()">Eksportuj plik</button>
+            </div>
         </div>
         <select id="songSelect" onchange="loadSelectedSong()">
             <option value="">Wybierz utwór z listy...</option>
@@ -167,47 +179,34 @@
     <div id="editorContainer" style="display:none;">
         <div class="card">
             <div class="grid-meta">
-                <div class="field-group">
-                    <label>Tytuł piosenki</label>
-                    <input type="text" id="edit-title" placeholder="np. A gdy jest już ciemno" oninput="updateCurrentSong()">
-                </div>
-                <div class="field-group">
-                    <label>Wykonawca</label>
-                    <input type="text" id="edit-artist" placeholder="np. Feel" oninput="updateCurrentSong()">
-                </div>
+                <div class="field-group"><label>Tytuł</label><input type="text" id="edit-title" oninput="updateCurrentSong()"></div>
+                <div class="field-group"><label>Artysta</label><input type="text" id="edit-artist" oninput="updateCurrentSong()"></div>
             </div>
-            
             <div class="grid-meta">
-                <div class="field-group">
-                    <label>Tonacja (Key)</label>
-                    <input type="text" id="edit-key" placeholder="np. C-dur" oninput="updateCurrentSong()">
-                </div>
-                <div class="field-group">
-                    <label>Tempo (BPM)</label>
-                    <input type="text" id="edit-tempo" placeholder="np. 124" oninput="updateCurrentSong()">
-                </div>
-                <div class="field-group">
-                    <label>Gatunek</label>
-                    <input type="text" id="edit-genre" oninput="updateCurrentSong()">
-                </div>
+                <div class="field-group"><label>Klucz</label><input type="text" id="edit-key" oninput="updateCurrentSong()"></div>
+                <div class="field-group"><label>Tempo</label><input type="text" id="edit-tempo" oninput="updateCurrentSong()"></div>
+                <div class="field-group"><label>Gatunek</label><input type="text" id="edit-genre" oninput="updateCurrentSong()"></div>
             </div>
-
-            <div class="field-group">
-                <label>Akordy (uproszczone)</label>
-                <textarea id="edit-chords" rows="3" placeholder="C d F f..." oninput="updateCurrentSong()"></textarea>
-            </div>
+            <div class="field-group"><label>Akordy</label><textarea id="edit-chords" rows="2" oninput="updateCurrentSong()"></textarea></div>
         </div>
 
-        <div class="lyrics-section">
-            <div class="toolbar">
-                <button onclick="execCmd('bold')">B</button>
-                <button onclick="execCmd('italic')">I</button>
-                <button class="ref-btn" onclick="execCmd('foreColor', '#e74c3c')">Oznacz jako Refren (Czerwony)</button>
-                <button onclick="execCmd('foreColor', '#1e293b')">Domyślny kolor</button>
-                <button onclick="execCmd('insertHTML', '<p><br></p>')">Nowy akapit</button>
-            </div>
-            <div id="lyrics-editor" contenteditable="true" oninput="updateCurrentSong()"></div>
+        <div class="toolbar">
+            <button onclick="execCmd('bold')">B</button>
+            <button onclick="execCmd('italic')">I</button>
+            <button style="color:var(--accent-red)" onclick="execCmd('foreColor', '#e74c3c')">Refren</button>
+            <button onclick="execCmd('foreColor', '#1e293b')">Tekst</button>
         </div>
+        <div id="lyrics-editor" contenteditable="true" oninput="updateCurrentSong()"></div>
+    </div>
+</div>
+
+<div id="codeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span style="font-weight: bold;">Podgląd wyjściowego pliku JSON</span>
+            <button class="btn btn-outline" onclick="closeCode()">Zamknij</button>
+        </div>
+        <pre id="jsonViewer"></pre>
     </div>
 </div>
 
@@ -218,15 +217,12 @@
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             try {
                 songsData = JSON.parse(e.target.result);
                 populateSongSelect();
-            } catch (err) {
-                alert("Nieprawidłowy format pliku JSON.");
-            }
+            } catch (err) { alert("Błąd pliku!"); }
         };
         reader.readAsText(file);
     });
@@ -237,23 +233,16 @@
         songsData.forEach((song, index) => {
             const opt = document.createElement('option');
             opt.value = index;
-            opt.textContent = `${song.artist || 'Nieznany'} - ${song.title || 'Bez tytułu'}`;
+            opt.textContent = `${song.artist || '...'} - ${song.title || '...'}`;
             select.appendChild(opt);
         });
     }
 
     function loadSelectedSong() {
-        const select = document.getElementById('songSelect');
-        currentIndex = select.value;
-        
-        if (currentIndex === "") {
-            document.getElementById('editorContainer').style.display = 'none';
-            return;
-        }
-
+        currentIndex = document.getElementById('songSelect').value;
+        if (currentIndex === "") { document.getElementById('editorContainer').style.display = 'none'; return; }
         const song = songsData[currentIndex];
         document.getElementById('editorContainer').style.display = 'block';
-        
         document.getElementById('edit-title').value = song.title || "";
         document.getElementById('edit-artist').value = song.artist || "";
         document.getElementById('edit-chords').value = song.chords || "";
@@ -265,15 +254,13 @@
 
     function updateCurrentSong() {
         if (currentIndex === -1) return;
-
-        const song = songsData[currentIndex];
-        song.title = document.getElementById('edit-title').value;
-        song.artist = document.getElementById('edit-artist').value;
-        song.chords = document.getElementById('edit-chords').value;
-        song.tempo = document.getElementById('edit-tempo').value;
-        song.key = document.getElementById('edit-key').value;
-        song.genre = document.getElementById('edit-genre').value;
-        song.lyrics = document.getElementById('lyrics-editor').innerHTML;
+        songsData[currentIndex].title = document.getElementById('edit-title').value;
+        songsData[currentIndex].artist = document.getElementById('edit-artist').value;
+        songsData[currentIndex].chords = document.getElementById('edit-chords').value;
+        songsData[currentIndex].tempo = document.getElementById('edit-tempo').value;
+        songsData[currentIndex].key = document.getElementById('edit-key').value;
+        songsData[currentIndex].genre = document.getElementById('edit-genre').value;
+        songsData[currentIndex].lyrics = document.getElementById('lyrics-editor').innerHTML;
     }
 
     function execCmd(command, value = null) {
@@ -281,18 +268,25 @@
         updateCurrentSong();
     }
 
+    // Funkcje Modala
+    function showCode() {
+        if (songsData.length === 0) return alert("Wczytaj najpierw dane.");
+        document.getElementById('jsonViewer').textContent = JSON.stringify(songsData, null, 2);
+        document.getElementById('codeModal').style.display = 'block';
+    }
+
+    function closeCode() {
+        document.getElementById('codeModal').style.display = 'none';
+    }
+
     function downloadJSON() {
-        if (songsData.length === 0) return alert("Wgraj najpierw plik, aby móc go wyeksportować.");
-        
+        if (songsData.length === 0) return;
         const blob = new Blob([JSON.stringify(songsData, null, 2)], {type : 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "spis_piosenek_edycja.json";
-        document.body.appendChild(a);
+        a.download = "songs_updated.json";
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     }
 </script>
 
