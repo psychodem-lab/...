@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Muzyczny Scyzoryk: Transpozer i Metronom</title>
+    <title>Studio Tool: Transpozer, Metronom & Tonacja</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -15,6 +15,7 @@
             --border: #dee2e6;
             --danger: #dc3545;
             --accent: #00d4ff;
+            --key-color: #6f42c1;
         }
 
         body {
@@ -39,160 +40,149 @@
         header { text-align: center; margin-bottom: 25px; }
         h1 { margin: 0; color: var(--primary); font-size: 24px; }
 
-        .metronome-box {
-            background: #f1f3f5;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+        /* Metronom & Key Styling */
+        .info-bar {
             display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 15px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
 
-        .led-container {
+        .tool-box {
+            background: #f1f3f5;
+            padding: 15px 20px;
+            border-radius: 12px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 5px;
-            min-width: 60px;
+            gap: 12px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .key-box {
+            background: #f3f0ff;
+            border: 1px solid #d1c4e9;
+            color: var(--key-color);
+            min-width: 200px;
         }
 
         .led {
-            width: 30px;
-            height: 30px;
+            width: 25px;
+            height: 25px;
             background-color: #555;
             border-radius: 50%;
-            transition: background-color 0.05s;
+            transition: 0.05s;
         }
-
         .led.active { background-color: var(--danger); box-shadow: 0 0 15px var(--danger); }
         .led.accent { background-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
 
-        .tempo-controls, .meter-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: white;
-            padding: 5px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
+        .controls-inline { display: flex; align-items: center; gap: 8px; background: white; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+        input[type="number"], select { border: none; font-size: 15px; font-weight: bold; outline: none; background: transparent; }
 
-        input[type="number"], select {
-            border: none;
-            font-size: 16px;
-            font-weight: bold;
-            outline: none;
-            background: transparent;
-        }
-
-        .toolbar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border: 1px solid var(--border);
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
-
+        /* Editor Styling */
+        .toolbar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .btn { padding: 10px 18px; border: 1px solid var(--border); background: white; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.2s; font-size: 14px;}
         .btn:hover { background: #eee; }
         .btn-primary { background: var(--primary); color: white; border: none; }
         .btn-danger { background: var(--danger); color: white; border: none; }
         .btn-success { background: var(--success); color: white; border: none; }
 
-        .editor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 350px;
-            padding: 15px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 15px;
-            background: #fafafa;
-            box-sizing: border-box;
-        }
-
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        textarea { width: 100%; height: 350px; padding: 15px; border: 1px solid var(--border); border-radius: 12px; font-family: 'Courier New', monospace; font-size: 15px; background: #fafafa; box-sizing: border-box; resize: none; }
         #output-chords { background: #fdfdfd; color: var(--primary); font-weight: bold; }
 
-        @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 850px) { .editor-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1><i class="fas fa-compact-disc"></i> Studio Tool</h1>
+        <h1><i class="fas fa-layer-group"></i> Music Studio Tool</h1>
     </header>
 
-    <div class="metronome-box">
-        <div class="led-container">
-            <div id="metronome-led" class="led"></div>
-            <span id="beat-counter" style="font-size: 12px; font-weight: bold; color: #666;">-</span>
-        </div>
-        
-        <div class="tempo-controls">
-            <label>BPM:</label>
-            <input type="number" id="bpm-input" value="120" min="40" max="300" onchange="updateBpm()">
-        </div>
-
-        <div class="meter-controls">
-            <label>Metrum:</label>
-            <select id="meter-input" onchange="updateMeter()">
-                <option value="0">Brak akcentu</option>
-                <option value="3">3/4</option>
-                <option value="4" selected>4/4</option>
-                <option value="6">6/8</option>
-            </select>
+    <div class="info-bar">
+        <div class="tool-box">
+            <div class="led" id="metronome-led"></div>
+            <div class="controls-inline">
+                <input type="number" id="bpm-input" value="120" min="40" max="300" onchange="updateBpm()">
+                <select id="meter-input" onchange="updateMeter()">
+                    <option value="0">Brak</option>
+                    <option value="3">3/4</option>
+                    <option value="4" selected>4/4</option>
+                    <option value="6">6/8</option>
+                </select>
+            </div>
+            <button class="btn" id="btn-metronome" onclick="toggleMetronome()"><i class="fas fa-play"></i></button>
+            <button class="btn" onclick="tapTempo()">TAP</button>
         </div>
 
-        <button class="btn" id="btn-metronome" onclick="toggleMetronome()">
-            <i class="fas fa-play"></i> Start
-        </button>
-
-        <button class="btn" onclick="tapTempo()">
-            <i class="fas fa-drum"></i> Tap
-        </button>
+        <div class="tool-box key-box">
+            <i class="fas fa-key"></i>
+            <div>
+                <small style="display:block; font-size:10px; text-transform:uppercase; opacity:0.7">Sugerowana tonacja:</small>
+                <strong id="detected-key">Wpisz akordy...</strong>
+            </div>
+        </div>
     </div>
 
     <div class="toolbar">
-        <button class="btn" onclick="changeTrans(-1)"><i class="fas fa-minus"></i></button>
+        <button class="btn" onclick="changeTrans(-1)"><i class="fas fa-minus"></i> Półton</button>
         <span id="transpose-val" style="font-weight:bold; font-size:20px; min-width:40px; text-align:center;">0</span>
-        <button class="btn" onclick="changeTrans(1)"><i class="fas fa-plus"></i></button>
+        <button class="btn" onclick="changeTrans(1)"><i class="fas fa-plus"></i> Półton</button>
         <button class="btn" onclick="resetTrans()"><i class="fas fa-undo"></i></button>
-        <button class="btn" id="btn-style" onclick="toggleStyle()">Styl: Polski (H)</button>
-        <button class="btn btn-success" onclick="copyToClipboard()" id="btn-copy">
-            <i class="fas fa-copy"></i> Kopiuj wynik
-        </button>
+        <button class="btn" id="btn-style" onclick="toggleStyle()">H</button>
+        <button class="btn btn-success" onclick="copyToClipboard()" id="btn-copy"><i class="fas fa-copy"></i> Kopiuj</button>
     </div>
 
     <div class="editor-grid">
-        <textarea id="input-chords" placeholder="Wklej tekst z akordami..." oninput="process()"></textarea>
+        <textarea id="input-chords" placeholder="Wklej tekst z akordami (np. C G Am F)..." oninput="process()"></textarea>
         <textarea id="output-chords" readonly placeholder="Wynik..."></textarea>
     </div>
 </div>
 
 <script>
-    // --- TRANSPOZYCJA ---
+    // --- LOGIKA WYKRYWANIA TONACJI ---
+    // Definicje skal durowych (uproszczone do 7 głównych stopni)
+    const KEYS_DATA = {
+        'C-dur': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'],
+        'G-dur': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#dim'],
+        'D-dur': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#dim'],
+        'A-dur': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#dim'],
+        'E-dur': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#dim'],
+        'F-dur': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
+        'Bb-dur': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'],
+        'Am-moll': ['Am', 'Bdim', 'C', 'Dm', 'Em', 'F', 'G'],
+        'Em-moll': ['Em', 'F#dim', 'G', 'Am', 'Bm', 'C', 'D'],
+        'Dm-moll': ['Dm', 'Edim', 'F', 'Gm', 'Am', 'Bb', 'C']
+    };
+
+    function detectKey(chords) {
+        if (chords.length === 0) return "Wpisz akordy...";
+        
+        let scores = {};
+        for (let key in KEYS_DATA) scores[key] = 0;
+
+        chords.forEach((chord, index) => {
+            // Czyścimy akord z dodatków (np. Am7 -> Am, Cmaj7 -> C)
+            let base = chord.replace(/(7|maj7|sus4|add9|9|6)/g, '');
+            if (base.endsWith('/')) base = base.split('/')[0]; // Obsługa slash chords
+
+            for (let key in KEYS_DATA) {
+                if (KEYS_DATA[key].includes(base)) {
+                    scores[key] += 1;
+                    // Pierwszy i ostatni akord mają większą wagę w teorii muzyki
+                    if (index === 0) scores[key] += 2;
+                    if (index === chords.length - 1) scores[key] += 1;
+                }
+            }
+        });
+
+        let bestKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+        return scores[bestKey] > 0 ? bestKey : "Nieznana";
+    }
+
+    // --- TRANSPOZYCJA (Twoja logika) ---
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     let transpose = 0;
     let chordStyle = 'PL';
@@ -200,10 +190,9 @@
     function changeTrans(v) { transpose += v; updateDisplay(); process(); }
     function resetTrans() { transpose = 0; updateDisplay(); process(); }
     function updateDisplay() { document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose; }
-    
     function toggleStyle() {
         chordStyle = (chordStyle === 'PL') ? 'EN' : 'PL';
-        document.getElementById('btn-style').textContent = `Styl: ${chordStyle === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
+        document.getElementById('btn-style').textContent = chordStyle === 'PL' ? 'H' : 'B';
         process();
     }
 
@@ -229,49 +218,32 @@
     function process() {
         const input = document.getElementById('input-chords').value;
         const regex = /([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g;
+        
+        // Wykrywanie akordów do analizy tonacji
+        const foundChords = input.match(regex) || [];
+        document.getElementById('detected-key').textContent = detectKey(foundChords);
+
         document.getElementById('output-chords').value = input.replace(regex, m => transChord(m, transpose));
     }
 
-    async function copyToClipboard() {
-        const outputText = document.getElementById('output-chords').value;
-        if (!outputText) return;
-        await navigator.clipboard.writeText(outputText);
-        const btn = document.getElementById('btn-copy');
-        btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano!';
-        setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj wynik'; }, 2000);
-    }
-
-    // --- METRONOM ---
-    let audioCtx = null;
-    let isPlaying = false;
-    let nextNoteTime = 0.0;
-    let timerID = null;
-    let bpm = 120;
-    let meter = 4;
-    let currentBeat = 0;
-    let lastTap = 0;
-    let tapTimes = [];
+    // --- LOGIKA METRONOMU ---
+    let audioCtx = null, isPlaying = false, nextNoteTime = 0.0, timerID = null;
+    let bpm = 120, meter = 4, currentBeat = 0, lastTap = 0, tapTimes = [];
 
     function updateBpm() { bpm = parseInt(document.getElementById('bpm-input').value); }
     function updateMeter() { meter = parseInt(document.getElementById('meter-input').value); currentBeat = 0; }
 
     function playClick(isAccent) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const envelope = audioCtx.createGain();
-        osc.frequency.value = isAccent ? 1600 : 1000; 
-        envelope.gain.value = 1;
-        envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-        osc.connect(envelope);
-        envelope.connect(audioCtx.destination);
-        osc.start(audioCtx.currentTime);
-        osc.stop(audioCtx.currentTime + 0.08);
+        const osc = audioCtx.createOscillator(), env = audioCtx.createGain();
+        osc.frequency.value = isAccent ? 1600 : 1000;
+        env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.connect(env); env.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
 
         const led = document.getElementById('metronome-led');
-        const counter = document.getElementById('beat-counter');
-        if (isAccent) { led.classList.add('accent'); } else { led.classList.add('active'); }
-        counter.textContent = meter > 0 ? (currentBeat + 1) : "•";
-        setTimeout(() => led.classList.remove('active', 'accent'), 80);
+        led.className = isAccent ? 'led accent' : 'led active';
+        setTimeout(() => led.className = 'led', 70);
     }
 
     function scheduler() {
@@ -286,19 +258,12 @@
     function toggleMetronome() {
         const btn = document.getElementById('btn-metronome');
         if (!isPlaying) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            isPlaying = true;
-            currentBeat = 0;
-            nextNoteTime = audioCtx.currentTime;
-            scheduler();
-            btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
-            btn.classList.add('btn-danger');
+            if (!audioCtx) audioCtx = new AudioContext();
+            isPlaying = true; currentBeat = 0; nextNoteTime = audioCtx.currentTime;
+            scheduler(); btn.innerHTML = '<i class="fas fa-stop"></i>'; btn.classList.add('btn-danger');
         } else {
-            isPlaying = false;
-            clearTimeout(timerID);
-            document.getElementById('beat-counter').textContent = "-";
-            btn.innerHTML = '<i class="fas fa-play"></i> Start';
-            btn.classList.remove('btn-danger');
+            isPlaying = false; clearTimeout(timerID);
+            btn.innerHTML = '<i class="fas fa-play"></i>'; btn.classList.remove('btn-danger');
         }
     }
 
@@ -309,13 +274,18 @@
             if (diff < 2000) {
                 tapTimes.push(diff);
                 if (tapTimes.length > 4) tapTimes.shift();
-                const avg = tapTimes.reduce((a, b) => a + b) / tapTimes.length;
-                const newBpm = Math.round(60000 / avg);
-                document.getElementById('bpm-input').value = newBpm;
-                bpm = newBpm;
+                bpm = Math.round(60000 / (tapTimes.reduce((a,b)=>a+b)/tapTimes.length));
+                document.getElementById('bpm-input').value = bpm;
             }
         }
         lastTap = now;
+    }
+
+    async function copyToClipboard() {
+        await navigator.clipboard.writeText(document.getElementById('output-chords').value);
+        const btn = document.getElementById('btn-copy');
+        btn.innerHTML = '<i class="fas fa-check"></i> OK';
+        setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj', 2000);
     }
 </script>
 </body>
