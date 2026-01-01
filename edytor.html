@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Studio JSON Pro</title>
+    <title>Song Studio Pro - Zarządzanie Bazą</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -12,283 +12,252 @@
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --accent-red: #e74c3c;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
             --accent-purple: #8b5cf6;
         }
 
         body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: var(--bg); 
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            line-height: 1.5;
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main);
+            margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
-        .container { max-width: 900px; margin: 0 auto; }
+        /* Sidebar - Lista Piosenek */
+        .sidebar {
+            width: 320px; background: white; border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+        }
 
-        header { margin-bottom: 32px; text-align: center; }
-        h1 { font-weight: 800; letter-spacing: -0.025em; margin-bottom: 8px; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+        .search-box {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 8px; margin-top: 10px; box-sizing: border-box;
+        }
+
+        .song-list { flex-grow: 1; overflow-y: auto; }
+        .song-item {
+            padding: 15px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer;
+            transition: background 0.2s; position: relative;
+        }
+        .song-item:hover { background: #f8fafc; }
+        .song-item.active { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .song-item div { font-weight: 600; font-size: 14px; }
+        .song-item span { font-size: 12px; color: var(--text-muted); }
+
+        /* Main Content */
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 30px; }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px;
+        }
 
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: white; border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 20px;
         }
 
-        .file-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn-group { display: flex; gap: 8px; }
-
+        /* Inputs & Buttons */
         .btn {
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-            border: none;
-            display: inline-flex;
-            align-items: center;
+            padding: 10px 16px; border-radius: 8px; font-weight: 600;
+            cursor: pointer; font-size: 13px; border: none; transition: 0.2s;
         }
-
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
-        
         .btn-secondary { background: var(--accent-purple); color: white; }
-        .btn-secondary:hover { background: #7c3aed; }
+        .btn-danger { background: white; color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .btn-danger:hover { background: var(--accent-red); color: white; }
+        .btn-add { background: var(--accent-green); color: white; width: 100%; margin-top: 10px; }
 
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
-
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-top: 16px;
-            outline: none;
-        }
-
-        .grid-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .field-group { display: flex; flex-direction: column; gap: 4px; }
+        .grid-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .field-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; }
         label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
-        
-        input[type="text"], textarea {
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            outline: none;
-        }
+        input, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
 
         /* Editor */
         .toolbar {
-            display: flex; gap: 6px; padding: 10px;
-            background: #f1f5f9; border-radius: 8px 8px 0 0;
-            border: 1px solid var(--border); border-bottom: none;
+            display: flex; gap: 8px; padding: 10px; background: #f1f5f9;
+            border-radius: 8px 8px 0 0; border: 1px solid var(--border); border-bottom: none;
         }
-
-        .toolbar button {
-            padding: 5px 10px; font-size: 11px; font-weight: bold;
-            background: white; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
-        }
-
         #lyrics-editor {
-            min-height: 400px; padding: 24px;
-            border: 1px solid var(--border); border-radius: 0 0 8px 8px;
-            background: white; font-size: 16px; line-height: 1.7; outline: none;
+            min-height: 500px; padding: 30px; border: 1px solid var(--border);
+            border-radius: 0 0 8px 8px; background: white; font-size: 16px; line-height: 1.8; outline: none;
         }
 
-        /* Modal Styles */
+        /* Modal */
         #codeModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.8);
-            z-index: 1000;
-            padding: 40px;
-            box-sizing: border-box;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            z-index: 1000; padding: 40px;
         }
-
-        .modal-content {
-            background: #1e293b;
-            color: #f8fafc;
-            max-width: 800px;
-            margin: 0 auto;
-            height: 80vh;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .modal-header {
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-        }
-
-        #jsonViewer {
-            flex-grow: 1;
-            padding: 24px;
-            font-family: 'Fira Code', 'Courier New', monospace;
-            font-size: 13px;
-            overflow: auto;
-            white-space: pre-wrap;
-            color: #94a3b8;
+        .modal-body {
+            background: #1e293b; color: #cbd5e1; height: 100%; border-radius: 12px;
+            display: flex; flex-direction: column;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Song Studio</h1>
-    </header>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 style="margin:0; font-size: 18px;">Moja Biblioteka</h2>
+            <input type="file" id="fileInput" accept=".json" style="margin-top:15px; font-size: 12px;">
+            <input type="text" id="searchInput" class="search-box" placeholder="Szukaj piosenki lub artysty..." oninput="renderList()">
+            <button class="btn btn-add" onclick="addNewSong()">+ Dodaj nową piosenkę</button>
+        </div>
+        <div id="songList" class="song-list">
+            </div>
+    </aside>
 
-    <div class="card">
-        <div class="file-controls">
-            <input type="file" id="fileInput" accept=".json">
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="showCode()">Zobacz kod JSON</button>
-                <button class="btn btn-primary" onclick="downloadJSON()">Eksportuj plik</button>
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 id="viewTitle" style="margin:0; font-size: 24px;">Wybierz utwór</h1>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-secondary" onclick="showCode()">Kod JSON</button>
+                <button class="btn btn-primary" onclick="downloadJSON()">Eksportuj Plik</button>
             </div>
         </div>
-        <select id="songSelect" onchange="loadSelectedSong()">
-            <option value="">Wybierz utwór z listy...</option>
-        </select>
-    </div>
 
-    <div id="editorContainer" style="display:none;">
-        <div class="card">
-            <div class="grid-meta">
-                <div class="field-group"><label>Tytuł</label><input type="text" id="edit-title" oninput="updateCurrentSong()"></div>
-                <div class="field-group"><label>Artysta</label><input type="text" id="edit-artist" oninput="updateCurrentSong()"></div>
+        <div id="editorContainer" style="display:none;">
+            <div class="card">
+                <div class="grid-meta" style="grid-template-columns: 2fr 1fr;">
+                    <div class="field-group"><label>Tytuł</label><input type="text" id="edit-title" oninput="saveChanges()"></div>
+                    <div class="field-group"><label>Artysta</label><input type="text" id="edit-artist" oninput="saveChanges()"></div>
+                </div>
+                <div class="grid-meta">
+                    <div class="field-group"><label>Tonacja</label><input type="text" id="edit-key" oninput="saveChanges()"></div>
+                    <div class="field-group"><label>Tempo</label><input type="text" id="edit-tempo" oninput="saveChanges()"></div>
+                    <div class="field-group"><label>Gatunek</label><input type="text" id="edit-genre" oninput="saveChanges()"></div>
+                </div>
+                <div class="field-group"><label>Akordy</label><input type="text" id="edit-chords" oninput="saveChanges()"></div>
+                <div class="field-group"><label>Notatki</label><textarea id="edit-notes" rows="2" oninput="saveChanges()"></textarea></div>
+                <button class="btn btn-danger" onclick="deleteCurrentSong()" style="margin-top:10px;">Usuń tę piosenkę</button>
             </div>
-            <div class="grid-meta">
-                <div class="field-group"><label>Klucz</label><input type="text" id="edit-key" oninput="updateCurrentSong()"></div>
-                <div class="field-group"><label>Tempo</label><input type="text" id="edit-tempo" oninput="updateCurrentSong()"></div>
-                <div class="field-group"><label>Gatunek</label><input type="text" id="edit-genre" oninput="updateCurrentSong()"></div>
+
+            <div class="field-group" style="margin-top:20px;">
+                <label>Tekst piosenki</label>
+                <div class="toolbar">
+                    <button onclick="execCmd('bold')">B</button>
+                    <button onclick="execCmd('italic')">I</button>
+                    <button style="color:var(--accent-red)" onclick="execCmd('foreColor', '#e74c3c')">Refren</button>
+                    <button onclick="execCmd('foreColor', '#1e293b')">Tekst</button>
+                    <button onclick="execCmd('insertHTML', '<p><br></p>')">Akapit</button>
+                </div>
+                <div id="lyrics-editor" contenteditable="true" oninput="saveChanges()"></div>
             </div>
-            <div class="field-group"><label>Akordy</label><textarea id="edit-chords" rows="2" oninput="updateCurrentSong()"></textarea></div>
         </div>
+    </main>
 
-        <div class="toolbar">
-            <button onclick="execCmd('bold')">B</button>
-            <button onclick="execCmd('italic')">I</button>
-            <button style="color:var(--accent-red)" onclick="execCmd('foreColor', '#e74c3c')">Refren</button>
-            <button onclick="execCmd('foreColor', '#1e293b')">Tekst</button>
+    <div id="codeModal">
+        <div class="modal-body">
+            <div style="padding:15px; border-bottom:1px solid #334155; display:flex; justify-content:space-between;">
+                <strong>Podgląd JSON</strong>
+                <button class="btn btn-outline" onclick="document.getElementById('codeModal').style.display='none'">Zamknij</button>
+            </div>
+            <pre id="jsonViewer" style="flex-grow:1; padding:20px; overflow:auto; margin:0;"></pre>
         </div>
-        <div id="lyrics-editor" contenteditable="true" oninput="updateCurrentSong()"></div>
     </div>
-</div>
-
-<div id="codeModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span style="font-weight: bold;">Podgląd wyjściowego pliku JSON</span>
-            <button class="btn btn-outline" onclick="closeCode()">Zamknij</button>
-        </div>
-        <pre id="jsonViewer"></pre>
-    </div>
-</div>
 
 <script>
-    let songsData = [];
-    let currentIndex = -1;
+    let songs = [];
+    let currentIdx = -1;
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+    document.getElementById('fileInput').addEventListener('change', e => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = () => {
             try {
-                songsData = JSON.parse(e.target.result);
-                populateSongSelect();
-            } catch (err) { alert("Błąd pliku!"); }
+                songs = JSON.parse(reader.result);
+                renderList();
+            } catch(err) { alert("Błąd pliku JSON!"); }
         };
-        reader.readAsText(file);
+        reader.readAsText(e.target.files[0]);
     });
 
-    function populateSongSelect() {
-        const select = document.getElementById('songSelect');
-        select.innerHTML = '<option value="">Wybierz utwór z listy...</option>';
-        songsData.forEach((song, index) => {
-            const opt = document.createElement('option');
-            opt.value = index;
-            opt.textContent = `${song.artist || '...'} - ${song.title || '...'}`;
-            select.appendChild(opt);
+    function renderList() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const list = document.getElementById('songList');
+        list.innerHTML = '';
+
+        songs.forEach((song, index) => {
+            if (song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)) {
+                const item = document.createElement('div');
+                item.className = `song-item ${index == currentIdx ? 'active' : ''}`;
+                item.innerHTML = `<div>${song.title || 'Bez tytułu'}</div><span>${song.artist || 'Nieznany'}</span>`;
+                item.onclick = () => loadSong(index);
+                list.appendChild(item);
+            }
         });
     }
 
-    function loadSelectedSong() {
-        currentIndex = document.getElementById('songSelect').value;
-        if (currentIndex === "") { document.getElementById('editorContainer').style.display = 'none'; return; }
-        const song = songsData[currentIndex];
+    function loadSong(index) {
+        currentIdx = index;
+        const song = songs[index];
         document.getElementById('editorContainer').style.display = 'block';
+        document.getElementById('viewTitle').textContent = song.title || "Edycja piosenki";
+        
         document.getElementById('edit-title').value = song.title || "";
         document.getElementById('edit-artist').value = song.artist || "";
-        document.getElementById('edit-chords').value = song.chords || "";
-        document.getElementById('edit-tempo').value = song.tempo || "";
         document.getElementById('edit-key').value = song.key || "";
+        document.getElementById('edit-tempo').value = song.tempo || "";
         document.getElementById('edit-genre').value = song.genre || "";
+        document.getElementById('edit-chords').value = song.chords || "";
+        document.getElementById('edit-notes').value = song.notes || "";
         document.getElementById('lyrics-editor').innerHTML = song.lyrics || "";
+        
+        renderList();
     }
 
-    function updateCurrentSong() {
-        if (currentIndex === -1) return;
-        songsData[currentIndex].title = document.getElementById('edit-title').value;
-        songsData[currentIndex].artist = document.getElementById('edit-artist').value;
-        songsData[currentIndex].chords = document.getElementById('edit-chords').value;
-        songsData[currentIndex].tempo = document.getElementById('edit-tempo').value;
-        songsData[currentIndex].key = document.getElementById('edit-key').value;
-        songsData[currentIndex].genre = document.getElementById('edit-genre').value;
-        songsData[currentIndex].lyrics = document.getElementById('lyrics-editor').innerHTML;
+    function saveChanges() {
+        if (currentIdx === -1) return;
+        const s = songs[currentIdx];
+        s.title = document.getElementById('edit-title').value;
+        s.artist = document.getElementById('edit-artist').value;
+        s.key = document.getElementById('edit-key').value;
+        s.tempo = document.getElementById('edit-tempo').value;
+        s.genre = document.getElementById('edit-genre').value;
+        s.chords = document.getElementById('edit-chords').value;
+        s.notes = document.getElementById('edit-notes').value;
+        s.lyrics = document.getElementById('lyrics-editor').innerHTML;
+        
+        document.getElementById('viewTitle').textContent = s.title;
+        // Aktualizacja tylko tekstów w sidebarze bez pełnego renderowania dla płynności
+        const activeItem = document.querySelector('.song-item.active');
+        if (activeItem) {
+            activeItem.querySelector('div').textContent = s.title || 'Bez tytułu';
+            activeItem.querySelector('span').textContent = s.artist || 'Nieznany';
+        }
     }
 
-    function execCmd(command, value = null) {
-        document.execCommand(command, false, value);
-        updateCurrentSong();
+    function addNewSong() {
+        const newSong = { title: "Nowy utwór", artist: "", lyrics: "", chords: "", genre: "", notes: "", key: "", tempo: "" };
+        songs.unshift(newSong); // Dodaj na początku
+        currentIdx = 0;
+        loadSong(0);
+        document.getElementById('searchInput').value = "";
+        renderList();
     }
 
-    // Funkcje Modala
+    function deleteCurrentSong() {
+        if (confirm("Czy na pewno chcesz usunąć tę piosenkę?")) {
+            songs.splice(currentIdx, 1);
+            currentIdx = -1;
+            document.getElementById('editorContainer').style.display = 'none';
+            document.getElementById('viewTitle').textContent = "Wybierz utwór";
+            renderList();
+        }
+    }
+
+    function execCmd(c, v=null) { document.execCommand(c, false, v); saveChanges(); }
+
     function showCode() {
-        if (songsData.length === 0) return alert("Wczytaj najpierw dane.");
-        document.getElementById('jsonViewer').textContent = JSON.stringify(songsData, null, 2);
+        document.getElementById('jsonViewer').textContent = JSON.stringify(songs, null, 2);
         document.getElementById('codeModal').style.display = 'block';
     }
 
-    function closeCode() {
-        document.getElementById('codeModal').style.display = 'none';
-    }
-
     function downloadJSON() {
-        if (songsData.length === 0) return;
-        const blob = new Blob([JSON.stringify(songsData, null, 2)], {type : 'application/json'});
-        const url = URL.createObjectURL(blob);
+        const blob = new Blob([JSON.stringify(songs, null, 2)], {type: 'application/json'});
         const a = document.createElement('a');
-        a.href = url;
-        a.download = "songs_updated.json";
+        a.href = URL.createObjectURL(blob);
+        a.download = "biblioteka_piosenek.json";
         a.click();
     }
 </script>
-
 </body>
 </html>
