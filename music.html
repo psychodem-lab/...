@@ -345,7 +345,7 @@
             const vocal = (s.vocal_type || "").toLowerCase();
             if (term === "male" || term === "female") return vocal === term;
             return title.includes(term) || artist.includes(term);
-        });        
+        });         
         list.innerHTML = filtered.sort((a,b)=>a.title.localeCompare(b.title)).map(s => `
             <li onclick="selectSong('${s.id}')" class="${currentId === s.id ? 'selected' : ''}">
                 <span>${s.title}</span>
@@ -439,11 +439,16 @@
 
     function startMetronome() {
         isMetroActive = true;
-        document.getElementById('btn-metro-toggle').style.color = "var(--accent-success)";
+        const btn = document.getElementById('btn-metro-toggle');
+        btn.style.color = "var(--accent-success)";
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const intervalMs = (60 / currentBPM) * 1000;
         
         metroInterval = setInterval(() => {
+            // Wizualny błysk ikonki
+            btn.style.opacity = "0.3";
+            setTimeout(() => { btn.style.opacity = "1"; }, 100);
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
@@ -458,7 +463,9 @@
     function stopMetronome() {
         clearInterval(metroInterval);
         isMetroActive = false;
-        document.getElementById('btn-metro-toggle').style.color = "inherit";
+        const btn = document.getElementById('btn-metro-toggle');
+        btn.style.color = "inherit";
+        btn.style.opacity = "1";
     }
 
     function connectMQTT(masterMode) {
