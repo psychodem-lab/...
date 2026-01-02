@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Studio Tool v5.0 - Full Version</title>
+    <title>Music Studio v5.1 - Full Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -14,9 +14,10 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 1150px; background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         
-        /* HEADER & TOP PANEL */
         header { text-align: center; margin-bottom: 15px; }
         h1 { margin: 0; color: var(--primary); font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* TOP PANEL */
         .top-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .tool-box { background: #f8f9fa; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; }
         .metronome-area { justify-content: space-between; }
@@ -37,32 +38,30 @@
 
         /* EDITOR */
         .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .field-label { font-size: 10px; font-weight: bold; color: #888; margin-bottom: 4px; display: block; text-transform: uppercase; }
         textarea { width: 100%; height: 200px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Courier New', monospace; font-size: 14px; background: #fafafa; box-sizing: border-box; resize: none; line-height: 1.4; }
-        #output-chords { background: #fdfdfd; color: var(--primary); font-weight: bold; }
 
         /* INSTRUMENT DISPLAYS */
         .display-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0 10px; }
         .inst-display { background: #222; color: var(--primary); padding: 12px; border-radius: 10px; text-align: center; font-weight: bold; border: 2px solid #444; }
         .inst-display span { color: #fff; display: block; font-size: 0.65em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
 
-        /* PIANO UI */
+        /* PIANO */
         .piano-wrap { overflow-x: auto; white-space: nowrap; padding: 10px 0; text-align: center; }
         .octave { display: inline-block; position: relative; height: 100px; }
-        .white-key, .black-key { display: inline-block; border: 1px solid #888; cursor: pointer; float: left; border-radius: 0 0 4px 4px; font-size: 9px; align-items: flex-end; display: flex; justify-content: center; padding-bottom: 2px; }
-        .white-key { width: 30px; height: 100px; background: white; }
-        .black-key { width: 18px; height: 60px; background: #222; margin: 0 -9px; z-index: 2; color: #eee; }
+        .white-key, .black-key { display: inline-block; border: 1px solid #888; cursor: pointer; float: left; border-radius: 0 0 4px 4px; font-size: 10px; font-weight: bold; align-items: flex-end; display: flex; justify-content: center; padding-bottom: 4px; }
+        .white-key { width: 34px; height: 100px; background: white; color: #555; }
+        .black-key { width: 22px; height: 60px; background: #222; margin: 0 -11px; z-index: 2; color: #eee; font-size: 8px; }
         .piano-active { background: var(--primary) !important; color: white !important; }
 
-        /* GUITAR UI */
+        /* GUITAR */
         .guitar-wrap { text-align: center; margin-top: 10px; }
-        .guitar-neck { display: inline-block; background: var(--guitar-wood); border: 2px solid #222; border-radius: 4px; padding: 5px 0; overflow-x: auto; max-width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .string { height: 26px; display: flex; align-items: center; position: relative; }
+        .guitar-neck { display: inline-block; background: var(--guitar-wood); border: 2px solid #222; border-radius: 4px; padding: 5px 0; overflow-x: auto; max-width: 100%; }
+        .string { height: 28px; display: flex; align-items: center; position: relative; }
         .string::before { content: ""; position: absolute; width: 100%; height: 2px; background: #999; z-index: 1; }
         .fret { width: 55px; height: 100%; border-right: 2px solid #c0c0c0; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; position: relative; }
         .fret-0 { width: 35px; border-right: 5px solid #e5c100; background: rgba(0,0,0,0.4); }
-        .note-dot { width: 18px; height: 18px; border-radius: 50%; background: transparent; color: transparent; font-size: 10px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
-        .guitar-active .note-dot { background: var(--success) !important; color: white !important; box-shadow: 0 0 8px var(--success); }
+        .note-dot { width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.5); color: #fff; font-size: 10px; font-weight: bold; display: flex; justify-content: center; align-items: center; opacity: 0.6; }
+        .guitar-active .note-dot { background: var(--success) !important; color: white !important; opacity: 1; box-shadow: 0 0 8px var(--success); }
         
         .inst-label { font-weight: bold; color: #666; font-size: 11px; text-transform: uppercase; margin: 15px 0 5px; text-align: center; }
     </style>
@@ -70,16 +69,19 @@
 <body>
 
 <div class="container">
-    <header><h1>Muzyczny Scyzoryk v5.0</h1></header>
+    <header><h1>Muzyczny Scyzoryk v5.1</h1></header>
 
     <div class="top-panel">
         <div class="tool-box metronome-area">
             <div class="led-group"><div id="metronome-led" class="led"></div><span id="beat-num" style="font-size:11px; font-weight:bold;">-</span></div>
-            <div style="display:flex; gap:5px;">
-                <input type="number" id="bpm-input" value="120" style="width:45px; border:1px solid #ddd; padding:4px;" onchange="updateBpm()">
+            <div style="display:flex; gap:5px; align-items: center;">
+                <input type="number" id="bpm-input" value="120" style="width:50px; height: 25px;" onchange="updateBpm()">
                 <select id="meter-input" onchange="updateMeter()"><option value="0">Brak</option><option value="3">3/4</option><option value="4" selected>4/4</option><option value="6">6/8</option></select>
             </div>
-            <button class="btn" id="btn-metronome" onclick="toggleMetronome()"><i class="fas fa-play"></i></button>
+            <div style="display:flex; gap:5px;">
+                <button class="btn" id="btn-metronome" onclick="toggleMetronome()"><i class="fas fa-play"></i></button>
+                <button class="btn" onclick="tapTempo()">TAP</button>
+            </div>
         </div>
         <div class="tool-box key-area">
             <div style="font-weight:bold; font-size:13px;">Ranking Tonacji:</div>
@@ -96,8 +98,8 @@
     </div>
 
     <div class="editor-grid">
-        <div><span class="field-label">Wejście</span><textarea id="input-chords" oninput="process()"></textarea></div>
-        <div><span class="field-label">Wynik</span><textarea id="output-chords" readonly></textarea></div>
+        <div><textarea id="input-chords" placeholder="Wklej tekst z akordami..." oninput="process()"></textarea></div>
+        <div><textarea id="output-chords" readonly placeholder="Wynik transpozycji..."></textarea></div>
     </div>
 
     <div class="display-row">
@@ -105,48 +107,55 @@
         <div class="inst-display"><span>Gitara</span><div id="guitar-res">---</div><button class="btn" style="font-size:9px; margin:5px auto 0;" onclick="clearGuitar()">Reset</button></div>
     </div>
 
-    <div class="inst-label">Pianino (3 Oktawy)</div>
+    <div class="inst-label">Pianino</div>
     <div class="piano-wrap"><div id="piano-body"></div></div>
 
-    <div class="inst-label">Gitara (Standard E)</div>
+    <div class="inst-label">Gitara</div>
     <div class="guitar-wrap"><div class="guitar-neck" id="guitar-body"></div></div>
 </div>
 
 <script>
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const CHORD_DATA = { '': [0,4,7], 'm': [0,3,7], '7': [0,4,7,10], 'maj7': [0,4,7,11], 'm7': [0,3,7,10], 'sus4': [0,5,7], 'sus2': [0,2,7], 'dim': [0,3,6], 'aug': [0,4,8], '6': [0,4,7,9] };
-    const KEYS_DB = { 'C-dur': ['C','Dm','Em','F','G','Am','Bdim'], 'G-dur': ['G','Am','Bm','C','D','Em','F#dim'], 'D-dur': ['D','Em','F#m','G','A','Bm','C#dim'], 'A-dur': ['A','Bm','C#m','D','E','F#m','G#dim'], 'E-dur': ['E','F#m','G#m','A','B','C#m','D#dim'], 'F-dur': ['F','Gm','Am','Bb','C','Dm','Edim'], 'Am-moll': ['Am','Bdim','C','Dm','Em','F','G'], 'Em-moll': ['Em','F#dim','G','Am','Bm','C','D'], 'Dm-moll': ['Dm','Edim','F','Gm','Am','Bb','C'] };
+    const KEYS_DB = { 'C-dur': ['C','Dm','Em','F','G','Am','Bdim'], 'G-dur': ['G','Am','Bm','C','D','Em','F#dim'], 'D-dur': ['D','Em','F#m','G','A','Bm','C#dim'], 'A-dur': ['A','Bm','C#m','D','E','F#m','G#dim'], 'F-dur': ['F','Gm','Am','Bb','C','Dm','Edim'], 'Am-moll': ['Am','Bdim','C','Dm','Em','F','G'], 'Em-moll': ['Em','F#dim','G','Am','Bm','C','D'] };
 
     let transpose = 0;
     let chordStyle = 'PL';
 
-    // --- INICJALIZACJA ---
     function init() {
-        // Pianino
-        const pb = document.getElementById('piano-body');
+        renderPiano();
+        renderGuitar();
+    }
+
+    // --- RENDEROWANIE Z NAZWAMI ---
+    function renderPiano() {
+        const pb = document.getElementById('piano-body'); pb.innerHTML = '';
         const pat = [1,0,1,0,1,1,0,1,0,1,0,1];
         for(let o=2; o<=4; o++) {
             const oct = document.createElement('div'); oct.className = 'octave';
             SCALE.forEach((n, i) => {
                 const k = document.createElement('div'); k.className = pat[i] ? 'white-key' : 'black-key';
-                k.dataset.note = n; k.onclick = () => {
-                    if(k.classList.contains('piano-active')) k.classList.remove('piano-active');
-                    else if(document.querySelectorAll('.piano-active').length < 4) k.classList.add('piano-active');
+                k.dataset.note = n; k.textContent = formatN(n);
+                k.onclick = () => {
+                    k.classList.toggle('piano-active');
                     analyze('piano');
                 };
                 oct.appendChild(k);
             });
             pb.appendChild(oct);
         }
-        // Gitara
-        const gb = document.getElementById('guitar-body');
+    }
+
+    function renderGuitar() {
+        const gb = document.getElementById('guitar-body'); gb.innerHTML = '';
         ['E4','B3','G3','D3','A2','E2'].forEach((root, sIdx) => {
             const str = document.createElement('div'); str.className = 'string';
             let rIdx = SCALE.indexOf(root.replace(/\d/,''));
             for(let f=0; f<=12; f++) {
                 const fret = document.createElement('div'); fret.className = `fret fret-${f}`;
-                fret.dataset.note = SCALE[(rIdx + f) % 12];
-                fret.innerHTML = `<div class="note-dot">${fret.dataset.note}</div>`;
+                let noteName = SCALE[(rIdx + f) % 12];
+                fret.dataset.note = noteName;
+                fret.innerHTML = `<div class="note-dot">${formatN(noteName)}</div>`;
                 fret.onclick = () => {
                     const was = fret.classList.contains('guitar-active');
                     str.querySelectorAll('.fret').forEach(el => el.classList.remove('guitar-active'));
@@ -159,7 +168,13 @@
         });
     }
 
-    // --- ANALIZA INSTRUMENTÓW ---
+    // --- ANALIZA I STYL ---
+    function formatN(n) {
+        if(chordStyle === 'PL') { if(n==='B') return 'H'; if(n==='A#') return 'B'; }
+        else { if(n==='A#') return 'Bb'; }
+        return n;
+    }
+
     function analyze(inst) {
         const active = document.querySelectorAll(`.${inst}-active`);
         const resDisp = document.getElementById(`${inst}-res`);
@@ -179,21 +194,14 @@
         resDisp.textContent = "???";
     }
 
-    function formatN(n) {
-        if(chordStyle === 'PL') { if(n==='B') return 'H'; if(n==='A#') return 'B'; }
-        return n;
-    }
-
-    function clearPiano() { document.querySelectorAll('.piano-active').forEach(e => e.classList.remove('piano-active')); analyze('piano'); }
-    function clearGuitar() { document.querySelectorAll('.guitar-active').forEach(e => e.classList.remove('guitar-active')); analyze('guitar'); }
-
-    // --- TRANSPOZYCJA I TEKST ---
-    function changeTrans(v) { transpose += v; document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose; process(); }
     function toggleStyle() { 
         chordStyle = chordStyle === 'PL' ? 'EN' : 'PL';
         document.getElementById('btn-style').textContent = `Styl: ${chordStyle === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
-        process(); analyze('piano'); analyze('guitar');
+        renderPiano(); renderGuitar(); process(); analyze('piano'); analyze('guitar');
     }
+
+    // --- TRANSPOZYCJA ---
+    function changeTrans(v) { transpose += v; document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose; process(); }
 
     function process() {
         const inp = document.getElementById('input-chords').value;
@@ -213,32 +221,44 @@
     }
 
     function updateRanking(chords) {
-        if(!chords.length) { document.getElementById('key-ranking').innerHTML = '<li>Brak akordów...</li>'; return; }
         let scores = {}; Object.keys(KEYS_DB).forEach(k => scores[k] = 0);
         chords.forEach(c => {
-            let cl = c.replace(/(7|maj7|m7|sus4|add9)/g, '').split('/')[0];
+            let cl = c.replace(/(7|maj7|m7|sus4)/g, '').split('/')[0];
             if(c.includes('m') && !cl.endsWith('m')) cl += 'm';
             for(let k in KEYS_DB) if(KEYS_DB[k].includes(cl)) scores[k]++;
         });
         let sorted = Object.keys(scores).filter(k => scores[k]>0).sort((a,b) => scores[b]-scores[a]);
-        document.getElementById('key-ranking').innerHTML = sorted.slice(0,3).map(k => `<li class="ranking-item"><span>${k}</span><span>${scores[k]} pkt</span></li>`).join('') || '<li>Brak dopasowania</li>';
+        document.getElementById('key-ranking').innerHTML = sorted.slice(0,3).map(k => `<li class="ranking-item"><span>${k}</span><span>${scores[k]} pkt</span></li>`).join('') || '<li>Wklej tekst...</li>';
     }
 
+    function clearPiano() { document.querySelectorAll('.piano-active').forEach(e => e.classList.remove('piano-active')); analyze('piano'); }
+    function clearGuitar() { document.querySelectorAll('.guitar-active').forEach(e => e.classList.remove('guitar-active')); analyze('guitar'); }
     async function copyResult() { await navigator.clipboard.writeText(document.getElementById('output-chords').value); }
 
-    // --- METRONOM ---
+    // --- METRONOM & TAP TEMPO ---
     let audioCtx, isPlaying = false, nextTime = 0, bpm = 120, meter = 4, beat = 0, timer;
+    let lastTap = 0, taps = [];
+
+    function tapTempo() {
+        const now = Date.now();
+        if (lastTap > 0 && (now - lastTap) < 2000) {
+            taps.push(now - lastTap); if(taps.length > 4) taps.shift();
+            bpm = Math.round(60000 / (taps.reduce((a,b) => a+b) / taps.length));
+            document.getElementById('bpm-input').value = bpm;
+        } else { taps = []; }
+        lastTap = now;
+    }
+
     function updateBpm() { bpm = parseInt(document.getElementById('bpm-input').value) || 120; }
     function updateMeter() { meter = parseInt(document.getElementById('meter-input').value); beat = 0; }
     function toggleMetronome() {
-        isPlaying = !isPlaying; 
-        const btn = document.getElementById('btn-metronome');
+        isPlaying = !isPlaying;
         if(isPlaying) {
             if(!audioCtx) audioCtx = new AudioContext();
             nextTime = audioCtx.currentTime; runMet();
-            btn.innerHTML = '<i class="fas fa-stop"></i>'; btn.classList.add('btn-danger');
+            document.getElementById('btn-metronome').innerHTML = '<i class="fas fa-stop"></i>';
         } else {
-            clearTimeout(timer); btn.innerHTML = '<i class="fas fa-play"></i>'; btn.classList.remove('btn-danger');
+            clearTimeout(timer); document.getElementById('btn-metronome').innerHTML = '<i class="fas fa-play"></i>';
             document.getElementById('beat-num').textContent = '-';
         }
     }
