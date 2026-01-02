@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Studio Tool v2.0</title>
+    <title>Music Studio Tool v3.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -17,6 +17,10 @@
             --accent: #00d4ff;
             --key-bg: #f3f0ff;
             --key-text: #6f42c1;
+
+            --piano-key-white: #ffffff;
+            --piano-key-black: #222222;
+            --piano-key-active: var(--primary);
         }
 
         body {
@@ -132,6 +136,75 @@
         textarea:focus { outline: none; border-color: var(--primary); background: white; }
         #output-chords { background: #fdfdfd; color: var(--primary); font-weight: bold; }
 
+        /* Piano */
+        .piano-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .piano-display {
+            background: #222;
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .piano {
+            display: inline-block;
+            position: relative;
+            user-select: none;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 10px; /* Dla scrollbara */
+        }
+        .octave {
+            display: inline-block;
+            position: relative;
+        }
+        .white-key, .black-key {
+            display: inline-block;
+            box-sizing: border-box;
+            border: 1px solid #888;
+            cursor: pointer;
+            position: relative;
+            float: left;
+            border-radius: 0 0 5px 5px;
+            font-size: 0.7em;
+            color: #555;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 5px;
+        }
+        .white-key {
+            width: 40px;
+            height: 150px;
+            background-color: var(--piano-key-white);
+            z-index: 1;
+        }
+        .black-key {
+            width: 25px;
+            height: 100px;
+            background-color: var(--piano-key-black);
+            margin: 0 -12.5px;
+            z-index: 2;
+            color: #ccc;
+        }
+        .white-key.active, .black-key.active {
+            background-color: var(--piano-key-active);
+            box-shadow: 0 0 10px var(--piano-key-active);
+            z-index: 3;
+        }
+        .white-key.active { color: white; }
+        .black-key.active { color: white; }
+
         @media (max-width: 850px) {
             .top-panel, .editor-grid { grid-template-columns: 1fr; }
         }
@@ -198,41 +271,39 @@
             <textarea id="output-chords" readonly placeholder="Wynik pojawi się tutaj..."></textarea>
         </div>
     </div>
+
+    <div class="piano-container">
+        <div class="piano-display">
+            <i class="fas fa-lightbulb"></i> <span id="detected-chord">Kliknij klawisze (max 4)</span>
+            <button class="btn" style="margin-left: 10px;" onclick="clearPiano()"><i class="fas fa-broom"></i> Wyczyść</button>
+        </div>
+        <div class="piano" id="piano-keys">
+            </div>
+    </div>
+
 </div>
 
 <script>
     // --- BAZA DANYCH TONACJI (24 KLUCZE) ---
     const KEYS_DATA = {
-        'C-dur': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'],
-        'C#-dur': ['C#', 'D#m', 'Fm', 'F#', 'G#', 'A#m', 'Cdim'],
-        'D-dur': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#dim'],
-        'Eb-dur': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
-        'E-dur': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#dim'],
-        'F-dur': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
-        'F#-dur': ['F#', 'G#m', 'A#m', 'B', 'C#', 'D#m', 'Fdim'],
-        'G-dur': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#dim'],
-        'Ab-dur': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
-        'A-dur': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#dim'],
-        'Bb-dur': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'],
-        'B-dur': ['B', 'C#m', 'D#m', 'E', 'F#', 'G#m', 'A#dim'],
-        'Am-moll': ['Am', 'Bdim', 'C', 'Dm', 'Em', 'F', 'G'],
-        'Bbm-moll': ['Bbm', 'Cdim', 'Db', 'Ebm', 'Fm', 'Gb', 'Ab'],
-        'Bm-moll': ['Bm', 'C#dim', 'D', 'Em', 'F#m', 'G', 'A'],
-        'Cm-moll': ['Cm', 'Ddim', 'Eb', 'Fm', 'Gm', 'Ab', 'Bb'],
-        'C#m-moll': ['C#m', 'D#dim', 'E', 'F#m', 'G#m', 'A', 'B'],
-        'Dm-moll': ['Dm', 'Edim', 'F', 'Gm', 'Am', 'Bb', 'C'],
-        'Ebm-moll': ['Ebm', 'Fdim', 'Gb', 'Abm', 'Bbm', 'Cb', 'Db'],
-        'Em-moll': ['Em', 'F#dim', 'G', 'Am', 'Bm', 'C', 'D'],
-        'Fm-moll': ['Fm', 'Gdim', 'Ab', 'Bbm', 'Cm', 'Db', 'Eb'],
-        'F#m-moll': ['F#m', 'G#dim', 'A', 'Bm', 'C#m', 'D', 'E'],
-        'Gm-moll': ['Gm', 'Adim', 'Bb', 'Cm', 'Dm', 'Eb', 'F'],
-        'G#m-moll': ['G#m', 'A#dim', 'B', 'C#m', 'D#m', 'E', 'F#']
+        'C-dur': ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bdim'], 'C#-dur': ['C#', 'D#m', 'Fm', 'F#', 'G#', 'A#m', 'Cdim'],
+        'D-dur': ['D', 'Em', 'F#m', 'G', 'A', 'Bm', 'C#dim'], 'Eb-dur': ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
+        'E-dur': ['E', 'F#m', 'G#m', 'A', 'B', 'C#m', 'D#dim'], 'F-dur': ['F', 'Gm', 'Am', 'Bb', 'C', 'Dm', 'Edim'],
+        'F#-dur': ['F#', 'G#m', 'A#m', 'B', 'C#', 'D#m', 'Fdim'], 'G-dur': ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F#dim'],
+        'Ab-dur': ['Ab', 'Bbm', 'Cm', 'Db', 'Eb', 'Fm', 'Gdim'], 'A-dur': ['A', 'Bm', 'C#m', 'D', 'E', 'F#m', 'G#dim'],
+        'Bb-dur': ['Bb', 'Cm', 'Dm', 'Eb', 'F', 'Gm', 'Adim'], 'B-dur': ['B', 'C#m', 'D#m', 'E', 'F#', 'G#m', 'A#dim'],
+        'Am-moll': ['Am', 'Bdim', 'C', 'Dm', 'Em', 'F', 'G'], 'Bbm-moll': ['Bbm', 'Cdim', 'Db', 'Ebm', 'Fm', 'Gb', 'Ab'],
+        'Bm-moll': ['Bm', 'C#dim', 'D', 'Em', 'F#m', 'G', 'A'], 'Cm-moll': ['Cm', 'Ddim', 'Eb', 'Fm', 'Gm', 'Ab', 'Bb'],
+        'C#m-moll': ['C#m', 'D#dim', 'E', 'F#m', 'G#m', 'A', 'B'], 'Dm-moll': ['Dm', 'Edim', 'F', 'Gm', 'Am', 'Bb', 'C'],
+        'Ebm-moll': ['Ebm', 'Fdim', 'Gb', 'Abm', 'Bbm', 'Cb', 'Db'], 'Em-moll': ['Em', 'F#dim', 'G', 'Am', 'Bm', 'C', 'D'],
+        'Fm-moll': ['Fm', 'Gdim', 'Ab', 'Bbm', 'Cm', 'Db', 'Eb'], 'F#m-moll': ['F#m', 'G#dim', 'A', 'Bm', 'C#m', 'D', 'E'],
+        'Gm-moll': ['Gm', 'Adim', 'Bb', 'Cm', 'Dm', 'Eb', 'F'], 'G#m-moll': ['G#m', 'A#dim', 'B', 'C#m', 'D#m', 'E', 'F#']
     };
 
-    // --- LOGIKA ANALIZY ---
+    // --- LOGIKA ANALIZY TONACJI ---
     function runAnalysis(chords) {
         if (chords.length === 0) {
-            document.getElementById('key-ranking').innerHTML = '<li>Wpisz akordy...</li>';
+            document.getElementById('key-ranking').innerHTML = '<li>Wklej akordy poniżej...</li>';
             return;
         }
 
@@ -241,13 +312,13 @@
 
         chords.forEach((chord, index) => {
             let clean = chord.replace(/(7|maj7|sus4|add9|9|6|m7|maj)/g, ''); 
-            if (chord.includes('m') && !clean.endsWith('m')) clean += 'm'; // Zachowaj moll
+            if (chord.includes('m') && !clean.endsWith('m') && !clean.endsWith('dim')) clean += 'm'; 
             if (clean.includes('/')) clean = clean.split('/')[0];
 
             for (let key in KEYS_DATA) {
                 if (KEYS_DATA[key].includes(clean)) {
                     scores[key] += 1;
-                    if (index === 0) scores[key] += 4; // Silna waga dla pierwszego akordu
+                    if (index === 0) scores[key] += 4;
                     if (index === chords.length - 1) scores[key] += 2;
                 }
             }
@@ -258,23 +329,27 @@
             .sort((a, b) => scores[b] - scores[a]);
 
         let html = '';
-        sorted.slice(0, 3).forEach((key, i) => {
-            html += `<li class="ranking-item" style="opacity: ${1 - i*0.2}">
-                <span>${i === 0 ? '<strong>★ ' + key + '</strong>' : key}</span>
-                <span>${scores[key]} pkt</span>
-            </li>`;
-        });
-        document.getElementById('key-ranking').innerHTML = html || '<li>Nie dopasowano tonacji</li>';
+        if (sorted.length === 0) {
+            html = '<li>Nie dopasowano tonacji</li>';
+        } else {
+            sorted.slice(0, 3).forEach((key, i) => {
+                html += `<li class="ranking-item" style="opacity: ${1 - i*0.2}">
+                    <span>${i === 0 ? '<strong>★ ' + key + '</strong>' : key}</span>
+                    <span>${scores[key]} pkt</span>
+                </li>`;
+            });
+        }
+        document.getElementById('key-ranking').innerHTML = html;
     }
 
-    // --- TRANSPOZYCJA (Twoja Metoda) ---
+    // --- LOGIKA TRANSPOZYCJI ---
     const SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     let transpose = 0;
     let chordStyle = 'PL';
 
-    function changeTrans(v) { transpose += v; sync(); }
-    function resetTrans() { transpose = 0; sync(); }
-    function sync() { 
+    function changeTrans(v) { transpose += v; syncTransposer(); }
+    function resetTrans() { transpose = 0; syncTransposer(); }
+    function syncTransposer() { 
         document.getElementById('transpose-val').textContent = (transpose > 0 ? '+' : '') + transpose;
         process(); 
     }
@@ -307,11 +382,11 @@
         const input = document.getElementById('input-chords').value;
         const regex = /([a-gA-G][#b]?[\w\d\/#\-]*|[hH][\w\d\/#\-]*)/g;
         const found = input.match(regex) || [];
-        runAnalysis(found);
+        runAnalysis(found); // Wywołanie analizy tonacji
         document.getElementById('output-chords').value = input.replace(regex, m => transChord(m, transpose));
     }
 
-    // --- METRONOM ---
+    // --- LOGIKA METRONOMU ---
     let audioCtx = null, isPlaying = false, nextNoteTime = 0.0, timerID = null;
     let bpm = 120, meter = 4, currentBeat = 0, lastTap = 0, tapTimes = [];
 
@@ -371,6 +446,145 @@
         btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano';
         setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> Kopiuj wynik', 2000);
     }
+
+
+    // --- PIANINO I WYKRYWANIE AKORDÓW ---
+    const PIANO_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    let selectedNotes = []; // Przechowuje kliknięte nuty jako np. ['C3', 'E3', 'G3']
+
+    // Baza wzorców akordów (interwały w półtonach od dźwięku bazowego)
+    const CHORD_PATTERNS = {
+        'major': [0, 4, 7],      // C-E-G
+        'minor': [0, 3, 7],      // C-Eb-G
+        '7': [0, 4, 7, 10],      // C-E-G-Bb
+        'maj7': [0, 4, 7, 11],   // C-E-G-B
+        'm7': [0, 3, 7, 10],     // C-Eb-G-Bb
+        'dim': [0, 3, 6],        // C-Eb-Gb
+        'aug': [0, 4, 8],        // C-E-G#
+        'sus4': [0, 5, 7],       // C-F-G
+        'sus2': [0, 2, 7],       // C-D-G
+        'add9': [0, 4, 7, 14],   // C-E-G-D (D jako 9)
+        '6': [0, 4, 7, 9],       // C-E-G-A
+        'm6': [0, 3, 7, 9],      // C-Eb-G-A
+    };
+
+    function generatePianoKeys() {
+        const pianoDiv = document.getElementById('piano-keys');
+        pianoDiv.innerHTML = '';
+        const whiteKeysPattern = [true, false, true, false, true, true, false, true, false, true, false, true];
+
+        for (let octave = 2; octave <= 4; octave++) { // Trzy oktawy: od C2 do B4
+            const octaveDiv = document.createElement('div');
+            octaveDiv.className = 'octave';
+            
+            PIANO_NOTES.forEach((note, index) => {
+                const key = document.createElement('div');
+                key.dataset.note = note + octave;
+                key.dataset.baseNote = note; // Nuta bez oktawy
+                key.onclick = () => togglePianoKey(key);
+
+                if (whiteKeysPattern[index]) {
+                    key.className = 'white-key';
+                    key.textContent = note + octave;
+                } else {
+                    key.className = 'black-key';
+                    key.textContent = note + octave;
+                }
+                octaveDiv.appendChild(key);
+            });
+            pianoDiv.appendChild(octaveDiv);
+        }
+    }
+
+    function togglePianoKey(keyElement) {
+        const note = keyElement.dataset.note;
+        const index = selectedNotes.indexOf(note);
+
+        if (index > -1) {
+            selectedNotes.splice(index, 1);
+            keyElement.classList.remove('active');
+        } else {
+            if (selectedNotes.length < 4) { // Max 4 nuty
+                selectedNotes.push(note);
+                keyElement.classList.add('active');
+            } else {
+                alert('Maksymalnie 4 nuty naraz.');
+                return;
+            }
+        }
+        detectChordFromPiano();
+    }
+
+    function clearPiano() {
+        selectedNotes = [];
+        document.querySelectorAll('.piano-container .active').forEach(el => el.classList.remove('active'));
+        document.getElementById('detected-chord').textContent = 'Kliknij klawisze (max 4)';
+    }
+
+    function detectChordFromPiano() {
+        const display = document.getElementById('detected-chord');
+        if (selectedNotes.length === 0) {
+            display.textContent = 'Kliknij klawisze (max 4)';
+            return;
+        }
+        if (selectedNotes.length === 1) {
+            display.textContent = selectedNotes[0];
+            return;
+        }
+
+        // 1. Znormalizuj nuty do jednej oktawy (zamień na wartości półtonów od C)
+        let normalizedNotes = selectedNotes.map(noteOctave => {
+            let note = noteOctave.slice(0, -1); // Usuń oktawę
+            if (note.length === 1 && note === 'H') note = 'B'; // Polski styl H na B
+            else if (note.length === 2 && note === 'B' && chordStyle === 'PL') note = 'A#'; // Polski styl B na A#
+            return SCALE.indexOf(note); // Numer półtonu (C=0, C#=1...)
+        }).sort((a, b) => a - b); // Sortuj numery półtonów
+
+        // Usuń duplikaty (np. C3, C4 to tylko C)
+        normalizedNotes = [...new Set(normalizedNotes)];
+
+        if (normalizedNotes.length < 2) {
+            display.textContent = 'Kliknij więcej nut';
+            return;
+        }
+
+        // 2. Sprawdź inwersje - wypróbuj każdą nutę jako dźwięk bazowy
+        for (let i = 0; i < normalizedNotes.length; i++) {
+            const rootNoteValue = normalizedNotes[i]; // Nuta bazowa (jako półton)
+            
+            // Tworzenie interwałów od nuty bazowej
+            let intervals = normalizedNotes.map(noteValue => {
+                let interval = noteValue - rootNoteValue;
+                if (interval < 0) interval += 12; // Przenieś nuty 'poniżej' na górę
+                return interval;
+            }).sort((a,b) => a-b);
+            
+            // Sprawdź wzorce akordów
+            for (let chordType in CHORD_PATTERNS) {
+                const pattern = CHORD_PATTERNS[chordType];
+                if (intervals.length === pattern.length && 
+                    intervals.every((val, idx) => val === pattern[idx])) {
+                    
+                    let rootName = SCALE[rootNoteValue];
+                    if (chordStyle === 'PL') {
+                         if (rootName === 'B') rootName = 'H';   
+                         else if (rootName === 'A#') rootName = 'B';
+                    } else if (rootName === 'A#') rootName = 'Bb'; // W EN A# to Bb
+
+                    display.textContent = rootName + (chordType === 'major' ? '' : chordType);
+                    return;
+                }
+            }
+        }
+        display.textContent = 'Nieznany akord (' + selectedNotes.map(n => n.slice(0, -1)).join(', ') + ')';
+    }
+
+    // Inicjalizacja pianina po załadowaniu strony
+    window.onload = () => {
+        generatePianoKeys();
+        syncTransposer(); // Synchronizacja transpozera przy starcie
+        process(); // Wykonaj pierwszą analizę
+    };
 </script>
 
 </body>
