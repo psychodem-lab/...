@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Studio Pro v6.0</title>
+    <title>Music Studio Pro v6.1 - Tuner Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -15,6 +15,8 @@
             --text-muted: #9494a0;
             --border: #3d3d4d;
             --success: #2ec4b6;
+            --warning: #fca311;
+            --danger: #ef476f;
             --key-white: #fffff0;
             --key-black: #111;
         }
@@ -61,8 +63,30 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            position: relative;
         }
 
+        /* TUNER STYLES */
+        .tuner-area { flex-direction: column; justify-content: center; min-height: 100px; }
+        .tuner-display { text-align: center; width: 100%; }
+        .note-big { font-size: 42px; font-weight: 800; color: var(--text-main); line-height: 1; margin-bottom: 5px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .note-big.in-tune { color: var(--success); text-shadow: 0 0 20px var(--success); }
+        .freq-small { font-size: 12px; color: var(--text-muted); font-family: monospace; }
+        
+        .tuner-bar-bg {
+            width: 100%; height: 8px; background: #111; border-radius: 4px; margin-top: 10px;
+            position: relative; overflow: hidden; border: 1px solid #444;
+        }
+        .tuner-center-mark {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #666; transform: translateX(-50%); z-index: 1;
+        }
+        .tuner-needle {
+            width: 12px; height: 100%; background: var(--warning); border-radius: 4px;
+            position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+            transition: left 0.1s ease-out, background 0.2s;
+        }
+        .tuner-needle.perfect { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        
         /* METRONOME */
         .metronome-area { justify-content: space-between; }
         .led-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 40px; }
@@ -101,6 +125,7 @@
         .btn:active { transform: translateY(0); }
         .btn-primary { background: var(--primary); color: #000; }
         .btn-accent { background: var(--accent); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
         
         .trans-display {
             font-size: 24px; font-weight: bold; color: var(--primary);
@@ -164,8 +189,8 @@
             content: ''; position: absolute; left: 0; right: 0; height: 2px;
             background: #b0bec5; box-shadow: 0 1px 2px rgba(0,0,0,0.5); z-index: 1; pointer-events: none;
         }
-        .string:nth-child(1)::after, .string:nth-child(2)::after { height: 1px; opacity: 0.8; } /* Cieńsze struny */
-        .string:nth-child(5)::after, .string:nth-child(6)::after { height: 3px; } /* Grubsze struny */
+        .string:nth-child(1)::after, .string:nth-child(2)::after { height: 1px; opacity: 0.8; }
+        .string:nth-child(5)::after, .string:nth-child(6)::after { height: 3px; }
 
         .fret {
             width: 50px; height: 100%; border-right: 3px solid #9e9e9e;
@@ -189,10 +214,32 @@
 <div class="container">
     <header>
         <h1><i class="fas fa-music"></i> Music Studio <span style="font-size:0.6em; color:var(--text-muted)">PRO</span></h1>
-        <div class="version-badge">v6.0 Data & Facts Edition</div>
+        <div class="version-badge">v6.1 Tuner Edition</div>
     </header>
 
     <div class="top-panel">
+        
+        <div class="tool-box tuner-area">
+            <div id="tuner-start-view" style="text-align:center;">
+                <div style="font-size:12px; color:#aaa; margin-bottom:8px;">TUNER GITAROWY</div>
+                <button class="btn btn-danger" onclick="Tuner.start()"><i class="fas fa-microphone"></i> Włącz</button>
+            </div>
+            
+            <div id="tuner-active-view" style="display:none; width:100%">
+                <div class="tuner-display">
+                    <div class="note-big" id="tuner-note">--</div>
+                    <div class="freq-small"><span id="tuner-freq">0.0</span> Hz</div>
+                </div>
+                <div class="tuner-bar-bg">
+                    <div class="tuner-center-mark"></div>
+                    <div class="tuner-needle" id="tuner-needle"></div>
+                </div>
+                <div style="text-align:center; margin-top:5px;">
+                    <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="Tuner.stop()">STOP</button>
+                </div>
+            </div>
+        </div>
+
         <div class="tool-box metronome-area">
             <div class="led-wrapper">
                 <div id="metronome-led" class="led"></div>
@@ -217,16 +264,16 @@
 
             <div style="display:flex; flex-direction:column; gap:5px;">
                 <button class="btn btn-primary" id="btn-play" onclick="Metronome.toggle()">
-                    <i class="fas fa-play"></i> START
+                    <i class="fas fa-play"></i>
                 </button>
                 <button class="btn" onclick="Metronome.tap()">TAP</button>
             </div>
         </div>
 
         <div class="tool-box key-area">
-            <div class="ranking-header">Wykryta tonacja (prawdopodobieństwo)</div>
+            <div class="ranking-header">Wykryta tonacja</div>
             <ul id="key-ranking" class="ranking-list">
-                <li style="text-align:center; padding:10px; color:#666;">Wklej akordy, aby przeanalizować</li>
+                <li style="text-align:center; padding:10px; color:#666;">Wklej akordy...</li>
             </ul>
         </div>
     </div>
@@ -286,8 +333,7 @@
 
 <script>
 /**
- * AUDIO ENGINE
- * Prosty syntezator oparty na Web Audio API do generowania dźwięków.
+ * AUDIO ENGINE & TUNER
  */
 const AudioEngine = {
     ctx: null,
@@ -307,44 +353,163 @@ const AudioEngine = {
 
         osc.type = type;
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        
-        // Obwiednia dźwięku (ADSR - simplified)
         gain.gain.setValueAtTime(0, this.ctx.currentTime);
         gain.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
+    }
+};
+
+const Tuner = {
+    analyser: null,
+    source: null,
+    rafId: null,
+    buffer: null,
+    isRunning: false,
+
+    async start() {
+        if(this.isRunning) return;
+        AudioEngine.init();
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.analyser = AudioEngine.ctx.createAnalyser();
+            this.analyser.fftSize = 2048;
+            this.buffer = new Float32Array(this.analyser.fftSize);
+            
+            this.source = AudioEngine.ctx.createMediaStreamSource(stream);
+            this.source.connect(this.analyser);
+            
+            document.getElementById('tuner-start-view').style.display = 'none';
+            document.getElementById('tuner-active-view').style.display = 'block';
+            
+            this.isRunning = true;
+            this.update();
+        } catch (err) {
+            alert("Błąd dostępu do mikrofonu: " + err.message);
+        }
     },
 
-    playClick(accent = false) {
-        this.init();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        // Niższe tony są przyjemniejsze dla ucha niż wysokie piski
-        osc.frequency.value = accent ? 800 : 400; 
-        osc.type = 'triangle'; // Trójkątny brzmi bardziej jak "bip" niż sinus
-        
-        gain.gain.setValueAtTime(0, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.5, this.ctx.currentTime + 0.005);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+    stop() {
+        if(this.source) {
+            this.source.disconnect();
+            this.source.mediaStream.getTracks().forEach(t => t.stop());
+        }
+        this.isRunning = false;
+        cancelAnimationFrame(this.rafId);
+        document.getElementById('tuner-start-view').style.display = 'block';
+        document.getElementById('tuner-active-view').style.display = 'none';
+    },
 
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.05);
+    update() {
+        if(!this.isRunning) return;
+        this.analyser.getFloatTimeDomainData(this.buffer);
+        const ac = this.autoCorrelate(this.buffer, AudioEngine.ctx.sampleRate);
+        
+        this.updateUI(ac);
+        this.rafId = requestAnimationFrame(() => this.update());
+    },
+
+    // Algorytm autokorelacji (najlepszy dla gitary w przeglądarce)
+    autoCorrelate(buf, sampleRate) {
+        const SIZE = buf.length;
+        const MAX_SAMPLES = Math.floor(SIZE/2);
+        
+        // 1. RMS (Bramka szumów)
+        let rms = 0;
+        for (let i=0; i<SIZE; i++) { rms += buf[i]*buf[i]; }
+        rms = Math.sqrt(rms/SIZE);
+        if (rms < 0.01) return -1; // Zbyt cicho
+
+        // 2. Korelacja
+        let best_offset = -1;
+        let best_correlation = 0;
+        let foundGoodCorrelation = false;
+        let correlations = new Array(MAX_SAMPLES);
+
+        for (let offset = 0; offset < MAX_SAMPLES; offset++) {
+            let correlation = 0;
+            for (let i=0; i<MAX_SAMPLES; i++) {
+                correlation += Math.abs((buf[i]) - (buf[i+offset]));
+            }
+            correlation = 1 - (correlation/MAX_SAMPLES);
+            correlations[offset] = correlation;
+            if ((correlation > 0.9) && (correlation > best_correlation)) {
+                foundGoodCorrelation = true;
+                if (correlation > best_correlation) {
+                    best_correlation = correlation;
+                    best_offset = offset;
+                }
+            } else if (foundGoodCorrelation) {
+                // Shift to find the peak precisely
+                let shift = (correlations[best_offset+1] - correlations[best_offset-1])/correlations[best_offset];  
+                return sampleRate/(best_offset+(8*shift));
+            }
+        }
+        if (best_correlation > 0.01) {
+            return sampleRate/best_offset;
+        }
+        return -1;
+    },
+
+    updateUI(pitch) {
+        const noteDiv = document.getElementById('tuner-note');
+        const freqDiv = document.getElementById('tuner-freq');
+        const needle = document.getElementById('tuner-needle');
+        
+        if (pitch === -1) {
+            // Brak sygnału
+            freqDiv.textContent = "0.0";
+            return;
+        }
+
+        freqDiv.textContent = pitch.toFixed(1);
+        
+        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const noteNum = 12 * (Math.log(pitch / 440) / Math.log(2)) + 69;
+        const roundedNote = Math.round(noteNum);
+        const noteName = noteStrings[roundedNote % 12];
+        
+        // Centy (odchylenie)
+        const detune = Math.floor(1200 * Math.log(pitch / (440 * Math.pow(2, (roundedNote - 69)/12))) / Math.log(2));
+
+        // Formatowanie PL/EN
+        let dispNote = noteName;
+        if(Globals.style === 'PL') {
+            if(dispNote === 'B') dispNote = 'H';
+            else if(dispNote === 'A#') dispNote = 'B';
+        } else {
+            if(dispNote === 'A#') dispNote = 'Bb';
+        }
+
+        noteDiv.textContent = dispNote;
+
+        // Visual needle logic
+        // Range: -50 cents to +50 cents maps to 0% to 100% left
+        let percent = 50 + (detune); 
+        if(percent < 5) percent = 5; if(percent > 95) percent = 95;
+        
+        needle.style.left = percent + "%";
+        
+        if(Math.abs(detune) < 5) {
+            needle.classList.add('perfect');
+            noteDiv.classList.add('in-tune');
+        } else {
+            needle.classList.remove('perfect');
+            noteDiv.classList.remove('in-tune');
+        }
     }
 };
 
 /**
- * LOGIKA MUZYCZNA I DANE
+ * LOGIC CORE
  */
 const DATA = {
     scale: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
-    // Częstotliwości nut (oktawa 2-5) dla syntezatora
     freqs: {
         'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41, 'F2': 87.31, 'F#2': 92.50, 'G2': 98.00, 'G#2': 103.83, 'A2': 110.00, 'A#2': 116.54, 'B2': 123.47,
         'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
@@ -370,30 +535,23 @@ const DATA = {
 
 const Globals = {
     transpose: 0,
-    style: 'PL', // PL (H/B) or INT (B/Bb)
+    style: 'PL',
     
     toggleStyle() {
         this.style = this.style === 'PL' ? 'INT' : 'PL';
         document.getElementById('btn-style').innerHTML = `<i class="fas fa-globe"></i> Styl: ${this.style === 'PL' ? 'Polski (H)' : 'Angielski (B)'}`;
         Transposer.process();
-        Instruments.renderPiano(); 
-        Instruments.renderGuitar();
         Instruments.analyze('piano'); Instruments.analyze('guitar');
+        Instruments.renderGuitar(); // Re-render for visual labels if needed
     },
 
     toggleSound() {
         AudioEngine.enabled = !AudioEngine.enabled;
         const btn = document.getElementById('btn-sound');
-        if(AudioEngine.enabled) {
-            btn.innerHTML = '<i class="fas fa-volume-up"></i> Dźwięk: ON';
-            btn.style.opacity = "1";
-        } else {
-            btn.innerHTML = '<i class="fas fa-volume-mute"></i> Dźwięk: OFF';
-            btn.style.opacity = "0.6";
-        }
+        btn.innerHTML = AudioEngine.enabled ? '<i class="fas fa-volume-up"></i> Dźwięk: ON' : '<i class="fas fa-volume-mute"></i> Dźwięk: OFF';
+        btn.style.opacity = AudioEngine.enabled ? "1" : "0.6";
     },
 
-    // Pomocnicza do formatowania nut
     formatNote(n) {
         if(this.style === 'PL') { 
             if(n === 'B') return 'H'; 
@@ -405,87 +563,54 @@ const Globals = {
     }
 };
 
-/**
- * TRANSPOSER ENGINE
- */
 const Transposer = {
     shift(val) {
         Globals.transpose += val;
-        const disp = Globals.transpose > 0 ? `+${Globals.transpose}` : Globals.transpose;
-        document.getElementById('transpose-val').textContent = disp;
+        document.getElementById('transpose-val').textContent = (Globals.transpose > 0 ? '+' : '') + Globals.transpose;
         this.process();
     },
 
     process() {
         const input = document.getElementById('input-chords').value;
-        
-        // Regex wychwytujący akordy
         const regex = /([A-G][#b]?|H)(m|maj|dim|aug|sus|add|7|9|11|13|\/)*\b/g;
         
-        // Analiza tonacji na podstawie inputu (przed transpozycją)
         const foundChords = input.match(regex) || [];
         this.analyzeKey(foundChords);
 
-        // Transpozycja
         const output = input.replace(regex, (match, root, suffix) => {
-            // Normalizacja (H -> B dla obliczeń)
             let base = root;
             if (base === 'H') base = 'B'; 
-            if (base === 'B' && Globals.style === 'PL') base = 'A#'; // W PL 'B' to często Bb, ale tutaj dla uproszczenia trzymamy system chromatyczny
+            if (base === 'B' && Globals.style === 'PL') base = 'A#';
             
-            // Konwersja Bemoli na Krzyżyki dla obliczeń (Db -> C#)
             const flats = {'Db':'C#', 'Eb':'D#', 'Gb':'F#', 'Ab':'G#', 'Bb':'A#'};
             if(flats[base]) base = flats[base];
 
             let idx = DATA.scale.indexOf(base);
-            if (idx === -1) return match; // Nie znaleziono nuty
+            if (idx === -1) return match;
 
-            // Oblicz nową nutę
             let newIdx = (idx + Globals.transpose) % 12;
             if (newIdx < 0) newIdx += 12;
             
-            let newRoot = DATA.scale[newIdx];
-            return Globals.formatNote(newRoot) + (suffix || '');
+            return Globals.formatNote(DATA.scale[newIdx]) + (suffix || '');
         });
 
         document.getElementById('output-chords').value = output;
     },
 
     analyzeKey(chords) {
-        let scores = {}; 
-        Object.keys(DATA.keys).forEach(k => scores[k] = 0);
-        
-        // Uproszczenie akordów do podstawy (np. Am7 -> Am)
+        let scores = {}; Object.keys(DATA.keys).forEach(k => scores[k] = 0);
         let simpleChords = chords.map(c => {
-            if(c === 'H') c = 'B'; // Normalizacja dla bazy
+            if(c === 'H') c = 'B';
             return c.replace(/(7|maj7|m7|sus4|sus2|\/.*)/g, '');
         });
 
         simpleChords.forEach(c => {
-            // Spróbuj dopasować akord do bazy
-            for(let keyName in DATA.keys) {
-                // Normalizacja bazy danych (zamiana B na H jeśli trzeba, ale baza ma format międzynarodowy)
-                // Tutaj sprawdzamy czy c (np. 'Am') jest w tablicy klucza
-                if(DATA.keys[keyName].includes(c)) scores[keyName]++;
-            }
+            for(let keyName in DATA.keys) if(DATA.keys[keyName].includes(c)) scores[keyName]++;
         });
 
-        // Sortowanie wyników
-        let sorted = Object.keys(scores)
-            .filter(k => scores[k] > 0)
-            .sort((a,b) => scores[b] - scores[a]);
-        
+        let sorted = Object.keys(scores).filter(k => scores[k] > 0).sort((a,b) => scores[b] - scores[a]);
         const list = document.getElementById('key-ranking');
-        if(sorted.length === 0) {
-            list.innerHTML = '<li style="text-align:center; padding:5px; color:#666">Za mało danych</li>';
-        } else {
-            list.innerHTML = sorted.slice(0, 3).map(k => `
-                <li class="ranking-item">
-                    <span>${k}</span>
-                    <span class="ranking-score">${scores[k]} pkt</span>
-                </li>
-            `).join('');
-        }
+        list.innerHTML = sorted.length ? sorted.slice(0, 3).map(k => `<li class="ranking-item"><span>${k}</span><span class="ranking-score">${scores[k]} pkt</span></li>`).join('') : '<li style="text-align:center; padding:5px; color:#666">Za mało danych</li>';
     },
 
     async copy() {
@@ -495,79 +620,45 @@ const Transposer = {
             const original = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Skopiowano!';
             setTimeout(() => btn.innerHTML = original, 1500);
-        } catch(err) { console.error("Copy failed", err); }
+        } catch(err) { console.error(err); }
     }
 };
 
-/**
- * INSTRUMENTS MANAGER
- */
 const Instruments = {
-    activeNotes: { piano: [], guitar: [] },
-
-    init() {
-        this.renderPiano();
-        this.renderGuitar();
-    },
+    init() { this.renderPiano(); this.renderGuitar(); },
 
     renderPiano() {
-        const container = document.getElementById('piano-body');
-        container.innerHTML = '';
-        const octaves = 3; // Ile oktaw rysować
-        const startOctave = 2; // C2
-
-        for(let o=0; o<octaves; o++) {
-            DATA.scale.forEach((note, i) => {
-                const currentOctave = startOctave + o;
+        const container = document.getElementById('piano-body'); container.innerHTML = '';
+        const startOctave = 2;
+        for(let o=0; o<3; o++) {
+            DATA.scale.forEach((note) => {
                 const isBlack = note.includes('#');
-                
                 const key = document.createElement('div');
                 key.className = `key ${isBlack ? 'key-black' : 'key-white'}`;
                 key.dataset.note = note;
-                key.dataset.octave = currentOctave;
                 key.textContent = Globals.formatNote(note);
-                
-                // Eventy
-                key.onmousedown = () => this.toggleNote('piano', key, note, currentOctave);
-                
-                // Wstawianie we właściwe miejsce (czarne klawisze)
-                if(isBlack) {
-                    // Ostatni biały klawisz
-                    const lastWhite = container.lastElementChild;
-                    // Czarne klawisze są pozycjonowane marginami w CSS, po prostu je dodajemy
-                }
+                key.onmousedown = () => this.toggleNote('piano', key, note, startOctave + o);
                 container.appendChild(key);
             });
         }
     },
 
     renderGuitar() {
-        const container = document.getElementById('guitar-body');
-        container.innerHTML = '';
-        // Standard tuning: E A D G B E (od dołu do góry wizualnie na ekranie, czyli od E4 do E2)
-        const strings = ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'];
-
-        strings.forEach((openNote, sIdx) => {
-            const row = document.createElement('div');
-            row.className = 'string';
-            
-            // Parsowanie nuty struny (np. E2 -> Note: E, Octave: 2)
+        const container = document.getElementById('guitar-body'); container.innerHTML = '';
+        ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'].forEach((openNote) => {
+            const row = document.createElement('div'); row.className = 'string';
             let rootNote = openNote.slice(0, -1);
-            let rootOctave = parseInt(openNote.slice(-1));
             let rootIdx = DATA.scale.indexOf(rootNote);
+            let rootOctave = parseInt(openNote.slice(-1));
 
             for(let fret=0; fret<=13; fret++) {
-                const fDiv = document.createElement('div');
-                fDiv.className = `fret fret-${fret}`;
-                
-                // Obliczanie nuty na progu
+                const fDiv = document.createElement('div'); fDiv.className = `fret fret-${fret}`;
                 let totalIdx = rootIdx + fret;
                 let currentNote = DATA.scale[totalIdx % 12];
                 let currentOctave = rootOctave + Math.floor(totalIdx / 12);
                 
                 fDiv.innerHTML = `<div class="note-marker">${Globals.formatNote(currentNote)}</div>`;
                 fDiv.onclick = () => this.toggleNote('guitar', fDiv, currentNote, currentOctave);
-                
                 row.appendChild(fDiv);
             }
             container.appendChild(row);
@@ -575,24 +666,14 @@ const Instruments = {
     },
 
     toggleNote(inst, element, noteName, octave) {
-        // Toggle visual
         const isActive = element.classList.contains('active');
+        if(inst === 'guitar' && !isActive) element.parentElement.querySelectorAll('.fret').forEach(s => s.classList.remove('active'));
         
-        // Dla gitary: wyłącz inne progi na tej samej strunie (logika monofoniczna struny)
-        if(inst === 'guitar' && !isActive) {
-            const siblings = element.parentElement.querySelectorAll('.fret');
-            siblings.forEach(s => s.classList.remove('active'));
-        }
-
-        if(isActive) {
-            element.classList.remove('active');
-        } else {
+        if(isActive) element.classList.remove('active');
+        else {
             element.classList.add('active');
-            // Play sound
-            const freqKey = noteName + octave;
-            if(DATA.freqs[freqKey]) AudioEngine.playTone(DATA.freqs[freqKey], inst === 'guitar' ? 'triangle' : 'sine');
+            if(DATA.freqs[noteName+octave]) AudioEngine.playTone(DATA.freqs[noteName+octave], inst === 'guitar' ? 'triangle' : 'sine');
         }
-        
         this.analyze(inst);
     },
 
@@ -600,54 +681,28 @@ const Instruments = {
         const parent = document.getElementById(inst === 'piano' ? 'piano-body' : 'guitar-body');
         const activeEls = parent.querySelectorAll('.active');
         const resBox = document.getElementById(`${inst}-res`);
-
-        if(activeEls.length === 0) { resBox.textContent = '---'; return; }
-
-        // Pobierz indeksy nut (0-11)
-        let notes = [];
-        activeEls.forEach(el => {
-            let n = el.dataset.note || el.querySelector('.note-marker').textContent; // Fallback for guitar visual text
-            // Dla gitary musimy przeliczyć tekst z powrotem na format międzynarodowy, jeśli jest w PL
-            if (Globals.style === 'PL') {
-                if(n === 'H') n = 'B';
-                if(n === 'B') n = 'A#';
-            }
-            // Z gitary bierzemy tekst z markera, który jest sformatowany. Lepiej obliczyć na nowo? 
-            // Uproszczenie: dla gitary activeEls to div, musimy przeliczyć nutę.
-            // Szybsza metoda: Pobieramy unikalne nuty modulo 12.
-            // Ale dla "chord naming" interwały są ważne.
-        });
         
-        // Lepsze podejście: Zbieramy indeksy 0-11 wszystkich aktywnych nut
+        if(!activeEls.length) { resBox.textContent = '---'; return; }
+
         let indices = new Set();
         activeEls.forEach(el => {
-            if(inst === 'piano') indices.add(DATA.scale.indexOf(el.dataset.note));
-            else {
-                // Guitar logic: odtworzenie nuty jest trudniejsze z DOM.
-                // Użyjmy dataset, którego nie dodaliśmy w renderGuitar. Dodajmy go teraz w myślach (lub w kodzie wyżej).
-                // *Poprawka w renderGuitar*: nie dodaliśmy dataset.note. 
-                // Fix: W tej funkcji analizy zrobimy to "na piechotę" po tekście, bo łatwiej.
-                let txt = el.textContent || el.innerText;
+            let note = el.dataset.note;
+            if(!note) { // Fallback for guitar visual extraction if needed, prefer logic
+                let txt = el.textContent;
                 if(Globals.style === 'PL' && txt === 'H') txt = 'B';
                 else if(Globals.style === 'PL' && txt === 'B') txt = 'A#';
                 else if(txt === 'Bb') txt = 'A#';
                 indices.add(DATA.scale.indexOf(txt));
+            } else {
+                indices.add(DATA.scale.indexOf(note));
             }
         });
 
         let sortedNotes = Array.from(indices).sort((a,b)=>a-b);
-        if(sortedNotes.includes(-1)) return; // Błąd parsowania
+        if(sortedNotes.length === 1) { resBox.textContent = Globals.formatNote(DATA.scale[sortedNotes[0]]); return; }
 
-        if(sortedNotes.length === 1) {
-            resBox.textContent = Globals.formatNote(DATA.scale[sortedNotes[0]]);
-            return;
-        }
-
-        // Algorytm szukania akordu (Brute Force po interwałach)
         for(let root of sortedNotes) {
             let intervals = sortedNotes.map(n => (n - root + 12) % 12).sort((a,b)=>a-b);
-            // intervals[0] będzie zawsze 0
-            
             for(let type in DATA.chords) {
                 let pattern = DATA.chords[type];
                 if(pattern.length === intervals.length && pattern.every((val, i) => val === intervals[i])) {
@@ -660,25 +715,14 @@ const Instruments = {
     },
 
     reset(inst) {
-        const parent = document.getElementById(inst === 'piano' ? 'piano-body' : 'guitar-body');
-        parent.querySelectorAll('.active').forEach(e => e.classList.remove('active'));
+        document.getElementById(inst === 'piano' ? 'piano-body' : 'guitar-body').querySelectorAll('.active').forEach(e => e.classList.remove('active'));
         this.analyze(inst);
     }
 };
 
-/**
- * METRONOME ENGINE
- */
 const Metronome = {
-    bpm: 120,
-    meter: 4,
-    isPlaying: false,
-    timerID: null,
-    nextNoteTime: 0.0,
-    currentBeat: 0,
-    lookahead: 25.0,
-    scheduleAheadTime: 0.1,
-
+    bpm: 120, meter: 4, isPlaying: false, timerID: null, nextNoteTime: 0.0, currentBeat: 0,
+    
     updateSettings() {
         this.bpm = parseInt(document.getElementById('bpm-input').value);
         this.meter = parseInt(document.getElementById('meter-input').value);
@@ -687,108 +731,65 @@ const Metronome = {
     toggle() {
         this.isPlaying = !this.isPlaying;
         const btn = document.getElementById('btn-play');
-        
         if (this.isPlaying) {
-            AudioEngine.init(); // Ensure context exists
-            if (AudioEngine.ctx.state === 'suspended') AudioEngine.ctx.resume();
-            
-            this.currentBeat = 0;
-            this.nextNoteTime = AudioEngine.ctx.currentTime;
+            AudioEngine.init(); if (AudioEngine.ctx.state === 'suspended') AudioEngine.ctx.resume();
+            this.currentBeat = 0; this.nextNoteTime = AudioEngine.ctx.currentTime;
             this.scheduler();
-            btn.innerHTML = '<i class="fas fa-stop"></i> STOP';
-            btn.classList.add('btn-accent');
-            btn.classList.remove('btn-primary');
+            btn.innerHTML = '<i class="fas fa-stop"></i>';
         } else {
             window.clearTimeout(this.timerID);
-            btn.innerHTML = '<i class="fas fa-play"></i> START';
-            btn.classList.add('btn-primary');
-            btn.classList.remove('btn-accent');
+            btn.innerHTML = '<i class="fas fa-play"></i>';
             document.getElementById('beat-display').textContent = '-';
         }
     },
 
     scheduler() {
-        // while there are notes that will need to play before the next interval, schedule them
-        while (this.nextNoteTime < AudioEngine.ctx.currentTime + this.scheduleAheadTime) {
+        while (this.nextNoteTime < AudioEngine.ctx.currentTime + 0.1) {
             this.scheduleNote(this.currentBeat, this.nextNoteTime);
             this.nextNote();
         }
-        this.timerID = window.setTimeout(() => this.scheduler(), this.lookahead);
+        this.timerID = window.setTimeout(() => this.scheduler(), 25);
     },
 
     scheduleNote(beatNumber, time) {
         const isAccent = (this.meter > 0 && beatNumber === 0);
-        
-        // Audio
-        // Tworzymy oscylator w przyszłości (time)
         const osc = AudioEngine.ctx.createOscillator();
         const gain = AudioEngine.ctx.createGain();
-        osc.frequency.value = isAccent ? 1000 : 600; // Niższe, przyjemniejsze kliki
-        if(isAccent) osc.type = 'square'; else osc.type = 'triangle'; // Różnica w barwie
-
+        osc.frequency.value = isAccent ? 1000 : 600;
+        osc.type = isAccent ? 'square' : 'triangle';
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.3, time + 0.005);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+        osc.connect(gain); gain.connect(AudioEngine.ctx.destination);
+        osc.start(time); osc.stop(time + 0.05);
 
-        osc.connect(gain);
-        gain.connect(AudioEngine.ctx.destination);
-        osc.start(time);
-        osc.stop(time + 0.05);
-
-        // Visuals (Draw UI slightly delayed to match audio perception or use requestAnimationFrame)
-        // Używamy setTimeout z różnicą czasu, aby zapalić diodę w momencie dźwięku
-        const diff = (time - AudioEngine.ctx.currentTime) * 1000;
         setTimeout(() => {
             const led = document.getElementById('metronome-led');
-            const disp = document.getElementById('beat-display');
-            
             led.className = isAccent ? 'led bar' : 'led beat';
-            disp.textContent = this.meter > 0 ? (beatNumber + 1) : '•';
-            
+            document.getElementById('beat-display').textContent = this.meter > 0 ? (beatNumber + 1) : '•';
             setTimeout(() => led.className = 'led', 100);
-        }, diff);
+        }, (time - AudioEngine.ctx.currentTime) * 1000);
     },
 
     nextNote() {
         const secondsPerBeat = 60.0 / this.bpm;
         this.nextNoteTime += secondsPerBeat;
-        if(this.meter > 0) {
-            this.currentBeat = (this.currentBeat + 1) % this.meter;
-        } else {
-            this.currentBeat = 0; // Always accented if meter is 0 (Free)
-        }
+        this.currentBeat = this.meter > 0 ? (this.currentBeat + 1) % this.meter : 0;
     },
 
-    // Tap Tempo
-    lastTap: 0,
-    taps: [],
     tap() {
         const now = Date.now();
         if (this.lastTap && (now - this.lastTap < 2000)) {
-            const diff = now - this.lastTap;
-            this.taps.push(diff);
+            this.taps = this.taps || []; this.taps.push(now - this.lastTap);
             if (this.taps.length > 4) this.taps.shift();
-            
-            const avg = this.taps.reduce((a, b) => a + b) / this.taps.length;
-            const bpm = Math.round(60000 / avg);
-            
-            document.getElementById('bpm-input').value = bpm;
-            this.updateSettings();
-        } else {
-            this.taps = [];
-        }
+            const bpm = Math.round(60000 / (this.taps.reduce((a, b) => a + b) / this.taps.length));
+            document.getElementById('bpm-input').value = bpm; this.updateSettings();
+        } else { this.taps = []; }
         this.lastTap = now;
     }
 };
 
-// Start
-window.onload = () => {
-    Instruments.init();
-    // Inicjalizacja pustego wykresu akordów
-    Instruments.analyze('piano');
-    Instruments.analyze('guitar');
-};
-
+window.onload = () => Instruments.init();
 </script>
 </body>
 </html>
