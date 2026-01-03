@@ -3,215 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edytor Nut - Pełna Edycja</title>
+    <title>Edytor Nut i Pianino</title>
     <script src="https://unpkg.com/vexflow/releases/vexflow-debug.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #f0f2f5; padding: 20px; }
-        
-        /* Kontener A4 dla druku */
-        #print-area {
-            background: white;
-            padding: 40px;
-            margin: 20px auto;
-            width: 800px;
-            min-height: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid #ddd;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
         }
 
-        #score-title { font-size: 28px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-        #score-author { font-size: 16px; margin-bottom: 20px; text-align: right; font-style: italic; }
-        #score-container { width: 100%; }
+        /* Kontener na nuty */
+        #score-container {
+            background: white;
+            padding: 20px;
+            margin: 0 auto 20px auto;
+            border: 1px solid #ccc;
+            width: 800px; /* Stała szerokość dla formatu A4 */
+            min-height: 150px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
 
-        .controls { background: #fff; padding: 15px; border-radius: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .panel { padding: 10px; border-right: 1px solid #eee; text-align: left; }
-        .panel:last-child { border-right: none; }
-        
-        label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 0.75em; color: #555; }
-        input, select, button { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        
-        .piano { display: flex; justify-content: center; position: relative; margin: 20px 0; height: 120px; }
-        .key { border: 1px solid #000; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; cursor: pointer; }
-        .white-key { width: 35px; height: 120px; background: white; z-index: 1; }
-        .black-key { width: 25px; height: 80px; background: black; color: white; position: absolute; z-index: 2; margin-left: -12.5px; font-size: 9px; }
-        
-        /* Pozycjonowanie klawiszy */
-        .bk-c { left: calc(50% - 140px + 35px); } 
-        .bk-d { left: calc(50% - 140px + 70px); }
-        .bk-f { left: calc(50% - 140px + 140px); }
-        .bk-g { left: calc(50% - 140px + 175px); }
-        .bk-a { left: calc(50% - 140px + 210px); }
+        h1 { margin-bottom: 5px; }
+        .instructions { font-size: 0.9em; color: #555; margin-bottom: 20px; }
 
+        /* Panel sterowania */
+        .controls {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #eee;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        select { padding: 10px; margin-right: 10px; }
+
+        /* Pianino */
+        .piano {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            margin-top: 20px;
+            user-select: none;
+        }
+
+        .key {
+            border: 1px solid #000;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .key:active { background-color: #ddd; }
+
+        .white-key {
+            width: 40px;
+            height: 150px;
+            background: white;
+            z-index: 1;
+        }
+
+        .black-key {
+            width: 30px;
+            height: 100px;
+            background: black;
+            color: white;
+            position: absolute;
+            z-index: 2;
+            margin-left: -15px; /* Centrowanie na linii */
+        }
+        
+        /* Pozycjonowanie czarnych klawiszy (offsety dla CSS) */
+        /* C# */ .bk-1 { left: calc(50% - 140px + 40px); } 
+        /* D# */ .bk-2 { left: calc(50% - 140px + 80px); }
+        /* F# */ .bk-3 { left: calc(50% - 140px + 160px); }
+        /* G# */ .bk-4 { left: calc(50% - 140px + 200px); }
+        /* A# */ .bk-5 { left: calc(50% - 140px + 240px); }
+
+        /* Style dla druku - ukrywamy wszystko poza nutami */
         @media print {
-            body { background: white; padding: 0; }
-            .controls, .piano, #status-bar, h1 { display: none !important; }
-            #print-area { border: none; box-shadow: none; margin: 0; width: 100%; }
+            body * { visibility: hidden; }
+            #score-container, #score-container * {
+                visibility: visible;
+            }
+            #score-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Edytor Nut & Tekstu</h1>
+    <h1>Edytor Nut</h1>
+    <p class="instructions">Kliknij klawisz pianina lub przycisk, aby dodać nutę. Dane nie są zapisywane po odświeżeniu.</p>
 
-    <div id="print-area">
-        <div id="score-title">Tytuł Utworu</div>
-        <div id="score-author">Kompozytor</div>
-        <div id="score-container"></div>
-    </div>
+    <div id="score-container"></div>
 
     <div class="controls">
-        <div class="panel">
-            <label>NAGŁÓWEK</label>
-            <input type="text" id="input-title" placeholder="Tytuł" oninput="updateMeta()">
-            <input type="text" id="input-author" placeholder="Autor" oninput="updateMeta()">
-        </div>
-
-        <div class="panel">
-            <label>KLUCZ / METRUM</label>
-            <select id="clef" onchange="render()">
-                <option value="treble">Wiolinowy</option>
-                <option value="bass">Basowy</option>
-            </select>
-            <select id="time-sig" onchange="render()">
-                <option value="4/4">4/4</option>
-                <option value="3/4">3/4</option>
-                <option value="2/4">2/4</option>
-            </select>
-        </div>
-
-        <div class="panel">
-            <label>TEKST POD NUTĄ</label>
-            <input type="text" id="note-lyric" placeholder="Np. la, la...">
-        </div>
-
-        <div class="panel">
-            <label>RYTM</label>
-            <select id="duration">
-                <option value="w">Cała</option>
-                <option value="h">Półnuta</option>
-                <option value="q" selected>Ćwierćnuta</option>
-                <option value="8">Ósemka</option>
-            </select>
-        </div>
-
-        <div class="panel">
-            <label>AKCJE</label>
-            <button onclick="toggleChordMode()" id="chord-btn">Tryb Akordu: WYŁ</button>
-            <button onclick="commitChord()" id="add-chord-btn" style="display:none; background:#28a745; color:white;">DODAJ</button>
-            <button onclick="addRest()">Pauza</button>
-            <button onclick="undo()">Cofnij</button>
-            <button onclick="window.print()" style="background:#4CAF50; color:white;">DRUKUJ</button>
-        </div>
+        <label>Długość nuty:</label>
+        <select id="duration">
+            <option value="w">Cała nuta (w)</option>
+            <option value="h">Półnuta (h)</option>
+            <option value="q" selected>Ćwierćnuta (q)</option>
+            <option value="8">Ósemka (8)</option>
+        </select>
+        
+        <button onclick="deleteLastNote()">Cofnij (Usuń ostatnią)</button>
+        <button onclick="clearScore()">Wyczyść wszystko</button>
+        <button onclick="printScore()" style="background-color: #4CAF50; color: white;">Drukuj zapis</button>
     </div>
 
     <div class="piano">
-        <div class="key white-key" onclick="handleInput('c', '4')">C4</div>
-        <div class="key white-key" onclick="handleInput('d', '4')">D4</div>
-        <div class="key white-key" onclick="handleInput('e', '4')">E4</div>
-        <div class="key white-key" onclick="handleInput('f', '4')">F4</div>
-        <div class="key white-key" onclick="handleInput('g', '4')">G4</div>
-        <div class="key white-key" onclick="handleInput('a', '4')">A4</div>
-        <div class="key white-key" onclick="handleInput('b', '4')">H4</div>
-        <div class="key white-key" onclick="handleInput('c', '5')">C5</div>
-        <div class="key black-key bk-c" onclick="handleInput('c#', '4')">C#</div>
-        <div class="key black-key bk-d" onclick="handleInput('d#', '4')">D#</div>
-        <div class="key black-key bk-f" onclick="handleInput('f#', '4')">F#</div>
-        <div class="key black-key bk-g" onclick="handleInput('g#', '4')">G#</div>
-        <div class="key black-key bk-a" onclick="handleInput('a#', '4')">A#</div>
+        <div class="key white-key" onclick="addNote('c', '4')" title="C4">C</div>
+        <div class="key white-key" onclick="addNote('d', '4')" title="D4">D</div>
+        <div class="key white-key" onclick="addNote('e', '4')" title="E4">E</div>
+        <div class="key white-key" onclick="addNote('f', '4')" title="F4">F</div>
+        <div class="key white-key" onclick="addNote('g', '4')" title="G4">G</div>
+        <div class="key white-key" onclick="addNote('a', '4')" title="A4">A</div>
+        <div class="key white-key" onclick="addNote('b', '4')" title="B4">H</div>
+        
+        <div class="key white-key" onclick="addNote('c', '5')" title="C5">C5</div>
+
+        <div class="key black-key bk-1" onclick="addNote('c#', '4')">C#</div>
+        <div class="key black-key bk-2" onclick="addNote('d#', '4')">D#</div>
+        <div class="key black-key bk-3" onclick="addNote('f#', '4')">F#</div>
+        <div class="key black-key bk-4" onclick="addNote('g#', '4')">G#</div>
+        <div class="key black-key bk-5" onclick="addNote('a#', '4')">A#</div>
+    </div>
+    
+    <div style="margin-top:20px;">
+        <button onclick="addNote('c', '4')">Dodaj C4 (Tekstowo)</button>
+        <button onclick="addNote('e', '4')">Dodaj E4 (Tekstowo)</button>
+        <button onclick="addNote('g', '4')">Dodaj G4 (Tekstowo)</button>
     </div>
 
-    <div id="status-bar"></div>
-
     <script>
-        const { Factory, Annotation } = Vex.Flow;
-        let scoreData = []; 
-        let chordBuffer = [];
-        let isChordMode = false;
+        // Konfiguracja VexFlow
+        const { Factory, EasyScore, System } = Vex.Flow;
+        let notesArray = []; // Tutaj trzymamy nuty w pamięci RAM (nie w bazie)
 
-        function updateMeta() {
-            document.getElementById('score-title').innerText = document.getElementById('input-title').value || "Tytuł Utworu";
-            document.getElementById('score-author').innerText = document.getElementById('input-author').value || "Kompozytor";
-        }
-
+        // Funkcja renderująca nuty
         function render() {
-            const container = document.getElementById('score-container');
-            container.innerHTML = '';
-            const selectedClef = document.getElementById('clef').value;
-            const selectedTime = document.getElementById('time-sig').value;
+            // Wyczyść kontener
+            document.getElementById('score-container').innerHTML = '';
 
-            const vf = new Factory({ renderer: { elementId: 'score-container', width: 750, height: 250 } });
+            // Inicjalizacja Fabryki VexFlow
+            const vf = new Factory({
+                renderer: { elementId: 'score-container', width: 750, height: 200 }
+            });
+
             const score = vf.EasyScore();
             const system = vf.System();
 
-            if (scoreData.length === 0) {
-                system.addStave({ voices: [score.voice(score.notes('B4/h/r', {clef: selectedClef}))] })
-                      .addClef(selectedClef).addTimeSignature(selectedTime);
+            // Jeśli nie ma nut, narysuj pustą pięciolinię
+            if (notesArray.length === 0) {
+                system.addStave({
+                    voices: [score.voice(score.notes('B4/1/r', { stem: 'up' }))] // Pauza jako placeholder
+                }).addClef('treble').addTimeSignature('4/4');
                 vf.draw();
                 return;
             }
 
-            const vexNotes = scoreData.map(item => {
-                const dur = item.type === 'rest' ? item.duration + 'r' : item.duration;
-                const keysStr = `(${item.keys.join(' ')})`;
-                const note = score.notes(keysStr + '/' + dur, { stem: 'up', clef: selectedClef })[0];
-                
-                // Dodawanie tekstu (Annotation)
-                if (item.lyric) {
-                    note.addModifier(vf.Annotation({
-                        text: item.lyric,
-                        vertical_justification: Annotation.VerticalJustify.BOTTOM
-                    }), 0);
-                }
-                return note;
-            });
+            // Konwersja naszej tablicy obiektów na string zrozumiały dla VexFlow
+            // Format: "C#4/q, D4/q" itd.
+            let notesString = notesArray.map(n => {
+                // VexFlow używa 'b' dla H w standardzie, ale w wyświetlaniu obsłuży to poprawnie
+                return `${n.key}${n.octave}/${n.duration}`;
+            }).join(', ');
 
+            // Rysowanie
+            // UWAGA: W tej prostej wersji wszystkie nuty lądują w jednym "taktcie" logicznym,
+            // który rozciąga się na całą szerokość. VexFlow automatycznie formatuje odstępy.
+            
             try {
-                const voice = vf.Voice({ time: selectedTime }).addTickables(vexNotes);
-                system.addStave({ voices: [voice] }).addClef(selectedClef).addTimeSignature(selectedTime);
+                system.addStave({
+                    voices: [
+                        score.voice(score.notes(notesString, { stem: 'up' }))
+                    ]
+                }).addClef('treble'); // Klucz wiolinowy
+
                 vf.draw();
             } catch (e) {
-                console.error(e);
+                console.error("Błąd renderowania:", e);
+                alert("Wystąpił błąd w notacji (np. za dużo nut w takcie dla tego widoku).");
             }
         }
 
-        function handleInput(note, octave) {
-            let curOctave = (document.getElementById('clef').value === 'bass' && octave === '4') ? '3' : octave;
-            const fullNote = `${note}/${curOctave}`;
+        // Dodawanie nuty
+        function addNote(key, octave) {
             const duration = document.getElementById('duration').value;
-            const lyric = document.getElementById('note-lyric').value;
+            
+            // Dodajemy nutę do tablicy
+            notesArray.push({
+                key: key,
+                octave: octave,
+                duration: duration
+            });
 
-            if (isChordMode) {
-                if (!chordBuffer.includes(fullNote)) chordBuffer.push(fullNote);
-            } else {
-                scoreData.push({ keys: [fullNote], duration: duration, type: 'note', lyric: lyric });
-                document.getElementById('note-lyric').value = ''; // Czyść po dodaniu
-                render();
-            }
-        }
-
-        function commitChord() {
-            if (chordBuffer.length > 0) {
-                const duration = document.getElementById('duration').value;
-                const lyric = document.getElementById('note-lyric').value;
-                scoreData.push({ keys: [...chordBuffer], duration: duration, type: 'note', lyric: lyric });
-                chordBuffer = [];
-                document.getElementById('note-lyric').value = '';
-                render();
-            }
-        }
-
-        function addRest() {
-            scoreData.push({ keys: ['b/4'], duration: document.getElementById('duration').value, type: 'rest', lyric: '' });
             render();
         }
 
-        function toggleChordMode() {
-            isChordMode = !isChordMode;
-            document.getElementById('chord-btn').classList.toggle('active');
-            document.getElementById('add-chord-btn').style.display = isChordMode ? 'inline-block' : 'none';
+        // Usuwanie ostatniej nuty
+        function deleteLastNote() {
+            notesArray.pop();
+            render();
         }
 
-        function undo() { scoreData.pop(); render(); }
+        // Czyszczenie
+        function clearScore() {
+            notesArray = [];
+            render();
+        }
+
+        // Drukowanie
+        function printScore() {
+            window.print();
+        }
+
+        // Pierwsze renderowanie (pusta pięciolinia)
         render();
     </script>
 </body>
