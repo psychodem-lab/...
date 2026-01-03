@@ -110,16 +110,19 @@
         }
 
         .template-btns {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             display: flex;
-            gap: 5px;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
-        .btn-small {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            background: #e9ecef;
+        select {
+            font-size: 0.8rem;
+            padding: 4px;
+            border-radius: 4px;
             border: 1px solid #ced4da;
+            background: #fff;
             cursor: pointer;
         }
 
@@ -146,7 +149,7 @@
         input[type="file"] { display: none; }
 
         @media print {
-            .file-ops, .controls, .btn-delete, .template-btns, .btn-small { display: none !important; }
+            .file-ops, .controls, .btn-delete, .template-btns { display: none !important; }
             body { background-color: white; padding: 0; }
             .motif { box-shadow: none; border: 1px solid #000; page-break-inside: avoid; }
             textarea { border: none; }
@@ -166,8 +169,7 @@
         </div>
     </header>
 
-    <div id="motifs-list">
-        </div>
+    <div id="motifs-list"></div>
 
     <div class="controls">
         <button class="btn-add" onclick="addMotif()">+ Dodaj nowy motyw</button>
@@ -176,9 +178,18 @@
 </div>
 
 <script>
-    const templates = {
-        tab: "E|--------------------------|\nB|--------------------------|\nG|--------------------------|\nD|--------------------------|\nA|--------------------------|\nE|--------------------------|",
-        chord: "Palec:  1 3 5\n        G C E\nDźwięk: E G C\n        C E G"
+    const tabs = {
+        g6: "E|--------------------------|\nB|--------------------------|\nG|--------------------------|\nD|--------------------------|\nA|--------------------------|\nE|--------------------------|",
+        b5: "G|--------------------------|\nD|--------------------------|\nA|--------------------------|\nE|--------------------------|\nB|--------------------------|",
+        b4: "G|--------------------------|\nD|--------------------------|\nA|--------------------------|\nE|--------------------------|"
+    };
+
+    const chords = {
+        C: "Palec:  1 3 5\n        G C E\nDźwięk: E G C\n        C E G",
+        G: "Palec:  1 3 5\n        D G B\nDźwięk: B D G\n        G B D",
+        D: "Palec:  1 2 3\n        A D F#\nDźwięk: F# A D\n        D F# A",
+        Am: "Palec:  1 3 5\n        E A C\nDźwięk: C E A\n        A C E",
+        E: "Palec:  1 2 3\n        B E G#\nDźwięk: G# B E\n        E G# B"
     };
 
     function addMotif(title = "", right = "", left = "") {
@@ -194,16 +205,40 @@
                 <div class="hand-section">
                     <h4>Prawa Ręka</h4>
                     <div class="template-btns">
-                        <button class="btn-small" onclick="insertTpl(this, 'tab')">TAB</button>
-                        <button class="btn-small" onclick="insertTpl(this, 'chord')">Akord</button>
+                        <select onchange="applyTab(this)">
+                            <option value="" disabled selected>Wybierz TAB...</option>
+                            <option value="g6">Gitara 6 strun</option>
+                            <option value="b4">Bas 4 struny</option>
+                            <option value="b5">Bas 5 strun</option>
+                        </select>
+                        <select onchange="applyChord(this)">
+                            <option value="" disabled selected>Wybierz Akord...</option>
+                            <option value="C">C-dur</option>
+                            <option value="G">G-dur</option>
+                            <option value="D">D-dur</option>
+                            <option value="Am">a-moll</option>
+                            <option value="E">E-dur</option>
+                        </select>
                     </div>
                     <textarea class="right-hand">${right}</textarea>
                 </div>
                 <div class="hand-section">
                     <h4>Lewa Ręka</h4>
                     <div class="template-btns">
-                        <button class="btn-small" onclick="insertTpl(this, 'tab')">TAB</button>
-                        <button class="btn-small" onclick="insertTpl(this, 'chord')">Akord</button>
+                        <select onchange="applyTab(this)">
+                            <option value="" disabled selected>Wybierz TAB...</option>
+                            <option value="g6">Gitara 6 strun</option>
+                            <option value="b4">Bas 4 struny</option>
+                            <option value="b5">Bas 5 strun</option>
+                        </select>
+                        <select onchange="applyChord(this)">
+                            <option value="" disabled selected>Wybierz Akord...</option>
+                            <option value="C">C-dur</option>
+                            <option value="G">G-dur</option>
+                            <option value="D">D-dur</option>
+                            <option value="Am">a-moll</option>
+                            <option value="E">E-dur</option>
+                        </select>
                     </div>
                     <textarea class="left-hand">${left}</textarea>
                 </div>
@@ -212,8 +247,18 @@
         list.appendChild(newMotif);
     }
 
-    function insertTpl(btn, type) {
-        btn.parentElement.nextElementSibling.value = templates[type];
+    function applyTab(sel) {
+        if (!sel.value) return;
+        const area = sel.parentElement.nextElementSibling;
+        area.value = tabs[sel.value];
+        sel.selectedIndex = 0;
+    }
+
+    function applyChord(sel) {
+        if (!sel.value) return;
+        const area = sel.parentElement.nextElementSibling;
+        area.value = chords[sel.value];
+        sel.selectedIndex = 0;
     }
 
     function exportToFile() {
@@ -221,7 +266,6 @@
             title: document.getElementById('song-title').value,
             motifs: []
         };
-
         document.querySelectorAll('.motif').forEach(m => {
             data.motifs.push({
                 name: m.querySelector('.motif-title').value,
@@ -229,7 +273,6 @@
                 left: m.querySelector('.left-hand').value
             });
         });
-
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -240,7 +283,6 @@
     function importFromFile(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
@@ -248,14 +290,11 @@
                 document.getElementById('song-title').value = data.title;
                 document.getElementById('motifs-list').innerHTML = "";
                 data.motifs.forEach(m => addMotif(m.name, m.right, m.left));
-            } catch (err) {
-                alert("Błąd podczas wczytywania pliku. Upewnij się, że to poprawny plik zapisu.");
-            }
+            } catch (err) { alert("Błąd pliku."); }
         };
         reader.readAsText(file);
     }
 
-    // Inicjalizacja pustym motywem
     addMotif("Intro");
 </script>
 
