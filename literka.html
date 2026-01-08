@@ -189,14 +189,14 @@
         }
 
         .results {
-            flex: 1;
-            min-height: 80px;
+            height: 120px; /* Ograniczona wysokość pola słów */
             border: 1px solid var(--border);
             border-radius: 8px;
             background: var(--bg);
             padding: 8px;
             overflow-y: auto;
             margin-bottom: 10px;
+            flex-shrink: 0; /* Zapobiega ściskaniu tego pola */
         }
 
         .word-tag {
@@ -225,8 +225,8 @@
             gap: 10px; 
             width: 100%; 
             flex-shrink: 0; 
-            padding: 5px 0;
-            background: var(--panel-bg);
+            padding-top: 5px;
+            margin-top: auto; /* Pcha przyciski na sam dół kontenera */
         }
         
         .btn-new { background: #95a5a6; color: white; height: 45px; font-size: 0.9rem; flex: 1; }
@@ -308,7 +308,7 @@
     <div class="results">
         <div style="margin-bottom: 8px; font-size: 0.85rem; display:flex; justify-content:space-between; align-items:center;">
             <strong>Słowa (<span id="count">0</span>):</strong>
-            <button class="btn-share" onclick="shareResult()">Udostępnij wynik 📤</button>
+            <button class="btn-share" onclick="shareResult()">Udost. 📤</button>
         </div>
         <div id="foundList"></div>
     </div>
@@ -430,7 +430,7 @@
             if (meanings.length > 0) {
                 body.innerHTML = meanings.join('<hr style="border:0; border-top:1px dashed var(--border); margin:10px 0;">');
             } else {
-                body.innerHTML = "Słowo dopuszczalne, brak opisu.";
+                body.innerHTML = "Brak definicji.";
             }
         } catch (e) {
             body.innerText = "Błąd połączenia.";
@@ -499,15 +499,13 @@
         if (exists) {
             const p = calculateScore(word);
             state.score += p; state.found.push(word);
-            usedIndices.forEach(idx => createExplosion(document.getElementById('tile-' + idx), word.length >= 6));
             updateMsg(`+${p} PKT!`, word.length >= 6 ? "var(--gold)" : "var(--success)");
             saveGameState(); renderAll();
         } else { updateMsg("Nie ma w SJP.", "var(--danger)"); }
     }
 
     function shareResult() {
-        const appUrl = window.location.href;
-        const text = `🧩 Słowne Wyzwanie: ${state.isDaily ? 'Wyzwanie Dnia' : 'Trening'}\n🏆 Wynik: ${state.score} pkt\n✍️ Słowa: ${state.found.length}`;
+        const text = `🧩 Słowne Wyzwanie: ${state.score} pkt | Słowa: ${state.found.length}`;
         if (navigator.share) { navigator.share({ title: 'Mój wynik', text: text }); }
         else { navigator.clipboard.writeText(text).then(() => updateMsg("Skopiowano!", "var(--primary)")); }
     }
@@ -555,8 +553,6 @@
 
     function updateHighScoreDisplay() {
         const key = state.isDaily ? 'bestScoreDaily' : 'bestScorePractice';
-        const best = localStorage.getItem(key) || 0;
-        if (state.score > best) localStorage.setItem(key, state.score);
         document.getElementById('highScore').innerText = localStorage.getItem(key) || 0;
     }
 
@@ -578,24 +574,6 @@
     function shufflePool() { resetSelection(); state.pool.sort(() => Math.random() - 0.5); saveGameState(); renderPool(); }
     function resetSelection() { document.getElementById('wordInput').value = ""; usedIndices = []; renderPool(); }
     function updateMsg(txt, color) { const m = document.getElementById('msg'); m.innerText = txt; m.style.color = color; }
-
-    function createExplosion(element, isGold) {
-        if(!element) return;
-        const rect = element.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const color = isGold ? '#f1c40f' : '#27ae60';
-        for (let i = 0; i < 6; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            p.style.width = '6px'; p.style.height = '6px'; p.style.backgroundColor = color;
-            document.body.appendChild(p);
-            const angle = (i / 6) * Math.PI * 2;
-            const destX = Math.cos(angle) * 50;
-            const destY = Math.sin(angle) * 50;
-            p.animate([{ transform: `translate(${centerX}px, ${centerY}px) scale(1)`, opacity: 1 }, { transform: `translate(${centerX + destX}px, ${centerY + destY}px) scale(0)`, opacity: 0 }], { duration: 500 }).onfinish = () => p.remove();
-        }
-    }
 
     init();
 </script>
