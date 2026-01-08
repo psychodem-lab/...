@@ -70,6 +70,7 @@
             margin-bottom: 5px;
             font-size: 0.9rem;
             color: var(--text-sub);
+            flex-shrink: 0;
         }
 
         .toggle-btn {
@@ -188,9 +189,8 @@
         }
 
         .results {
-            flex-grow: 1;
-            min-height: 100px;
-            max-height: 30%;
+            flex: 1;
+            min-height: 80px;
             border: 1px solid var(--border);
             border-radius: 8px;
             background: var(--bg);
@@ -220,7 +220,15 @@
         
         body.dark-mode .word-tag.gold { background: #4a4103; color: #fdd835; border-color: #f9a825; }
 
-        .bottom-actions { display: flex; gap: 10px; width: 100%; flex-shrink: 0; margin-top: auto; padding-top: 5px; }
+        .bottom-actions { 
+            display: flex; 
+            gap: 10px; 
+            width: 100%; 
+            flex-shrink: 0; 
+            padding: 5px 0;
+            background: var(--panel-bg);
+        }
+        
         .btn-new { background: #95a5a6; color: white; height: 45px; font-size: 0.9rem; flex: 1; }
         .btn-shuffle { background: var(--purple); color: white; height: 45px; font-size: 0.9rem; flex: 1; }
 
@@ -422,7 +430,7 @@
             if (meanings.length > 0) {
                 body.innerHTML = meanings.join('<hr style="border:0; border-top:1px dashed var(--border); margin:10px 0;">');
             } else {
-                body.innerHTML = "Słowo dopuszczalne, brak opisu w bazie.";
+                body.innerHTML = "Słowo dopuszczalne, brak opisu.";
             }
         } catch (e) {
             body.innerText = "Błąd połączenia.";
@@ -498,9 +506,8 @@
     }
 
     function shareResult() {
-        const goldCount = state.found.filter(w => w.length >= 6).length;
         const appUrl = window.location.href;
-        const text = `🧩 Słowne Wyzwanie: ${state.isDaily ? 'Wyzwanie Dnia' : 'Trening'}\n🏆 Wynik: ${state.score} pkt\n✍️ Słowa: ${state.found.length}\n🔗 Zagraj tutaj: ${appUrl}`;
+        const text = `🧩 Słowne Wyzwanie: ${state.isDaily ? 'Wyzwanie Dnia' : 'Trening'}\n🏆 Wynik: ${state.score} pkt\n✍️ Słowa: ${state.found.length}`;
         if (navigator.share) { navigator.share({ title: 'Mój wynik', text: text }); }
         else { navigator.clipboard.writeText(text).then(() => updateMsg("Skopiowano!", "var(--primary)")); }
     }
@@ -558,7 +565,6 @@
         usedIndices.push(index);
         document.getElementById('wordInput').value += l;
         renderPool();
-        if (window.navigator.vibrate) window.navigator.vibrate(15);
     }
 
     function removeLastLetter() {
@@ -579,14 +585,14 @@
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const color = isGold ? '#f1c40f' : '#27ae60';
-        for (let i = 0; i < (isGold ? 12 : 6); i++) {
+        for (let i = 0; i < 6; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
             p.style.width = '6px'; p.style.height = '6px'; p.style.backgroundColor = color;
             document.body.appendChild(p);
-            const angle = (i / (isGold ? 12 : 6)) * Math.PI * 2;
-            const destX = Math.cos(angle) * (isGold ? 80 : 50);
-            const destY = Math.sin(angle) * (isGold ? 80 : 50);
+            const angle = (i / 6) * Math.PI * 2;
+            const destX = Math.cos(angle) * 50;
+            const destY = Math.sin(angle) * 50;
             p.animate([{ transform: `translate(${centerX}px, ${centerY}px) scale(1)`, opacity: 1 }, { transform: `translate(${centerX + destX}px, ${centerY + destY}px) scale(0)`, opacity: 0 }], { duration: 500 }).onfinish = () => p.remove();
         }
     }
