@@ -245,7 +245,7 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .modal-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase;}
-        .modal-body { font-size: 0.9rem; line-height: 1.5; max-height: 300px; overflow-y: auto; }
+        .modal-body { font-size: 0.9rem; line-height: 1.6; max-height: 300px; overflow-y: auto; }
         .btn-close-modal {
             margin-top: 15px;
             width: 100%;
@@ -391,24 +391,32 @@
 
         try {
             const response = await fetch("https://corsproxy.io/?https://sjp.pl/" + encodeURIComponent(word.toLowerCase()));
-            const html = await response.text();
+            const htmlText = await response.text();
             
-            // Proste wyodrębnienie tekstu definicji z HTML SJP
             const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
+            const doc = parser.parseFromString(htmlText, 'text/html');
             const paragraphs = doc.querySelectorAll('p');
             let definition = "";
             
             for (let p of paragraphs) {
+                // Szukamy akapitu ze znaczeniem
                 if (p.style.margin === "0.5em 0px" || p.innerText.includes("znaczenie:")) {
                     definition = p.innerHTML;
                     break;
                 }
             }
 
-            body.innerHTML = definition || "Nie znaleziono szczegółowej definicji w bazie, ale słowo jest dopuszczalne w grach.";
+            if (definition) {
+                // OCZYSZCZANIE: Usuwamy linki i tagi 'a', zostawiając sam tekst
+                let cleanDef = definition.replace(/<a\b[^>]*>/gi, "").replace(/<\/a>/gi, "");
+                // Usuwamy tekst "info" lub zbędne nawiasy/linki pomocnicze
+                cleanDef = cleanDef.replace(/info/gi, "");
+                body.innerHTML = cleanDef;
+            } else {
+                body.innerText = "Nie znaleziono szczegółowej definicji, ale słowo jest dopuszczalne w grach.";
+            }
         } catch (e) {
-            body.innerText = "Nie udało się pobrać definicji. Błąd połączenia.";
+            body.innerText = "Błąd połączenia ze słownikiem.";
         }
     }
 
@@ -483,10 +491,7 @@
     function shareResult() {
         const goldCount = state.found.filter(w => w.length >= 6).length;
         const appUrl = window.location.href;
-        const text = `🧩 Słowne Wyzwanie: ${state.isDaily ? 'Wyzwanie Dnia' : 'Trening'}\n` +
-                     `🏆 Wynik: ${state.score} pkt\n` +
-                     `✍️ Słowa: ${state.found.length} (Złote: ${goldCount})\n` +
-                     `🔗 Zagraj tutaj: ${appUrl}`;
+        const text = `🧩 Słowne Wyzwanie: ${state.isDaily ? 'Wyzwanie Dnia' : 'Trening'}\n🏆 Wynik: ${state.score} pkt\n✍️ Słowa: ${state.found.length}\n🔗 Zagraj tutaj: ${appUrl}`;
         if (navigator.share) { navigator.share({ title: 'Mój wynik', text: text }); }
         else { navigator.clipboard.writeText(text).then(() => updateMsg("Skopiowano!", "var(--primary)")); }
     }
