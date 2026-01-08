@@ -220,6 +220,10 @@
         
         body.dark-mode .word-tag.gold { background: #4a4103; color: #fdd835; border-color: #f9a825; }
 
+        .bottom-actions { display: flex; gap: 10px; width: 100%; flex-shrink: 0; margin-top: auto; padding-top: 5px; }
+        .btn-new { background: #95a5a6; color: white; height: 45px; font-size: 0.9rem; flex: 1; }
+        .btn-shuffle { background: var(--purple); color: white; height: 45px; font-size: 0.9rem; flex: 1; }
+
         /* MODAL DEFINICJI */
         .modal-overlay {
             display: none;
@@ -245,10 +249,6 @@
 
         .modal-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .modal-body { font-size: 0.95rem; line-height: 1.6; max-height: 250px; overflow-y: auto; color: var(--text-main); }
-        
-        /* Styl listy znaczeń */
-        .def-item { margin-bottom: 8px; padding-left: 5px; }
-
         .btn-close-modal {
             margin-top: 15px;
             width: 100%;
@@ -399,24 +399,17 @@
             
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
-            
-            // SJP.pl trzyma definicje w paragrafach <p>. Szukamy tych, które zawierają znaczenia.
             const paragraphs = Array.from(doc.querySelectorAll('p'));
             let meanings = [];
 
             paragraphs.forEach(p => {
-                // Szukamy paragrafu z konkretnym stylem, w którym SJP trzyma definicje
                 if (p.style.margin === "0.5em 0px" || p.innerHTML.includes("<b>znaczenie:</b>")) {
-                    // Klonujemy element, aby nie modyfikować oryginału
                     let clone = p.cloneNode(true);
-                    
-                    // Usuwamy linki, ale zostawiamy tekst
                     clone.querySelectorAll('a').forEach(a => {
                         const txt = document.createTextNode(a.innerText);
                         a.parentNode.replaceChild(txt, a);
                     });
                     
-                    // Czyścimy zbędne napisy "info" i puste nawiasy
                     let html = clone.innerHTML
                         .replace(/info/gi, "")
                         .replace(/\(\s*\)/g, "")
@@ -427,13 +420,12 @@
             });
 
             if (meanings.length > 0) {
-                // Łączymy wszystkie znalezione bloki znaczeń w jeden czytelny tekst
                 body.innerHTML = meanings.join('<hr style="border:0; border-top:1px dashed var(--border); margin:10px 0;">');
             } else {
-                body.innerHTML = "Słowo jest dopuszczalne w grach, ale nie posiada opisu w tym słowniku.";
+                body.innerHTML = "Słowo dopuszczalne, brak opisu w bazie.";
             }
         } catch (e) {
-            body.innerText = "Błąd połączenia ze słownikiem.";
+            body.innerText = "Błąd połączenia.";
         }
     }
 
