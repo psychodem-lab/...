@@ -220,10 +220,6 @@
         
         body.dark-mode .word-tag.gold { background: #4a4103; color: #fdd835; border-color: #f9a825; }
 
-        .bottom-actions { display: flex; gap: 10px; width: 100%; flex-shrink: 0; }
-        .btn-new { background: #95a5a6; color: white; height: 40px; font-size: 0.9rem; flex: 1; }
-        .btn-shuffle { background: var(--purple); color: white; height: 40px; font-size: 0.9rem; flex: 1; }
-
         /* MODAL DEFINICJI */
         .modal-overlay {
             display: none;
@@ -249,6 +245,10 @@
 
         .modal-title { font-weight: bold; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px;}
         .modal-body { font-size: 0.95rem; line-height: 1.6; max-height: 250px; overflow-y: auto; color: var(--text-main); }
+        
+        /* Styl listy znaczeń */
+        .def-item { margin-bottom: 8px; padding-left: 5px; }
+
         .btn-close-modal {
             margin-top: 15px;
             width: 100%;
@@ -399,33 +399,41 @@
             
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // SJP.pl trzyma definicje w paragrafach <p>. Szukamy tych, które zawierają znaczenia.
             const paragraphs = Array.from(doc.querySelectorAll('p'));
-            
-            let definitionHTML = "";
-            
-            // SJP zazwyczaj trzyma definicje w paragrafach z określonym stylem lub po słowie 'znaczenie:'
-            for (let p of paragraphs) {
-                if (p.style.margin === "0.5em 0px" || p.innerText.includes("znaczenie:")) {
-                    definitionHTML = p.innerHTML;
-                    break;
-                }
-            }
+            let meanings = [];
 
-            if (definitionHTML) {
-                // CZYSZCZENIE:
-                // 1. Usuwamy wszystkie linki (tagi <a> i </a>), zostawiając tekst w środku
-                let clean = definitionHTML.replace(/<a\b[^>]*>/gi, "").replace(/<\/a>/gi, "");
-                // 2. Usuwamy zbędne frazy "info" i linki pomocnicze często spotykane w kodzie SJP
-                clean = clean.replace(/info/gi, "").replace(/&nbsp;/g, " ");
-                // 3. Usuwamy puste nawiasy po czyszczeniu
-                clean = clean.replace(/\(\s*\)/g, "");
-                
-                body.innerHTML = clean;
+            paragraphs.forEach(p => {
+                // Szukamy paragrafu z konkretnym stylem, w którym SJP trzyma definicje
+                if (p.style.margin === "0.5em 0px" || p.innerHTML.includes("<b>znaczenie:</b>")) {
+                    // Klonujemy element, aby nie modyfikować oryginału
+                    let clone = p.cloneNode(true);
+                    
+                    // Usuwamy linki, ale zostawiamy tekst
+                    clone.querySelectorAll('a').forEach(a => {
+                        const txt = document.createTextNode(a.innerText);
+                        a.parentNode.replaceChild(txt, a);
+                    });
+                    
+                    // Czyścimy zbędne napisy "info" i puste nawiasy
+                    let html = clone.innerHTML
+                        .replace(/info/gi, "")
+                        .replace(/\(\s*\)/g, "")
+                        .replace(/&nbsp;/g, " ");
+                        
+                    meanings.push(html);
+                }
+            });
+
+            if (meanings.length > 0) {
+                // Łączymy wszystkie znalezione bloki znaczeń w jeden czytelny tekst
+                body.innerHTML = meanings.join('<hr style="border:0; border-top:1px dashed var(--border); margin:10px 0;">');
             } else {
-                body.innerHTML = "Słowo znajduje się w słowniku jako dopuszczalne, ale nie posiada jeszcze przypisanej definicji.";
+                body.innerHTML = "Słowo jest dopuszczalne w grach, ale nie posiada opisu w tym słowniku.";
             }
         } catch (e) {
-            body.innerText = "Nie udało się połączyć ze słownikiem. Sprawdź połączenie internetowe.";
+            body.innerText = "Błąd połączenia ze słownikiem.";
         }
     }
 
