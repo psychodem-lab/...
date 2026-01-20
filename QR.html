@@ -3,113 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bezpośredni Generator QR</title>
+    <title>Pro Generator QR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --primary: #2563eb; --bg: #f1f5f9; }
-        body { font-family: sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h1 { font-size: 1.4rem; text-align: center; color: #1e293b; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        #qrcode-box { 
-            background: #fff; 
-            padding: 15px; 
-            border: 2px dashed #cbd5e1; 
-            margin-top: 20px; 
-            display: flex; 
-            flex-direction: column; 
+        :root {
+            --primary: #4f46e5;
+            --success: #22c55e;
+            --bg: #f8fafc;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        h1 { font-size: 1.5rem; color: #1e293b; margin-top: 0; text-align: center; }
+        .input-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 6px; color: #475569; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .error { color: #ef4444; font-size: 0.75rem; margin-top: 4px; display: none; }
+        
+        #qrcode-container {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            min-height: 300px;
+            min-height: 256px;
         }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; width: 100%; }
-        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-png { background: var(--primary); }
-        .btn-svg { background: #475569; }
-        .info { font-size: 0.8rem; color: #64748b; margin-top: 10px; text-align: center; }
-        #qr-title-display { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn-tiny { background: #e2e8f0; color: #1e293b; width: 100%; margin-bottom: 10px; }
+        .btn-png { background: var(--primary); color: white; }
+        .btn-svg { background: #64748b; color: white; }
+        button:hover { opacity: 0.9; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        #qr-label { font-weight: bold; margin-bottom: 10px; text-align: center; overflow-wrap: break-word; width: 100%; }
+        canvas { max-width: 100%; height: auto !important; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Bezpośredni Generator QR</h1>
+    <h1>Generator Kodów QR</h1>
     
     <div class="input-group">
-        <label>Tytuł (opcjonalnie)</label>
-        <input type="text" id="title" placeholder="Np. Menu Restauracji" oninput="generate()">
+        <label>Tytuł kodu</label>
+        <input type="text" id="title" placeholder="Np. Moja oferta" oninput="updateQR()">
     </div>
 
     <div class="input-group">
-        <label>Pełny adres URL (Bezpośredni)</label>
-        <input type="url" id="url" placeholder="https://twoja-strona.pl/oferta" oninput="generate()">
+        <label>Link (URL)</label>
+        <input type="url" id="url" placeholder="https://example.com" oninput="updateQR()">
+        <div id="url-error" class="error">Wprowadź poprawny adres URL (musi zawierać http:// lub https://)</div>
     </div>
 
-    <div id="qrcode-box">
-        <div id="qr-title-display"></div>
-        <div id="canvas-container"></div>
-        <div class="btn-group" id="actions" style="display:none;">
+    <button class="btn-tiny" id="shorten-btn" onclick="shortenUrl()">✂ Skróć link (zmniejszy gęstość QR)</button>
+
+    <div id="qrcode-container">
+        <div id="qr-label"></div>
+        <div id="canvas-holder"></div>
+        
+        <div class="btn-group" id="download-controls" style="display:none;">
             <button class="btn-png" onclick="downloadPNG()">Pobierz PNG</button>
-            <button class="btn-svg" onclick="downloadSVG()">Pobierz SVG (Wektor)</button>
+            <button class="btn-svg" onclick="downloadSVG()">Pobierz SVG</button>
         </div>
     </div>
-    
-    <p class="info">Ten kod jest <b>statyczny</b>. Link jest zapisany bezpośrednio w obrazku. Nie wygaśnie nigdy.</p>
 </div>
 
 <script>
-    function generate() {
-        const url = document.getElementById('url').value;
-        const title = document.getElementById('title').value;
-        const container = document.getElementById('canvas-container');
-        const actions = document.getElementById('actions');
-        
-        document.getElementById('qr-title-display').innerText = title;
-        container.innerHTML = "";
+    let qr = null;
+    const urlInput = document.getElementById('url');
+    const titleInput = document.getElementById('title');
+    const urlError = document.getElementById('url-error');
+    const canvasHolder = document.getElementById('canvas-holder');
+    const controls = document.getElementById('download-controls');
+    const shortenBtn = document.getElementById('shorten-btn');
 
-        if (url.startsWith('http')) {
-            new QRCode(container, {
-                text: url,
-                width: 256,
-                height: 256,
-                correctLevel: QRCode.CorrectLevel.M // Balans między czytelnością a odpornością
-            });
-            actions.style.display = 'grid';
-        } else {
-            actions.style.display = 'none';
+    function validateURL(url) {
+        try {
+            const newUrl = new URL(url);
+            return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+        } catch (e) {
+            return false;
         }
     }
 
+    function updateQR() {
+        const url = urlInput.value;
+        const title = titleInput.value;
+        
+        document.getElementById('qr-label').innerText = title;
+
+        if (validateURL(url)) {
+            urlError.style.display = 'none';
+            canvasHolder.innerHTML = "";
+            qr = new QRCode(canvasHolder, {
+                text: url,
+                width: 256,
+                height: 256,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            controls.style.display = 'grid';
+        } else {
+            if(url.length > 0) urlError.style.display = 'block';
+            controls.style.display = 'none';
+            canvasHolder.innerHTML = "Oczekiwanie na poprawny link...";
+        }
+    }
+
+    // [19] Skracacz linków TinyURL (JSONP dla uniknięcia CORS w prostym HTML)
+    async function shortenUrl() {
+        const originalUrl = urlInput.value;
+        if (!validateURL(originalUrl)) {
+            alert("Podaj najpierw poprawny link!");
+            return;
+        }
+
+        shortenBtn.innerText = "Skracanie...";
+        shortenBtn.disabled = true;
+
+        try {
+            // Używamy prostego API TinyURL
+            const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(originalUrl)}`);
+            if (response.ok) {
+                const shortUrl = await response.text();
+                urlInput.value = shortUrl;
+                updateQR();
+                alert("Link został skrócony! Kod QR jest teraz czytelniejszy.");
+            }
+        } catch (error) {
+            alert("Błąd skracania. Spróbuj później.");
+        } finally {
+            shortenBtn.innerText = "✂ Skróć link (zmniejszy gęstość QR)";
+            shortenBtn.disabled = false;
+        }
+    }
+
+    // [6] Pobieranie PNG
     function downloadPNG() {
-        const canvas = document.querySelector('canvas');
+        const canvas = canvasHolder.querySelector('canvas');
         const link = document.createElement('a');
-        link.download = (document.getElementById('title').value || 'qr-kod') + '.png';
-        link.href = canvas.toDataURL();
+        link.download = `${titleInput.value || 'qrcode'}.png`;
+        link.href = canvas.toDataURL("image/png");
         link.click();
     }
 
+    // [6] Generowanie i pobieranie SVG (Wektorowe)
     function downloadSVG() {
-        const canvas = document.querySelector('canvas');
+        const canvas = canvasHolder.querySelector('canvas');
+        const size = 256;
         const ctx = canvas.getContext('2d');
-        const size = canvas.width;
         const imgData = ctx.getImageData(0, 0, size, size);
         
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">`;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
         svg += `<rect width="100%" height="100%" fill="white"/>`;
+        
+        // Skanowanie canvas i zamiana na kwadraty SVG
+        const p = size / 256; 
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
-                if (imgData.data[(y * size + x) * 4] === 0) {
+                const i = (y * size + x) * 4;
+                if (imgData.data[i] === 0) { // Jeśli czarny piksel
                     svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="black"/>`;
                 }
             }
         }
         svg += `</svg>`;
+        
         const blob = new Blob([svg], {type: 'image/svg+xml'});
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = (document.getElementById('title').value || 'qr-kod') + '.svg';
+        link.href = url;
+        link.download = `${titleInput.value || 'qrcode'}.svg`;
         link.click();
+        URL.revokeObjectURL(url);
     }
 </script>
 
