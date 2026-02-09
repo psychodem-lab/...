@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyfrowa Równowaga | Edukacja i Praktyka</title>
+    <title>Cyfrowa Równowaga | Edukacja, Praktyka i Quiz</title>
     <style>
         :root {
             --primary: #2d3436;
             --accent: #00b894;
+            --warning: #d63031;
             --bg: #f9f9f9;
             --card: #ffffff;
             --text: #2d3436;
@@ -47,7 +48,36 @@
         h1, h2, h3 { color: var(--primary); }
         header h1 { color: white; margin: 0; font-size: 2.5rem; }
 
-        .science-section { border-left: 5px solid var(--accent); }
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        /* Quiz Styles */
+        .quiz-question { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
+        .quiz-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .quiz-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        #quiz-result { 
+            display: none; 
+            margin-top: 20px; 
+            padding: 20px; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            text-align: center;
+        }
 
         .exercise-grid {
             display: grid;
@@ -59,23 +89,7 @@
             .exercise-grid { grid-template-columns: 1fr; }
         }
 
-        .exercise-card {
-            background: #f1f2f6;
-            padding: 1.5rem;
-            border-radius: 10px;
-            transition: transform 0.2s;
-        }
-
-        .exercise-card:hover { transform: translateY(-5px); }
-
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-        .checklist-item input { margin-right: 15px; width: 20px; height: 20px; }
+        .exercise-card { background: #f1f2f6; padding: 1.5rem; border-radius: 10px; }
 
         .sources {
             font-size: 0.85rem;
@@ -85,24 +99,15 @@
             padding-top: 1rem;
         }
 
-        .badge {
-            display: inline-block;
-            background: var(--accent);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-        }
-
-        button {
-            background: var(--accent);
+        button.main-btn {
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 15px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
+            width: 100%;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -110,93 +115,118 @@
 
 <header>
     <h1>Cyfrowa Równowaga</h1>
-    <p>Zrozum mechanizmy, odzyskaj kontrolę, żyj świadomie.</p>
+    <p>Oparta na danych naukowych metoda odzyskiwania czasu.</p>
 </header>
 
 <div class="container">
     
-    <section class="card science-section">
-        <span class="badge">Nauka</span>
-        <h2>Dlaczego telefon nas wciąga?</h2>
-        <p>Smartfony wykorzystują mechanizm <strong>zmiennych nagród</strong>. Za każdym razem, gdy sprawdzasz powiadomienie, Twój mózg może (ale nie musi) otrzymać dawkę dopaminy. Ta niepewność sprawia, że nawyk staje się silniejszy – podobnie jak w przypadku gier hazardowych.</p>
-        <ul>
-            <li><strong>Pętle dopaminowe:</strong> Krótkie cykle akcja-nagroda (scrollowanie).</li>
-            <li><strong>Lęk przed wykluczeniem (FOMO):</strong> Strach, że ominie nas ważna informacja.</li>
-            <li><strong>Przeciążenie poznawcze:</strong> Nadmiar bodźców utrudnia głębokie myślenie.</li>
-        </ul>
+    <section class="card">
+        <span class="badge">Edukacja</span>
+        <h2>Mechanizm uzależnienia</h2>
+        <p>Badania obrazowe mózgu wykazują, że nadmierne używanie smartfona wpływa na <strong>istotę szarą</strong> w obszarach odpowiedzialnych za kontrolę poznawczą i przetwarzanie emocji. To nie jest tylko "zły nawyk", ale mierzalna zmiana w sposobie funkcjonowania układu nagrody.</p>
+    </section>
+
+    <section class="card" id="quiz-section">
+        <span class="badge">Autodiagnoza</span>
+        <h2>Skala SAS-SV (Short Version)</h2>
+        <p>Oceń poniższe stwierdzenia w skali 1-6 (1: zdecydowanie się nie zgadzam, 6: zdecydowanie się zgadzam).</p>
+        
+        <div id="quiz-container">
+            </div>
+
+        <button class="main-btn" onclick="calculateScore()">Oblicz mój wynik</button>
+        <div id="quiz-result"></div>
     </section>
 
     <section class="card">
-        <span class="badge">Praktyka</span>
-        <h2>Twoje ćwiczenia na dziś</h2>
+        <span class="badge">Interwencja</span>
+        <h2>Plan działania</h2>
         <div class="exercise-grid">
             <div class="exercise-card">
-                <h3>1. Świat w czerni i bieli</h3>
-                <p>Włącz tryb skali szarości w ustawieniach ułatwień dostępu. Bez kolorów Instagram i TikTok przestają stymulować mózg w tak silny sposób.</p>
+                <h3>Detoks Dopaminowy</h3>
+                <p>Przez 24h zrezygnuj ze wszystkich aplikacji rozrywkowych. Pozwól mózgowi odczuć nudę – to ona stymuluje kreatywność.</p>
             </div>
             <div class="exercise-card">
-                <h3>2. Audyt powiadomień</h3>
-                <p>Wyłącz wszystkie powiadomienia, które nie pochodzą od żywego człowieka. Polubienia i oferty mogą poczekać.</p>
-            </div>
-            <div class="exercise-card">
-                <h3>3. Zasada 20 metrów</h3>
-                <p>Podczas rozmowy z drugą osobą, telefon musi znajdować się fizycznie w innym pomieszczeniu lub przynajmniej 20 metrów dalej.</p>
-            </div>
-            <div class="exercise-card">
-                <h3>4. Godzina zero</h3>
-                <p>Przez pierwszą godzinę po przebudzeniu nie dotykaj telefonu. Wykorzystaj ten czas na światło słoneczne i ruch.</p>
+                <h3>Fizyczna Bariera</h3>
+                <p>Ładuj telefon w innym pomieszczeniu niż sypialnia. Kup klasyczny budzik, aby uniknąć scrollowania przed snem.</p>
             </div>
         </div>
-    </section>
-
-    <section class="card">
-        <h2>Codzienna Checklist Higieny</h2>
-        <div id="checklist">
-            <label class="checklist-item">
-                <input type="checkbox"> Telefon poza zasięgiem wzroku podczas pracy/nauki.
-            </label>
-            <label class="checklist-item">
-                <input type="checkbox"> Brak telefonu przy posiłku.
-            </label>
-            <label class="checklist-item">
-                <input type="checkbox"> Ekran w trybie nocnym/szarym po godzinie 20:00.
-            </label>
-            <label class="checklist-item">
-                <input type="checkbox"> Przeczytana przynajmniej 1 strona książki zamiast scrollowania.
-            </label>
-        </div>
-        <p id="progress-text" style="font-weight: bold; color: var(--accent);"></p>
     </section>
 
     <footer class="sources">
-        <h3>Źródła i badania (Empiryzm):</h3>
+        <h3>Źródła naukowe:</h3>
         <ul>
-            <li>Holte, A. J., & Ferraro, F. R. (2020). <em>Anxious, bored, and addicted: The effect of smartphone grayscale on smartphone use.</em> Journal of Behavioral Addictions.</li>
-            <li>Misra, S., et al. (2014). <em>The iPhone Effect: The Quality of In-Person Social Interactions.</em> Environment and Behavior.</li>
-            <li>Kushlev, K., et al. (2016). <em>Silence Your Phones: Digital Distractions and ADHD-Like Symptoms.</em> CHI Conference on Human Factors in Computing Systems.</li>
+            <li><strong>SAS-SV:</strong> Kwon, M., et al. (2013). <em>The Smartphone Addiction Scale: Development and Validation of a Short Version for Adolescents.</em> PLoS ONE.</li>
+            <li><strong>Mózg a smartfon:</strong> Horvath, J., et al. (2020). <em>Structural and functional correlates of smartphone addiction.</em> Addictive Behaviors.</li>
         </ul>
     </footer>
-
 </div>
 
 <script>
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    const progressText = document.getElementById('progress-text');
+    const questions = [
+        "Przegapiam zaplanowane zadania z powodu używania smartfona.",
+        "Mam trudności ze skoncentrowaniem się na pracy/nauce przez telefon.",
+        "Czuję ból w nadgarstkach lub karku podczas korzystania ze smartfona.",
+        "Nie wyobrażam sobie życia bez mojego smartfona.",
+        "Czuję się niecierpliwy i spięty, gdy nie mam przy sobie telefonu.",
+        "Myślę o telefonie, nawet gdy go nie używam.",
+        "Używam telefonu dłużej niż zamierzałem, mimo prób ograniczenia.",
+        "Ludzie wokół mnie skarżą się, że za dużo korzystam z telefonu."
+    ];
 
-    function updateProgress() {
-        const checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
-        const total = checkboxes.length;
-        if (checkedCount === total) {
-            progressText.innerText = "Świetnie! Twoja higiena cyfrowa jest dziś na wzorowym poziomie.";
-        } else if (checkedCount > 0) {
-            progressText.innerText = `Wykonano ${checkedCount} z ${total} zadań. Tak trzymaj!`;
-        } else {
-            progressText.innerText = "Zacznij od jednego małego kroku.";
+    const quizContainer = document.getElementById('quiz-container');
+    const userAnswers = new Array(questions.length).fill(0);
+
+    // Generowanie pytań
+    questions.forEach((q, index) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-question';
+        div.innerHTML = `<p>${index + 1}. ${q}</p><div class="quiz-options" id="q${index}"></div>`;
+        quizContainer.appendChild(div);
+
+        const optionsContainer = document.getElementById(`q${index}`);
+        for (let i = 1; i <= 6; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-btn';
+            btn.innerText = i;
+            btn.onclick = () => {
+                userAnswers[index] = i;
+                Array.from(optionsContainer.children).forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            optionsContainer.appendChild(btn);
         }
-    }
+    });
 
-    checkboxes.forEach(c => c.addEventListener('change', updateProgress));
-    updateProgress();
+    function calculateScore() {
+        if (userAnswers.includes(0)) {
+            alert("Proszę odpowiedzieć na wszystkie pytania.");
+            return;
+        }
+
+        const score = userAnswers.reduce((a, b) => a + b, 0);
+        const resultDiv = document.getElementById('quiz-result');
+        resultDiv.style.display = 'block';
+
+        let message = "";
+        let color = "";
+
+        if (score > 31) {
+            message = `Twój wynik to ${score}/48. Wykazujesz wysokie ryzyko uzależnienia. Zalecana radykalna higiena cyfrowa.`;
+            color = "#ffeaa7";
+            resultDiv.style.border = `2px solid ${var(--warning)}`;
+        } else if (score > 21) {
+            message = `Twój wynik to ${score}/48. Jesteś w grupie umiarkowanego ryzyka. Warto wprowadzić limity czasowe.`;
+            color = "#f1f2f6";
+        } else {
+            message = `Twój wynik to ${score}/48. Twoje relacje z telefonem wydają się zdrowe.`;
+            color = "#e3fcef";
+        }
+
+        resultDiv.style.backgroundColor = color;
+        resultDiv.innerHTML = message;
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
 </script>
 
 </body>
