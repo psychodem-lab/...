@@ -113,6 +113,7 @@
                         <span class="text-[10px] font-bold uppercase text-blue-600">Kolor obramowania = Wymiar EEMM</span>
                     </div>
                     <button onclick="nodes.clear(); edges.clear();" class="text-[10px] text-red-500 font-bold uppercase ml-auto no-print">Resetuj wszystko</button>
+                    <button onclick="undoLast()" class="text-[10px] text-orange-500 font-bold uppercase ml-4 no-print">Cofnij ostatni krok</button>
                 </div>
             </div>
         </main>
@@ -195,6 +196,24 @@
             });
         }
 
+        function undoLast() {
+            // Pobierz wszystkie ID węzłów i krawędzi
+            const nodeIds = nodes.getIds();
+            const edgeIds = edges.getIds();
+        
+            // Najpierw sprawdzamy, czy ostatnio dodano krawędź (relację)
+            if (edgeIds.length > 0) {
+                const lastEdgeId = edgeIds[edgeIds.length - 1];
+                edges.remove(lastEdgeId);
+            } 
+            // Jeśli nie ma krawędzi do cofnięcia, usuwamy ostatni węzeł (proces)
+            else if (nodeIds.length > 0) {
+                const lastNodeId = nodeIds[nodeIds.length - 1];
+                nodes.remove(lastNodeId);
+                updateSelects(); // Aktualizujemy listy wyboru relacji
+            }
+        }
+        
         function exportSession() {
             const data = JSON.stringify({ nodes: nodes.get(), edges: edges.get() });
             const blob = new Blob([data], { type: 'application/json' });
