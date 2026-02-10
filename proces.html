@@ -3,22 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PBT Clinical Mapper v2.1 - Naprawiona Spójność</title>
+    <title>TERAPIA OPARTA NA PROCESACH</title>
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
         .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
+        
+        /* Stylizacja wydruku */
+        @media print {
+            header, aside, .no-print, button, label, input, select { display: none !important; }
+            body { background: white !important; }
+            main { width: 100% !important; grid-column: span 12 / span 12 !important; }
+            #network-container { border: none !important; height: 800px !important; width: 100% !important; }
+            .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900">
 
-    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600">
+    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600 no-print">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-black italic uppercase tracking-tighter">PBT <span class="text-indigo-400">Functional Mapper</span></h1>
             <div class="flex gap-2">
-                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase">Eksportuj</button>
-                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase">
+                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
+                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
+                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
                     Importuj <input type="file" id="importFile" class="hidden" accept=".json" onchange="importSession(event)">
                 </label>
             </div>
@@ -27,7 +37,7 @@
 
     <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
         
-        <aside class="xl:col-span-4 space-y-4 sidebar-scroll">
+        <aside class="xl:col-span-4 space-y-4 sidebar-scroll no-print">
             <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
                 <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">1. Dodaj proces do sieci</h2>
                 
@@ -41,13 +51,15 @@
                         <div>
                             <label class="text-[10px] font-bold uppercase text-slate-400">Wymiar EEMM:</label>
                             <select id="proc-dim" class="w-full p-2 text-xs border rounded bg-white">
-                                <option value="#3b82f6">Poznanie (Niebieski)</option>
-                                <option value="#ef4444">Afekt (Czerwony)</option>
                                 <option value="#f59e0b">Uwaga (Pomarańczowy)</option>
-                                <option value="#8b5cf6">Jaźń (Fioletowy)</option>
+                                <option value="#3b82f6">Poznanie (Niebieski)</option>
+                                <option value="#8b5cf6">Ja (Fioletowy)</option> 
+                                <option value="#ef4444">Afekt (Czerwony)</option>                             
                                 <option value="#10b981">Zachowanie (Zielony)</option>
                                 <option value="#06b6d4">Motywacja (Morski)</option>
-                                <option value="#475569">Bio / Kontekst (Szary)</option>
+                                <option value="#475569">Biofizjologiczny (Szary)</option>
+                                <option value="#475569">Kontekst (Szary)</option>
+                                <option value="#475569">Społeczno-kulturowy (Szary)</option>
                             </select>
                         </div>
                         <div>
@@ -80,10 +92,10 @@
         </aside>
 
         <main class="xl:col-span-8 space-y-4">
-            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200">
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
                 <div id="network-container"></div>
                 
-                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-6 items-center justify-center">
+                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-6 items-center justify-center print:bg-white">
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 border-4 border-slate-400 bg-[#fee2e2] rounded-full"></span>
                         <span class="text-[10px] font-bold uppercase">Problem</span>
@@ -94,9 +106,9 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="w-1 h-4 bg-blue-500"></span>
-                        <span class="text-[10px] font-bold uppercase text-blue-600">Obramowanie = Wymiar EEMM</span>
+                        <span class="text-[10px] font-bold uppercase text-blue-600">Kolor obramowania = Wymiar EEMM</span>
                     </div>
-                    <button onclick="nodes.clear(); edges.clear();" class="text-[10px] text-red-500 font-bold uppercase ml-auto">Resetuj wszystko</button>
+                    <button onclick="nodes.clear(); edges.clear();" class="text-[10px] text-red-500 font-bold uppercase ml-auto no-print">Resetuj wszystko</button>
                 </div>
             </div>
         </main>
@@ -137,8 +149,8 @@
                 id: Date.now(),
                 label: label,
                 color: {
-                    border: dimColor,      // Obramowanie to wymiar (np. Poznanie)
-                    background: statusColor, // Wypełnienie to status (np. Problem)
+                    border: dimColor,
+                    background: statusColor,
                     highlight: { border: dimColor, background: statusColor }
                 }
             });
@@ -176,7 +188,7 @@
             const blob = new Blob([data], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'pbt-session.json';
+            a.download = `PBT-Sesja-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
         }
 
