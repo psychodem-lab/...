@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBT Toolset - Terapia Oparta na Procesach</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #network-container {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+        }
+        .dimension-card:hover { transform: translateY(-2px); transition: 0.2s; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+    <header class="bg-slate-800 text-white p-6 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold uppercase tracking-wide">PBT Process Mapper</h1>
+                <p class="text-sm text-slate-300">Narzędzie do analizy funkcjonalnej i mapowania sieci procesów</p>
+            </div>
+            <div class="text-right text-xs">
+                <p>Oparte na modelu Hofmann & Hayes (2019)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 space-y-6">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. Eksploracja Wymiarów (EEMM)</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Afekt (Emocje/Fizjologia)</label>
+                        <textarea id="dim-affect" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Co pacjent czuje w ciele? Jakie dominują emocje?"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Poznanie (Myśli/Schematy)</label>
+                        <textarea id="dim-cognition" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Ruminacje, oceny, sztywne zasady..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Uwaga</label>
+                        <textarea id="dim-attention" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Gdzie jest uwaga? Przeszłość, przyszłość, unikanie?"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jaźń (Self)</label>
+                        <textarea id="dim-self" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Relacja z samym sobą, poczucie jaźni..."></textarea>
+                    </div>
+                    <button onclick="addDimensionsToMap()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Dodaj do sieci</button>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">2. Interwencje PBT</h2>
+                <div id="intervention-list" class="text-sm space-y-2 text-gray-600">
+                    <p><i>Zidentyfikuj procesy, aby zobaczyć sugerowane techniki.</i></p>
+                </div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Interaktywna Sieć Procesów</h2>
+                    <div class="space-x-2">
+                        <button onclick="clearNetwork()" class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">Wyczyść</button>
+                        <button onclick="exportNetwork()" class="text-xs bg-green-100 text-green-600 px-3 py-1 rounded hover:bg-green-200">Eksportuj PDF/Drukuj</button>
+                    </div>
+                </div>
+                
+                <div class="mb-4 flex gap-2">
+                    <input id="node-label" type="text" placeholder="Nazwa elementu (np. Lęk)" class="flex-1 border p-2 rounded text-sm">
+                    <select id="node-type" class="border p-2 rounded text-sm">
+                        <option value="#f87171">Proces Problemowy</option>
+                        <option value="#4ade80">Zasób / Siła</option>
+                        <option value="#60a5fa">Kontekst</option>
+                    </select>
+                    <button onclick="addNewNode()" class="bg-slate-700 text-white px-4 py-2 rounded text-sm hover:bg-slate-800">+ Dodaj</button>
+                </div>
+
+                <div id="network-container"></div>
+                
+                <p class="mt-4 text-xs text-gray-500 italic">
+                    Instrukcja: Przeciągnij węzły, aby zmienić układ. Aby połączyć elementy, wybierz tryb edycji (domyślnie dodawaj krawędzie w kodzie lub rozszerz funkcjonalność).
+                </p>
+            </section>
+
+            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-xl font-semibold mb-2">Analiza Funkcjonalna i Cele</h2>
+                <textarea class="w-full h-32 p-4 border rounded shadow-inner" placeholder="Wnioski z sieci: Jakie procesy są kluczowe dla zmiany? Co utrzymuje pacjenta w impasie?"></textarea>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-100 py-6 border-t mt-12">
+        <div class="container mx-auto text-center text-gray-500 text-sm">
+            PBT Toolset v1.0 | Empiryczna Terapia Oparta na Procesach | Dane przechowywane lokalnie w pamięci sesji.
+        </div>
+    </footer>
+
+    <script>
+        // Inicjalizacja Sieci
+        let nodes = new vis.DataSet([
+            { id: 1, label: 'Wyzwalacz', color: '#cbd5e1' },
+            { id: 2, label: 'Unikanie', color: '#f87171' }
+        ]);
+
+        let edges = new vis.DataSet([
+            { from: 1, to: 2, arrows: 'to', label: 'aktywuje' }
+        ]);
+
+        const container = document.getElementById('network-container');
+        const data = { nodes: nodes, edges: edges };
+        const options = {
+            nodes: {
+                shape: 'dot',
+                size: 25,
+                font: { size: 14, color: '#334155' },
+                borderWidth: 2
+            },
+            edges: {
+                width: 2,
+                color: { color: '#94a3b8', highlight: '#3b82f6' },
+                smooth: { type: 'continuous' }
+            },
+            physics: { enabled: true, barnesHut: { gravitationalConstant: -2000 } },
+            manipulation: {
+                enabled: true,
+                addNode: false,
+                addEdge: true
+            }
+        };
+
+        const network = new vis.Network(container, data, options);
+
+        // Funkcje obsługi
+        function addNewNode() {
+            const label = document.getElementById('node-label').value;
+            const color = document.getElementById('node-type').value;
+            if (label === "") return;
+
+            const id = new Date().getTime();
+            nodes.add({ id: id, label: label, color: color });
+            document.getElementById('node-label').value = "";
+            updateInterventions();
+        }
+
+        function addDimensionsToMap() {
+            const dims = [
+                { id: 'dim-affect', label: 'Afekt: ' },
+                { id: 'dim-cognition', label: 'Poznanie: ' },
+                { id: 'dim-attention', label: 'Uwaga: ' },
+                { id: 'dim-self', label: 'Jaźń: ' }
+            ];
+
+            dims.forEach(d => {
+                const val = document.getElementById(d.id).value;
+                if (val) {
+                    nodes.add({ 
+                        id: new Date().getTime() + Math.random(), 
+                        label: d.label + val.substring(0, 20) + "...", 
+                        color: '#e0f2fe' 
+                    });
+                }
+            });
+        }
+
+        function clearNetwork() {
+            if(confirm("Czy na pewno wyczyścić całą sieć?")) {
+                nodes.clear();
+                edges.clear();
+            }
+        }
+
+        function updateInterventions() {
+            const list = document.getElementById('intervention-list');
+            list.innerHTML = `
+                <div class="p-2 bg-blue-50 border-l-4 border-blue-500 mb-2">
+                    <strong>Dla procesów poznawczych:</strong><br>Defuzja, Reatrybucja, Praca z wartościami.
+                </div>
+                <div class="p-2 bg-red-50 border-l-4 border-red-500 mb-2">
+                    <strong>Dla unikania:</strong><br>Ekspozycja in-vivo, Aktywacja behawioralna.
+                </div>
+                <div class="p-2 bg-green-50 border-l-4 border-green-500">
+                    <strong>Dla uwagi:</strong><br>Trening uważności (Mindfulness), Przekierowanie uwagi.
+                </div>
+            `;
+        }
+
+        function exportNetwork() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
