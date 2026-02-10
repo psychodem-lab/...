@@ -3,200 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PBT Toolset - Terapia Oparta na Procesach</title>
+    <title>Advanced PBT Clinical Mapper - EEMM Framework</title>
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         #network-container {
             width: 100%;
-            height: 600px;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
-            border-radius: 0.5rem;
+            height: 700px;
+            background: radial-gradient(circle, #ffffff 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
         }
-        .dimension-card:hover { transform: translateY(-2px); transition: 0.2s; }
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .sidebar-scroll {
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body class="bg-slate-100 font-sans text-slate-800">
 
-    <header class="bg-slate-800 text-white p-6 shadow-lg">
+    <header class="bg-indigo-900 text-white p-5 shadow-2xl border-b-4 border-indigo-500">
         <div class="container mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold uppercase tracking-wide">PBT Process Mapper</h1>
-                <p class="text-sm text-slate-300">Narzędzie do analizy funkcjonalnej i mapowania sieci procesów</p>
+                <h1 class="text-3xl font-black tracking-tighter italic">PBT <span class="text-indigo-400 text-2xl font-light">EEMM Pro</span></h1>
+                <p class="text-xs uppercase tracking-widest opacity-80">System Analizy Procesów Ewolucyjnych w Psychoterapii</p>
             </div>
-            <div class="text-right text-xs">
-                <p>Oparte na modelu Hofmann & Hayes (2019)</p>
+            <div class="hidden md:block text-right">
+                <p class="text-sm font-bold">Model Hofmann & Hayes</p>
+                <p class="text-xs opacity-60 italic">Empiryzm • Funkcjonalizm • Zmiana</p>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto py-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
         
-        <div class="lg:col-span-1 space-y-6">
-            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. Eksploracja Wymiarów (EEMM)</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Afekt (Emocje/Fizjologia)</label>
-                        <textarea id="dim-affect" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Co pacjent czuje w ciele? Jakie dominują emocje?"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Poznanie (Myśli/Schematy)</label>
-                        <textarea id="dim-cognition" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Ruminacje, oceny, sztywne zasady..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Uwaga</label>
-                        <textarea id="dim-attention" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Gdzie jest uwaga? Przeszłość, przyszłość, unikanie?"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Jaźń (Self)</label>
-                        <textarea id="dim-self" class="w-full p-2 mt-1 border rounded text-sm" placeholder="Relacja z samym sobą, poczucie jaźni..."></textarea>
-                    </div>
-                    <button onclick="addDimensionsToMap()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Dodaj do sieci</button>
-                </div>
-            </section>
-
-            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 class="text-xl font-semibold mb-4 border-b pb-2">2. Interwencje PBT</h2>
-                <div id="intervention-list" class="text-sm space-y-2 text-gray-600">
-                    <p><i>Zidentyfikuj procesy, aby zobaczyć sugerowane techniki.</i></p>
-                </div>
-            </section>
-        </div>
-
-        <div class="lg:col-span-2 space-y-6">
-            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Interaktywna Sieć Procesów</h2>
-                    <div class="space-x-2">
-                        <button onclick="clearNetwork()" class="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200">Wyczyść</button>
-                        <button onclick="exportNetwork()" class="text-xs bg-green-100 text-green-600 px-3 py-1 rounded hover:bg-green-200">Eksportuj PDF/Drukuj</button>
-                    </div>
+        <aside class="xl:col-span-3 space-y-4 sidebar-scroll pr-2">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+                <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                Matryca EEMM
+            </h2>
+            
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <div class="border-l-4 border-blue-500 pl-3">
+                    <label class="text-xs font-black uppercase text-blue-600">Poznanie</label>
+                    <input type="text" id="node-cog" placeholder="np. Myśl 'nie dam rady'" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
                 </div>
                 
-                <div class="mb-4 flex gap-2">
-                    <input id="node-label" type="text" placeholder="Nazwa elementu (np. Lęk)" class="flex-1 border p-2 rounded text-sm">
-                    <select id="node-type" class="border p-2 rounded text-sm">
-                        <option value="#f87171">Proces Problemowy</option>
-                        <option value="#4ade80">Zasób / Siła</option>
-                        <option value="#60a5fa">Kontekst</option>
-                    </select>
-                    <button onclick="addNewNode()" class="bg-slate-700 text-white px-4 py-2 rounded text-sm hover:bg-slate-800">+ Dodaj</button>
+                <div class="border-l-4 border-red-500 pl-3">
+                    <label class="text-xs font-black uppercase text-red-600">Afekt</label>
+                    <input type="text" id="node-aff" placeholder="np. Lęk, ucisk w klatce" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                </div>
+
+                <div class="border-l-4 border-amber-500 pl-3">
+                    <label class="text-xs font-black uppercase text-amber-600">Uwaga</label>
+                    <input type="text" id="node-att" placeholder="np. Skanowanie zagrożeń" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                </div>
+
+                <div class="border-l-4 border-purple-500 pl-3">
+                    <label class="text-xs font-black uppercase text-purple-600">Jaźń (Self)</label>
+                    <input type="text" id="node-self" placeholder="np. Samokrytycyzm" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                </div>
+
+                <div class="border-l-4 border-green-600 pl-3">
+                    <label class="text-xs font-black uppercase text-green-600">Zachowanie</label>
+                    <input type="text" id="node-beh" placeholder="np. Unikanie kontaktu" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                </div>
+
+                <div class="border-l-4 border-cyan-600 pl-3">
+                    <label class="text-xs font-black uppercase text-cyan-600">Motywacja</label>
+                    <input type="text" id="node-mot" placeholder="np. Potrzeba bezpieczeństwa" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                </div>
+
+                <div class="pt-2 mt-2 border-t border-slate-100">
+                    <div class="border-l-4 border-slate-800 pl-3 mb-3">
+                        <label class="text-xs font-black uppercase text-slate-800">Bio-fizjologia</label>
+                        <input type="text" id="node-bio" placeholder="np. Niewyspanie, kortyzol" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                    </div>
+                    <div class="border-l-4 border-slate-400 pl-3 mb-3">
+                        <label class="text-xs font-black uppercase text-slate-500">Kontekst / Społeczne</label>
+                        <input type="text" id="node-soc" placeholder="np. Presja w pracy" class="w-full mt-1 p-2 text-sm border rounded bg-slate-50">
+                    </div>
+                </div>
+
+                <button onclick="addAllFromInputs()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 shadow-md transition-all">
+                    DODAJ DO SIECI
+                </button>
+            </div>
+        </aside>
+
+        <main class="xl:col-span-6 space-y-6">
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-black text-slate-700 uppercase tracking-tight">Mapa Sieci Procesów</h2>
+                    <div class="flex gap-2 text-xs">
+                        <button onclick="exportJSON()" class="bg-slate-100 px-3 py-1 rounded border">Kopia danych</button>
+                        <button onclick="clearAll()" class="bg-red-50 text-red-600 px-3 py-1 rounded border border-red-200 uppercase font-bold">Reset</button>
+                    </div>
                 </div>
 
                 <div id="network-container"></div>
                 
-                <p class="mt-4 text-xs text-gray-500 italic">
-                    Instrukcja: Przeciągnij węzły, aby zmienić układ. Aby połączyć elementy, wybierz tryb edycji (domyślnie dodawaj krawędzie w kodzie lub rozszerz funkcjonalność).
-                </p>
-            </section>
+                <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div class="flex items-center gap-2 text-xs font-medium"><span class="w-3 h-3 rounded-full bg-red-400"></span> Proces Problemowy</div>
+                    <div class="flex items-center gap-2 text-xs font-medium"><span class="w-3 h-3 rounded-full bg-green-400"></span> Zasób/Adaptacja</div>
+                    <div class="flex items-center gap-2 text-xs font-medium"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Kontekst/Bio</div>
+                </div>
+            </div>
+        </main>
 
-            <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h2 class="text-xl font-semibold mb-2">Analiza Funkcjonalna i Cele</h2>
-                <textarea class="w-full h-32 p-4 border rounded shadow-inner" placeholder="Wnioski z sieci: Jakie procesy są kluczowe dla zmiany? Co utrzymuje pacjenta w impasie?"></textarea>
-            </section>
-        </div>
-    </main>
+        <aside class="xl:col-span-3 space-y-4">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+                <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                Analiza Relacji
+            </h2>
 
-    <footer class="bg-gray-100 py-6 border-t mt-12">
-        <div class="container mx-auto text-center text-gray-500 text-sm">
-            PBT Toolset v1.0 | Empiryczna Terapia Oparta na Procesach | Dane przechowywane lokalnie w pamięci sesji.
-        </div>
-    </footer>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold mb-4 uppercase">Stwórz połączenie (Strzałka)</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-slate-500">Z węzła (Przyczyna):</label>
+                        <select id="edge-from" class="w-full p-2 text-sm border rounded mt-1"></select>
+                    </div>
+                    <div class="text-center">⬇️</div>
+                    <div>
+                        <label class="text-xs text-slate-500">Do węzła (Skutek):</label>
+                        <select id="edge-to" class="w-full p-2 text-sm border rounded mt-1"></select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">Typ relacji:</label>
+                        <select id="edge-label" class="w-full p-2 text-sm border rounded mt-1 bg-indigo-50 font-medium">
+                            <option value="nasila">➕ nasila / wyzwala</option>
+                            <option value="hamuje">➖ hamuje / osłabia</option>
+                            <option value="prowadzi do">➡️ prowadzi do</option>
+                            <option value="podtrzymuje">🔄 podtrzymuje (pętla)</option>
+                        </select>
+                    </div>
+                    <button onclick="addConnection()" class="w-full bg-slate-800 text-white font-bold py-2 rounded shadow hover:bg-slate-900 transition">POŁĄCZ ELEMENTY</button>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                <h3 class="text-sm font-bold mb-2">Interwencje PBT</h3>
+                <div id="ai-suggestion" class="text-xs space-y-2 leading-relaxed">
+                    <p class="italic text-slate-500 text-center">Dodaj połączenia, aby wygenerować sugestie kliniczne.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
 
     <script>
-        // Inicjalizacja Sieci
+        // Dane początkowe (Przykładowa Pętla)
         let nodes = new vis.DataSet([
-            { id: 1, label: 'Wyzwalacz', color: '#cbd5e1' },
-            { id: 2, label: 'Unikanie', color: '#f87171' }
+            { id: 1, label: 'Lęk (Afekt)', color: '#f87171', group: 'problem' },
+            { id: 2, label: 'Unikanie (Beh)', color: '#f87171', group: 'problem' }
         ]);
 
         let edges = new vis.DataSet([
-            { from: 1, to: 2, arrows: 'to', label: 'aktywuje' }
+            { from: 1, to: 2, arrows: 'to', label: 'nasila', font: { size: 10, align: 'top' }, color: {color:'#ef4444'} }
         ]);
 
         const container = document.getElementById('network-container');
         const data = { nodes: nodes, edges: edges };
+        
         const options = {
             nodes: {
                 shape: 'dot',
-                size: 25,
-                font: { size: 14, color: '#334155' },
-                borderWidth: 2
+                size: 30,
+                font: { size: 14, face: 'Inter, system-ui', color: '#1e293b' },
+                borderWidth: 2,
+                shadow: true
             },
             edges: {
                 width: 2,
-                color: { color: '#94a3b8', highlight: '#3b82f6' },
-                smooth: { type: 'continuous' }
+                arrows: { to: { enabled: true, scaleFactor: 1.2 } },
+                smooth: { type: 'curvedCW', roundness: 0.2 },
+                font: { background: '#ffffff', size: 11 }
             },
-            physics: { enabled: true, barnesHut: { gravitationalConstant: -2000 } },
-            manipulation: {
+            physics: {
                 enabled: true,
-                addNode: false,
-                addEdge: true
-            }
+                barnesHut: { gravitationalConstant: -3000, springLength: 150 }
+            },
+            interaction: { hover: true, navigationButtons: true }
         };
 
         const network = new vis.Network(container, data, options);
 
-        // Funkcje obsługi
-        function addNewNode() {
-            const label = document.getElementById('node-label').value;
-            const color = document.getElementById('node-type').value;
-            if (label === "") return;
-
-            const id = new Date().getTime();
-            nodes.add({ id: id, label: label, color: color });
-            document.getElementById('node-label').value = "";
-            updateInterventions();
-        }
-
-        function addDimensionsToMap() {
-            const dims = [
-                { id: 'dim-affect', label: 'Afekt: ' },
-                { id: 'dim-cognition', label: 'Poznanie: ' },
-                { id: 'dim-attention', label: 'Uwaga: ' },
-                { id: 'dim-self', label: 'Jaźń: ' }
+        // Funkcja dodawania masowego z inputów EEMM
+        function addAllFromInputs() {
+            const inputs = [
+                { id: 'node-cog', color: '#60a5fa', type: 'Poznanie' },
+                { id: 'node-aff', color: '#f87171', type: 'Afekt' },
+                { id: 'node-att', color: '#fbbf24', type: 'Uwaga' },
+                { id: 'node-self', color: '#a78bfa', type: 'Jaźń' },
+                { id: 'node-beh', color: '#34d399', type: 'Zachowanie' },
+                { id: 'node-mot', color: '#22d3ee', type: 'Motywacja' },
+                { id: 'node-bio', color: '#475569', type: 'Bio' },
+                { id: 'node-soc', color: '#94a3b8', type: 'Soc' }
             ];
 
-            dims.forEach(d => {
-                const val = document.getElementById(d.id).value;
-                if (val) {
-                    nodes.add({ 
-                        id: new Date().getTime() + Math.random(), 
-                        label: d.label + val.substring(0, 20) + "...", 
-                        color: '#e0f2fe' 
+            inputs.forEach(input => {
+                const el = document.getElementById(input.id);
+                if (el.value.trim() !== "") {
+                    nodes.add({
+                        id: Date.now() + Math.random(),
+                        label: `${el.value} (${input.type})`,
+                        color: input.color
                     });
+                    el.value = ""; // czyścimy po dodaniu
                 }
+            });
+            updateSelects();
+        }
+
+        // Aktualizacja list rozwijanych (relacje)
+        function updateSelects() {
+            const fromSelect = document.getElementById('edge-from');
+            const toSelect = document.getElementById('edge-to');
+            fromSelect.innerHTML = "";
+            toSelect.innerHTML = "";
+            
+            nodes.forEach(node => {
+                let opt1 = document.createElement('option');
+                opt1.value = node.id;
+                opt1.textContent = node.label;
+                fromSelect.appendChild(opt1);
+
+                let opt2 = document.createElement('option');
+                opt2.value = node.id;
+                opt2.textContent = node.label;
+                toSelect.appendChild(opt2);
             });
         }
 
-        function clearNetwork() {
-            if(confirm("Czy na pewno wyczyścić całą sieć?")) {
+        function addConnection() {
+            const from = document.getElementById('edge-from').value;
+            const to = document.getElementById('edge-to').value;
+            const label = document.getElementById('edge-label').value;
+            
+            if (from === to) {
+                alert("W modelu PBT rzadko łączymy proces ze samym sobą bezpośrednio. Spróbuj połączyć go z innym ogniwem pętli.");
+                return;
+            }
+
+            const isNegative = label === 'hamuje';
+            
+            edges.add({
+                from: from,
+                to: to,
+                label: label,
+                arrows: 'to',
+                color: { color: isNegative ? '#22c55e' : '#ef4444' },
+                dashes: isNegative ? true : false
+            });
+            
+            analyzeNetwork();
+        }
+
+        function analyzeNetwork() {
+            const sugg = document.getElementById('ai-suggestion');
+            const edgeCount = edges.length;
+            
+            if (edgeCount >= 3) {
+                sugg.innerHTML = `
+                    <div class="bg-white p-2 rounded border border-indigo-200">
+                        <strong>Wykryto sieć złożoną:</strong> Skup się na przerwaniu połączenia między najsilniejszymi węzłami. 
+                        W modelu PBT to "wąskie gardło" (bottleneck).
+                    </div>
+                `;
+            }
+        }
+
+        function clearAll() {
+            if(confirm("Czy na pewno chcesz usunąć całą analizę?")) {
                 nodes.clear();
                 edges.clear();
             }
         }
 
-        function updateInterventions() {
-            const list = document.getElementById('intervention-list');
-            list.innerHTML = `
-                <div class="p-2 bg-blue-50 border-l-4 border-blue-500 mb-2">
-                    <strong>Dla procesów poznawczych:</strong><br>Defuzja, Reatrybucja, Praca z wartościami.
-                </div>
-                <div class="p-2 bg-red-50 border-l-4 border-red-500 mb-2">
-                    <strong>Dla unikania:</strong><br>Ekspozycja in-vivo, Aktywacja behawioralna.
-                </div>
-                <div class="p-2 bg-green-50 border-l-4 border-green-500">
-                    <strong>Dla uwagi:</strong><br>Trening uważności (Mindfulness), Przekierowanie uwagi.
-                </div>
-            `;
-        }
-
-        function exportNetwork() {
-            window.print();
-        }
+        // Inicjalizacja list przy starcie
+        updateSelects();
+        // Słuchaj zmian w sieci, by aktualizować selekty
+        nodes.on('*', updateSelects);
     </script>
 </body>
 </html>
