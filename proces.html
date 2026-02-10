@@ -10,9 +10,8 @@
         #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
         .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
         
-        /* Stylizacja wydruku */
         @media print {
-            header, aside, .no-print, button, label, input, select { display: none !important; }
+            header, aside, .no-print, button, label, input, select, .range-container { display: none !important; }
             body { background: white !important; }
             main { width: 100% !important; grid-column: span 12 / span 12 !important; }
             #network-container { border: none !important; height: 800px !important; width: 100% !important; }
@@ -84,9 +83,14 @@
                     <select id="edge-label" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
                         <option value="NASILA">NASILA / WYWYZALA (+)</option>
                         <option value="HAMUJE">HAMUJE / OSŁABIA (-)</option>
+                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE (↔)</option>
                         <option value="WSPÓŁWYSTĘPUJE">WSPÓŁWYSTĘPUJE</option>
                     </select>
-                    <button onclick="addConnection()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację (Strzałkę)</button>
+                    <div class="range-container">
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Siła wiązania (Grubość):</label>
+                        <input type="range" id="edge-weight" min="1" max="10" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <button onclick="addConnection()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
                 </div>
             </div>
         </aside>
@@ -129,9 +133,9 @@
                 shadow: true
             },
             edges: {
-                width: 3,
                 arrows: { to: { enabled: true } },
-                font: { size: 10, background: '#ffffff', align: 'middle' }
+                font: { size: 10, background: '#ffffff', align: 'middle' },
+                smooth: { type: 'curvedCW', roundness: 0.15 }
             },
             physics: { barnesHut: { gravitationalConstant: -2000 } }
         };
@@ -162,12 +166,20 @@
             const from = document.getElementById('edge-from').value;
             const to = document.getElementById('edge-to').value;
             const label = document.getElementById('edge-label').value;
+            const weight = document.getElementById('edge-weight').value;
             if (!from || !to) return;
+
+            const isBidirectional = label === 'WZAJEMNE';
 
             edges.add({
                 from: from,
                 to: to,
                 label: label,
+                width: parseInt(weight),
+                arrows: {
+                    to: { enabled: true },
+                    from: { enabled: isBidirectional }
+                },
                 color: { color: label === 'HAMUJE' ? '#22c55e' : '#ef4444' },
                 dashes: label === 'HAMUJE'
             });
