@@ -136,9 +136,21 @@
             edges: {
                 arrows: { to: { enabled: true } },
                 font: { size: 10, background: '#ffffff', align: 'middle' },
-                smooth: { type: 'curvedCW', roundness: 0.15 }
+                smooth: { type: 'continuos', roundness: 0.5 }
             },
-            physics: { barnesHut: { gravitationalConstant: -2000 } }
+            physics: {
+        enabled: false, // Wyłączamy stałą fizykę "sprężynową"
+        barnesHut: {
+            gravitationalConstant: -2000,
+            springLength: 200,
+            springConstant: 0.04 // Słabsza sprężyna, jeśli włączona
+                }
+            },
+            interaction: {
+                dragNodes: true,
+                dragView: true,
+                zoomView: true
+            }
         };
 
         const network = new vis.Network(container, data, options);
