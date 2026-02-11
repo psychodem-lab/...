@@ -150,6 +150,7 @@
                 dragNodes: true,
                 dragView: true,
                 zoomView: true
+                multiselect: true
             }
         };
 
@@ -207,24 +208,38 @@
                 fromSelect.innerHTML += opt; toSelect.innerHTML += opt;
             });
         }
-
+        function deleteSelected() {
+                        const selectedNodes = network.getSelectedNodes();
+                        const selectedEdges = network.getSelectedEdges();
+                        if (selectedNodes.length > 0) { nodes.remove(selectedNodes); updateSelects(); }
+                        if (selectedEdges.length > 0) { edges.remove(selectedEdges); }
+                    }
         function undoLast() {
-            // Pobierz wszystkie ID węzłów i krawędzi
-            const nodeIds = nodes.getIds();
-            const edgeIds = edges.getIds();
-        
-            // Najpierw sprawdzamy, czy ostatnio dodano krawędź (relację)
-            if (edgeIds.length > 0) {
-                const lastEdgeId = edgeIds[edgeIds.length - 1];
-                edges.remove(lastEdgeId);
-            } 
-            // Jeśli nie ma krawędzi do cofnięcia, usuwamy ostatni węzeł (proces)
-            else if (nodeIds.length > 0) {
-                const lastNodeId = nodeIds[nodeIds.length - 1];
-                nodes.remove(lastNodeId);
-                updateSelects(); // Aktualizujemy listy wyboru relacji
+                // Pobierz wszystkie ID węzłów i krawędzi
+                const nodeIds = nodes.getIds();
+                const edgeIds = edges.getIds();
+            
+                // Najpierw sprawdzamy, czy ostatnio dodano krawędź (relację)
+                if (edgeIds.length > 0) {
+                    const lastEdgeId = edgeIds[edgeIds.length - 1];
+                    edges.remove(lastEdgeId);
+                } 
+                // Jeśli nie ma krawędzi do cofnięcia, usuwamy ostatni węzeł (proces)
+                else if (nodeIds.length > 0) {
+                    const lastNodeId = nodeIds[nodeIds.length - 1];
+                    nodes.remove(lastNodeId);
+                    updateSelects(); // Aktualizujemy listy wyboru relacji
+                }
+            }
+        window.addEventListener('keydown', function(e) {
+        // Sprawdź czy naciśnięto Delete lub Backspace
+        if (e.key === "Delete" || e.key === "Backspace") {
+            // Blokada: nie usuwaj, jeśli użytkownik pisze w polu tekstowym
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                deleteSelected();
             }
         }
+    });
         
         function exportSession() {
             const data = JSON.stringify({ nodes: nodes.get(), edges: edges.get() });
