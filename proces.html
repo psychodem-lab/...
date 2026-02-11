@@ -11,11 +11,25 @@
         .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
         
         @media print {
+            @page {
+                size: landscape; /* Wymuszenie poziomego wydruku */
+                margin: 0.5cm;
+            }
             header, aside, .no-print, button, label, input, select, .range-container { display: none !important; }
-            body { background: white !important; }
-            main { width: 100% !important; grid-column: span 12 / span 12 !important; }
-            #network-container { border: none !important; height: 800px !important; width: 100% !important; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
+            /* Poprawa estetyki wydruku - dopasowanie do strony poziomej */
+            #network-container { 
+                border: none !important; 
+                height: 95vh !important; /* Wysokość dopasowana do strony */
+                width: 100% !important; 
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
             .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            /* Ukrycie panelu legendy podczas druku, jeśli zasłania, lub jego uproszczenie */
+            .print\:shadow-none { box-shadow: none !important; border: none !important; }
         }
     </style>
 </head>
@@ -53,7 +67,7 @@
                                 <option value="#f59e0b">Uwaga (Pomarańczowy)</option>
                                 <option value="#3b82f6">Poznanie (Niebieski)</option>
                                 <option value="#8b5cf6">Ja (Fioletowy)</option> 
-                                <option value="#ef4444">Afekt (Czerwony)</option>                             
+                                <option value="#ef4444">Afekt (Czerwony)</option>   
                                 <option value="#10b981">Zachowanie (Zielony)</option>
                                 <option value="#06b6d4">Motywacja (Morski)</option>
                                 <option value="#475569">Biofizjologiczny (Szary)</option>
@@ -112,7 +126,9 @@
                         <span class="w-1 h-4 bg-blue-500"></span>
                         <span class="text-[10px] font-bold uppercase text-blue-600">Kolor obramowania = Wymiar EEMM</span>
                     </div>
-                    <button onclick="nodes.clear(); edges.clear();" class="text-[10px] text-red-500 font-bold uppercase ml-auto no-print">Resetuj wszystko</button>
+                    <button onclick="deleteSelected()" class="text-[10px] text-slate-500 font-bold uppercase ml-auto hover:text-red-600 no-print border border-slate-300 rounded px-2 py-1 bg-white">Usuń zaznaczone</button>
+                    
+                    <button onclick="resetAll()" class="text-[10px] text-red-500 font-bold uppercase ml-4 no-print">Resetuj wszystko</button>
                     <button onclick="undoLast()" class="text-[10px] text-orange-500 font-bold uppercase ml-4 no-print">Cofnij</button>
                 </div>
             </div>
@@ -122,6 +138,9 @@
     <script>
         let nodes = new vis.DataSet([]);
         let edges = new vis.DataSet([]);
+        // Historia operacji dla funkcji Cofnij
+        let historyStack = []; 
+
         const container = document.getElementById('network-container');
         const data = { nodes: nodes, edges: edges };
         
@@ -139,11 +158,11 @@
                 smooth: { type: 'continuos', roundness: 0.5 }
             },
             physics: {
-        enabled: false, // Wyłączamy stałą fizykę "sprężynową"
-        barnesHut: {
-            gravitationalConstant: -2000,
-            springLength: 200,
-            springConstant: 0.04 // Słabsza sprężyna, jeśli włączona
+                enabled: false,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    springLength: 200,
+                    springConstant: 0.04
                 }
             },
             interaction: {
@@ -153,7 +172,6 @@
                 multiselect: true
             }
         };
-
         const network = new vis.Network(container, data, options);
 
         function addNode() {
@@ -162,9 +180,10 @@
             const statusColor = document.getElementById('proc-status').value;
 
             if (!label) return;
-
+            
+            const newNodeId = Date.now();
             nodes.add({
-                id: Date.now(),
+                id: newNodeId,
                 label: label,
                 color: {
                     border: dimColor,
@@ -172,6 +191,10 @@
                     highlight: { border: dimColor, background: statusColor }
                 }
             });
+            
+            // Dodaj do historii
+            historyStack.push({ type: 'node', id: newNodeId });
+            
             document.getElementById('proc-label').value = "";
             updateSelects();
         }
@@ -182,10 +205,10 @@
             const label = document.getElementById('edge-label').value;
             const weight = document.getElementById('edge-weight').value;
             if (!from || !to) return;
-
             const isBidirectional = label === 'WZAJEMNE';
 
-            edges.add({
+            // edges.add zwraca ID dodanych elementów
+            const newEdgeIds = edges.add({
                 from: from,
                 to: to,
                 label: label,
@@ -197,6 +220,12 @@
                 color: { color: label === 'HAMUJE' ? '#22c55e' : '#ef4444' },
                 dashes: label === 'HAMUJE'
             });
+
+            // edges.add może zwrócić tablicę lub pojedyncze ID, upewnijmy się
+            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+            
+            // Dodaj do historii
+            historyStack.push({ type: 'edge', id: edgeId });
         }
 
         function updateSelects() {
@@ -208,41 +237,54 @@
                 fromSelect.innerHTML += opt; toSelect.innerHTML += opt;
             });
         }
+
         function deleteSelected() {
-                        const selectedNodes = network.getSelectedNodes();
-                        const selectedEdges = network.getSelectedEdges();
-                        if (selectedNodes.length > 0) { nodes.remove(selectedNodes); updateSelects(); }
-                        if (selectedEdges.length > 0) { edges.remove(selectedEdges); }
-                    }
+            const selectedNodes = network.getSelectedNodes();
+            const selectedEdges = network.getSelectedEdges();
+            if (selectedNodes.length > 0) { nodes.remove(selectedNodes); updateSelects(); }
+            if (selectedEdges.length > 0) { edges.remove(selectedEdges); }
+        }
+
         function undoLast() {
-                // Pobierz wszystkie ID węzłów i krawędzi
-                const nodeIds = nodes.getIds();
-                const edgeIds = edges.getIds();
-            
-                // Najpierw sprawdzamy, czy ostatnio dodano krawędź (relację)
-                if (edgeIds.length > 0) {
-                    const lastEdgeId = edgeIds[edgeIds.length - 1];
-                    edges.remove(lastEdgeId);
-                } 
-                // Jeśli nie ma krawędzi do cofnięcia, usuwamy ostatni węzeł (proces)
-                else if (nodeIds.length > 0) {
-                    const lastNodeId = nodeIds[nodeIds.length - 1];
-                    nodes.remove(lastNodeId);
-                    updateSelects(); // Aktualizujemy listy wyboru relacji
-                }
-            }
-        window.addEventListener('keydown', function(e) {
-        // Sprawdź czy naciśnięto Delete lub Backspace
-        if (e.key === "Delete" || e.key === "Backspace") {
-            // Blokada: nie usuwaj, jeśli użytkownik pisze w polu tekstowym
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                deleteSelected();
+            if (historyStack.length === 0) return;
+
+            // Pobierz ostatnią operację ze stosu
+            const lastAction = historyStack.pop();
+
+            if (lastAction.type === 'edge') {
+                try { edges.remove(lastAction.id); } catch (e) { console.log('Already removed'); }
+            } else if (lastAction.type === 'node') {
+                try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { console.log('Already removed'); }
             }
         }
-    });
         
+        function resetAll() {
+            nodes.clear();
+            edges.clear();
+            historyStack = [];
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === "Delete" || e.key === "Backspace") {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    deleteSelected();
+                }
+            }
+        });
+
         function exportSession() {
-            const data = JSON.stringify({ nodes: nodes.get(), edges: edges.get() });
+            // Pobierz pozycje z wizualizacji
+            const positions = network.getPositions();
+            
+            // Zaktualizuj dane węzłów o pozycje X i Y
+            const nodesData = nodes.get().map(node => {
+                if (positions[node.id]) {
+                    return { ...node, x: positions[node.id].x, y: positions[node.id].y };
+                }
+                return node;
+            });
+
+            const data = JSON.stringify({ nodes: nodesData, edges: edges.get() });
             const blob = new Blob([data], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -254,8 +296,15 @@
             const reader = new FileReader();
             reader.onload = (event) => {
                 const imported = JSON.parse(event.target.result);
-                nodes.clear(); edges.clear();
-                nodes.add(imported.nodes); edges.add(imported.edges);
+                nodes.clear(); edges.clear(); historyStack = [];
+                
+                // Przy imporcie vis.js uszanuje x i y jeśli są w danych
+                nodes.add(imported.nodes);
+                edges.add(imported.edges);
+                
+                // Opcjonalnie: dopasuj widok do zaimportowanych danych
+                setTimeout(() => network.fit(), 100);
+                
                 updateSelects();
             };
             reader.readAsText(e.target.files[0]);
