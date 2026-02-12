@@ -117,32 +117,28 @@
             </div>
         </main>
     </div>
-   <div style="font-family: sans-serif; text-align: center; padding: 20px; border: 1px solid #e1e1e1; border-radius: 12px; max-width: 320px; background-color: #ffffff;">
-    <p style="font-size: 14px; color: #555; margin-bottom: 15px;">Chcesz wesprzeć projekt kawą?</p>
-    
-    <a href="tel:+48XXXXXXXXX" style="
-        display: inline-block;
-        background-color: #6221d1;
-        color: white;
-        padding: 12px 24px;
-        text-decoration: none;
-        font-weight: bold;
-        border-radius: 8px;
-        font-size: 16px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    ">
-        ☕ Przelew BLIK na telefon
-    </a>
+  <button onclick="document.getElementById('payment-modal').style.display='block'" 
+        style="background: #27ae60; color: white; padding: 15px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+    Zapłać przelewem (0 zł prowizji)
+</button>
 
-    <p style="font-size: 12px; color: #888; margin-top: 15px;">
-        Odbiorca: <b>TWOJE IMIĘ I NAZWISKO</b><br>
-        Tytuł: Darowizna
-    </p>
+<div id="payment-modal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border: 1px solid #ccc; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center; border-radius: 12px; font-family: sans-serif;">
+    <h3>Dane do przelewu</h3>
+    <p>Zeskanuj kod w aplikacji banku lub skopiuj dane:</p>
     
-    <small style="display: block; margin-top: 10px; color: #bbb; font-size: 10px;">
-        Kliknij przycisk, aby skopiować numer
-    </small>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=||Twoja+Nazwa|12345678901234567890123456|100.00|Tytuł+przelewu|||" alt="Kod QR Przelewu">
+    
+    <div style="margin-top: 15px; text-align: left; font-size: 14px;">
+        <strong>Konto:</strong> <span id="acc-num">12 3456 7890 1234 5678 9012 3456</span><br>
+        <strong>Kwota:</strong> 10.00 PLN<br>
+        <strong>Tytuł:</strong> Zamówienie #123
+    </div>
+
+    <button onclick="copyAccount()" style="margin-top: 10px; padding: 5px 10px; cursor: pointer;">Kopiuj numer konta</button>
+    <br><br>
+    <button onclick="document.getElementById('payment-modal').style.display='none'" style="color: gray; border: none; background: none; cursor: pointer;">Zamknij</button>
 </div>
+
     </div>
     <script>
         let nodes = new vis.DataSet([]);
@@ -187,7 +183,11 @@
             document.getElementById('proc-label').value = "";
             updateSelects();
         }
-
+        function copyAccount() {
+            const acc = document.getElementById('acc-num').innerText;
+            navigator.clipboard.writeText(acc);
+            alert('Numer konta skopiowany!');
+        }
         function addConnection() {
             const from = document.getElementById('edge-from').value;
             const to = document.getElementById('edge-to').value;
