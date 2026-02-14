@@ -222,40 +222,60 @@
         }
 
         function addConnection() {
-            const from = document.getElementById('edge-from').value;
-            const to = document.getElementById('edge-to').value;
-            const label = document.getElementById('edge-label').value;
-            const arrowScale = parseFloat(document.getElementById('edge-weight').value);
-            
-            if (!from || !to) return;
+    const from = document.getElementById('edge-from').value;
+    const to = document.getElementById('edge-to').value;
+    const label = document.getElementById('edge-label').value;
+    const arrowScale = parseFloat(document.getElementById('edge-weight').value);
+    
+    if (!from || !to) return;
 
-            // Ustalanie typów strzałek na podstawie relacji
-            let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
-            let arrowTypeFrom = 'arrow'; 
-            let enableFrom = false;
-
-            if (label === 'OSŁABIA') {
-                arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
-            } else if (label === 'WZAJEMNE') {
-                enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
+    // Podstawowa konfiguracja krawędzi
+    let edgeConfig = {
+        from: from,
+        to: to,
+        label: label,
+        width: 2,
+        color: {
+            color: '#000000',      // Kolor linii
+            highlight: '#000000',  // Kolor po zaznaczeniu
+            hover: '#000000'
+        },
+        arrows: {
+            to: {
+                enabled: true,
+                type: 'arrow',     // Używamy kształtu pełnego trójkąta
+                scaleFactor: arrowScale
             }
-
-            const newEdgeIds = edges.add({
-                from: from,
-                to: to,
-                label: label,
-                width: 2, // Stała grubość połączenia
-                color: { color: '#000000', highlight: '#000000' }, // Wszystko w kolorze czarnym
-                dashes: false, // Brak przerywanych linii
-                arrows: {
-                    to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
-                    from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
-                }
-            });
-            
-            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
-            historyStack.push({ type: 'edge', id: edgeId });
         }
+    };
+
+    // Logika specyficzna dla typów relacji:
+    if (label === 'OSŁABIA') {
+        // Efekt "pustego w środku" trójkąta
+        // Wymuszamy białe wypełnienie i czarne obramowanie grotu
+        edgeConfig.arrows.to.color = {
+            color: '#ffffff',      // Wypełnienie środka grotu na biało
+            borderColor: '#000000' // Obramowanie grotu na czarno
+        };
+    } else if (label === 'WZAJEMNE') {
+        // Wzajemne wzmocnienie - strzałki z obu stron, zamalowane
+        edgeConfig.arrows.from = {
+            enabled: true,
+            type: 'arrow',
+            scaleFactor: arrowScale
+        };
+    } else if (label === 'NASILA') {
+        // Nasila / Wyzwala - standardowy czarny zamalowany trójkąt
+        // Nie musimy zmieniać domyślnych ustawień (dziedziczy kolor #000000 z linii)
+        edgeConfig.arrows.to.color = '#000000';
+    }
+
+    const newEdgeIds = edges.add(edgeConfig);
+    
+    // Obsługa ID dla funkcji "Cofnij"
+    const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+    historyStack.push({ type: 'edge', id: edgeId });
+}
 
         function updateSelects() {
             const fromSelect = document.getElementById('edge-from');
