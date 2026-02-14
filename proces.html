@@ -222,59 +222,40 @@
         }
 
         function addConnection() {
-    const from = document.getElementById('edge-from').value;
-    const to = document.getElementById('edge-to').value;
-    const label = document.getElementById('edge-label').value;
-    const arrowScale = parseFloat(document.getElementById('edge-weight').value);
-    
-    if (!from || !to) return;
+            const from = document.getElementById('edge-from').value;
+            const to = document.getElementById('edge-to').value;
+            const label = document.getElementById('edge-label').value;
+            const arrowScale = parseFloat(document.getElementById('edge-weight').value);
+            
+            if (!from || !to) return;
 
-    let edgeConfig = {
-        from: from,
-        to: to,
-        label: label,
-        width: 2,
-        color: {
-            color: '#000000',
-            highlight: '#000000',
-            hover: '#000000'
-        },
-        arrows: {
-            to: {
-                enabled: true,
-                scaleFactor: arrowScale
+            // Ustalanie typów strzałek na podstawie relacji
+            let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
+            let arrowTypeFrom = 'arrow'; 
+            let enableFrom = false;
+
+            if (label === 'OSŁABIA') {
+                arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
+            } else if (label === 'WZAJEMNE') {
+                enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
             }
+
+            const newEdgeIds = edges.add({
+                from: from,
+                to: to,
+                label: label,
+                width: 2, // Stała grubość połączenia
+                color: { color: '#000000', highlight: '#000000' }, // Wszystko w kolorze czarnym
+                dashes: false, // Brak przerywanych linii
+                arrows: {
+                    to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
+                    from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
+                }
+            });
+            
+            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+            historyStack.push({ type: 'edge', id: edgeId });
         }
-    };
-
-    if (label === 'OSŁABIA') {
-        // Aby uzyskać trójkąt "pusty", używamy typu 'circle' lub 'vee' 
-        // W vis.js 'arrow' zawsze wypełnia środek. 
-        // NAJLEPSZA OPCJA DLA "PUSTEGO" WIZUALNIE: typ 'vee'
-        edgeConfig.arrows.to.type = 'vee'; 
-    } else if (label === 'WZAJEMNE') {
-        edgeConfig.arrows.to.type = 'arrow';
-        edgeConfig.arrows.from = {
-            enabled: true,
-            type: 'arrow',
-            scaleFactor: arrowScale
-        };
-    } else {
-        // NASILA
-        edgeConfig.arrows.to.type = 'arrow';
-    }
-
-    const newEdgeIds = edges.add(edgeConfig);
-    const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
-    historyStack.push({ type: 'edge', id: edgeId });
-}
-
-    const newEdgeIds = edges.add(edgeConfig);
-    
-    // Obsługa ID dla funkcji "Cofnij"
-    const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
-    historyStack.push({ type: 'edge', id: edgeId });
-}
 
         function updateSelects() {
             const fromSelect = document.getElementById('edge-from');
