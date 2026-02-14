@@ -229,46 +229,45 @@
     
     if (!from || !to) return;
 
-    // Podstawowa konfiguracja krawędzi
     let edgeConfig = {
         from: from,
         to: to,
         label: label,
         width: 2,
         color: {
-            color: '#000000',      // Kolor linii
-            highlight: '#000000',  // Kolor po zaznaczeniu
+            color: '#000000',
+            highlight: '#000000',
             hover: '#000000'
         },
         arrows: {
             to: {
                 enabled: true,
-                type: 'arrow',     // Używamy kształtu pełnego trójkąta
                 scaleFactor: arrowScale
             }
         }
     };
 
-    // Logika specyficzna dla typów relacji:
     if (label === 'OSŁABIA') {
-        // Efekt "pustego w środku" trójkąta
-        // Wymuszamy białe wypełnienie i czarne obramowanie grotu
-        edgeConfig.arrows.to.color = {
-            color: '#ffffff',      // Wypełnienie środka grotu na biało
-            borderColor: '#000000' // Obramowanie grotu na czarno
-        };
+        // Aby uzyskać trójkąt "pusty", używamy typu 'circle' lub 'vee' 
+        // W vis.js 'arrow' zawsze wypełnia środek. 
+        // NAJLEPSZA OPCJA DLA "PUSTEGO" WIZUALNIE: typ 'vee'
+        edgeConfig.arrows.to.type = 'vee'; 
     } else if (label === 'WZAJEMNE') {
-        // Wzajemne wzmocnienie - strzałki z obu stron, zamalowane
+        edgeConfig.arrows.to.type = 'arrow';
         edgeConfig.arrows.from = {
             enabled: true,
             type: 'arrow',
             scaleFactor: arrowScale
         };
-    } else if (label === 'NASILA') {
-        // Nasila / Wyzwala - standardowy czarny zamalowany trójkąt
-        // Nie musimy zmieniać domyślnych ustawień (dziedziczy kolor #000000 z linii)
-        edgeConfig.arrows.to.color = '#000000';
+    } else {
+        // NASILA
+        edgeConfig.arrows.to.type = 'arrow';
     }
+
+    const newEdgeIds = edges.add(edgeConfig);
+    const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+    historyStack.push({ type: 'edge', id: edgeId });
+}
 
     const newEdgeIds = edges.add(edgeConfig);
     
