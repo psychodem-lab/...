@@ -12,23 +12,22 @@
         
         @media print {
             @page {
-                size: landscape; /* Wymuszenie poziomego wydruku */
+                size: landscape;
                 margin: 0.5cm;
             }
             header, aside, .no-print, button, label, input, select, .range-container { display: none !important; }
             body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
-            /* Poprawa estetyki wydruku - dopasowanie do strony poziomej */
+            
             #network-container { 
-                border: none !important; 
-                height: 95vh !important; /* Wysokość dopasowana do strony */
-                width: 100% !important; 
+                border: none !important;
+                height: 95vh !important;
+                width: 100% !important;
                 position: absolute;
                 top: 0;
                 left: 0;
             }
             .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            /* Ukrycie panelu legendy podczas druku, jeśli zasłania, lub jego uproszczenie */
             .print\:shadow-none { box-shadow: none !important; border: none !important; }
         }
     </style>
@@ -86,6 +85,8 @@
                     </div>
 
                     <button onclick="addNode()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg hover:bg-black transition-all shadow-lg uppercase text-xs">Dodaj Proces</button>
+                    
+                    <button onclick="toggleQuestionsModal()" class="w-full mt-2 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Przykładowe pytania (EEMM)</button>
                 </div>
             </div>
 
@@ -95,14 +96,13 @@
                     <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
                     <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
                     <select id="edge-label" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
-                        <option value="NASILA">NASILA / WYWYZALA (+)</option>
-                        <option value="HAMUJE">HAMUJE / OSŁABIA (-)</option>
-                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE (↔)</option>
-                        <option value="WSPÓŁWYSTĘPUJE">WSPÓŁWYSTĘPUJE</option>
+                        <option value="NASILA">NASILA / WYZWALA (Grot zamknięty)</option>
+                        <option value="OSŁABIA">OSŁABIA (Grot otwarty)</option>
+                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE (Groty zamknięte)</option>
                     </select>
                     <div class="range-container">
-                        <label class="text-[10px] font-bold uppercase text-slate-400">Siła wiązania (Grubość):</label>
-                        <input type="range" id="edge-weight" min="1" max="10" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Wielkość grotu strzałki:</label>
+                        <input type="range" id="edge-weight" min="0.5" max="3" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
                     </div>
                     <button onclick="addConnection()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
                 </div>
@@ -135,15 +135,44 @@
         </main>
     </div>
 
+    <div id="questionsModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden max-h-[85vh]">
+            <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase text-sm tracking-wider">Przykładowe pytania (Wymiary EEMM)</h3>
+                <button onclick="toggleQuestionsModal()" class="text-slate-500 hover:text-red-500 font-bold text-lg leading-none">&times;</button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <div class="w-full md:w-1/3 bg-slate-50 border-r border-slate-200 p-3 overflow-y-auto space-y-1">
+                    <button onclick="showQuestion('uwaga')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-amber-600 hover:bg-amber-100 transition">Uwaga</button>
+                    <button onclick="showQuestion('poznanie')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition">Poznanie</button>
+                    <button onclick="showQuestion('ja')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-purple-600 hover:bg-purple-100 transition">Ja</button>
+                    <button onclick="showQuestion('afekt')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-red-600 hover:bg-red-100 transition">Afekt</button>
+                    <button onclick="showQuestion('zachowanie')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-100 transition">Zachowanie</button>
+                    <button onclick="showQuestion('motywacja')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-cyan-600 hover:bg-cyan-100 transition">Motywacja</button>
+                    <button onclick="showQuestion('bio')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Biofizjologiczny</button>
+                    <button onclick="showQuestion('kontekst')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Kontekst</button>
+                    <button onclick="showQuestion('spoleczny')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Społeczno-kulturowy</button>
+                </div>
+                
+                <div class="w-full md:w-2/3 p-6 overflow-y-auto bg-white">
+                    <div id="questionContent" class="text-sm text-slate-700 space-y-3">
+                        <p class="italic text-slate-400 text-center mt-10">Wybierz wymiar z listy po lewej stronie, aby wyświetlić pytania przewodne pomagające w identyfikacji procesów.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 border-t text-right">
+                <button onclick="toggleQuestionsModal()" class="bg-slate-800 text-white px-4 py-2 rounded font-bold uppercase text-[10px] hover:bg-slate-700">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let nodes = new vis.DataSet([]);
         let edges = new vis.DataSet([]);
-        // Historia operacji dla funkcji Cofnij
-        let historyStack = []; 
-
+        let historyStack = [];
         const container = document.getElementById('network-container');
         const data = { nodes: nodes, edges: edges };
-        
         const options = {
             nodes: {
                 shape: 'dot',
@@ -153,9 +182,8 @@
                 shadow: true
             },
             edges: {
-                arrows: { to: { enabled: true } },
                 font: { size: 10, background: '#ffffff', align: 'middle' },
-                smooth: { type: 'continuos', roundness: 0.5 }
+                smooth: { type: 'continuous', roundness: 0.5 }
             },
             physics: {
                 enabled: false,
@@ -166,10 +194,7 @@
                 }
             },
             interaction: {
-                dragNodes: true,
-                dragView: true,
-                zoomView: true,
-                multiselect: true
+                dragNodes: true, dragView: true, zoomView: true, multiselect: true
             }
         };
         const network = new vis.Network(container, data, options);
@@ -191,10 +216,7 @@
                     highlight: { border: dimColor, background: statusColor }
                 }
             });
-            
-            // Dodaj do historii
             historyStack.push({ type: 'node', id: newNodeId });
-            
             document.getElementById('proc-label').value = "";
             updateSelects();
         }
@@ -203,28 +225,35 @@
             const from = document.getElementById('edge-from').value;
             const to = document.getElementById('edge-to').value;
             const label = document.getElementById('edge-label').value;
-            const weight = document.getElementById('edge-weight').value;
+            const arrowScale = parseFloat(document.getElementById('edge-weight').value);
+            
             if (!from || !to) return;
-            const isBidirectional = label === 'WZAJEMNE';
 
-            // edges.add zwraca ID dodanych elementów
+            // Ustalanie typów strzałek na podstawie relacji
+            let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
+            let arrowTypeFrom = 'arrow'; 
+            let enableFrom = false;
+
+            if (label === 'OSŁABIA') {
+                arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
+            } else if (label === 'WZAJEMNE') {
+                enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
+            }
+
             const newEdgeIds = edges.add({
                 from: from,
                 to: to,
                 label: label,
-                width: parseInt(weight),
+                width: 2, // Stała grubość połączenia
+                color: { color: '#000000', highlight: '#000000' }, // Wszystko w kolorze czarnym
+                dashes: false, // Brak przerywanych linii
                 arrows: {
-                    to: { enabled: true },
-                    from: { enabled: isBidirectional }
-                },
-                color: { color: label === 'HAMUJE' ? '#22c55e' : '#ef4444' },
-                dashes: label === 'HAMUJE'
+                    to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
+                    from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
+                }
             });
-
-            // edges.add może zwrócić tablicę lub pojedyncze ID, upewnijmy się
-            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
             
-            // Dodaj do historii
+            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
             historyStack.push({ type: 'edge', id: edgeId });
         }
 
@@ -247,14 +276,11 @@
 
         function undoLast() {
             if (historyStack.length === 0) return;
-
-            // Pobierz ostatnią operację ze stosu
             const lastAction = historyStack.pop();
-
             if (lastAction.type === 'edge') {
-                try { edges.remove(lastAction.id); } catch (e) { console.log('Already removed'); }
+                try { edges.remove(lastAction.id); } catch (e) { }
             } else if (lastAction.type === 'node') {
-                try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { console.log('Already removed'); }
+                try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { }
             }
         }
         
@@ -262,6 +288,7 @@
             nodes.clear();
             edges.clear();
             historyStack = [];
+            updateSelects();
         }
 
         window.addEventListener('keydown', function(e) {
@@ -273,17 +300,13 @@
         });
 
         function exportSession() {
-            // Pobierz pozycje z wizualizacji
             const positions = network.getPositions();
-            
-            // Zaktualizuj dane węzłów o pozycje X i Y
             const nodesData = nodes.get().map(node => {
                 if (positions[node.id]) {
                     return { ...node, x: positions[node.id].x, y: positions[node.id].y };
                 }
                 return node;
             });
-
             const data = JSON.stringify({ nodes: nodesData, edges: edges.get() });
             const blob = new Blob([data], { type: 'application/json' });
             const a = document.createElement('a');
@@ -297,17 +320,79 @@
             reader.onload = (event) => {
                 const imported = JSON.parse(event.target.result);
                 nodes.clear(); edges.clear(); historyStack = [];
-                
-                // Przy imporcie vis.js uszanuje x i y jeśli są w danych
                 nodes.add(imported.nodes);
                 edges.add(imported.edges);
-                
-                // Opcjonalnie: dopasuj widok do zaimportowanych danych
                 setTimeout(() => network.fit(), 100);
-                
                 updateSelects();
             };
             reader.readAsText(e.target.files[0]);
+        }
+
+        // --- Logika Panelu Pytań (Modal) ---
+        function toggleQuestionsModal() {
+            const modal = document.getElementById('questionsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        const eemmQuestions = {
+            'uwaga': `<h4 class="font-black text-amber-600 text-lg mb-2">UWAGA (Orientacja)</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Na czym pacjent skupia swoją uwagę (przeszłość, przyszłość, zagrożenia)?</li>
+                        <li>Czy jest obecny tu i teraz (uważność), czy "odlatuje" myślami?</li>
+                        <li>Czy potrafi elastycznie przenosić uwagę i kierować ją na to, co dla niego użyteczne?</li>
+                      </ul>`,
+            'poznanie': `<h4 class="font-black text-blue-600 text-lg mb-2">POZNANIE (Zrozumienie)</h4>
+                         <ul class="list-disc pl-5 space-y-2">
+                           <li>Jakie zasady, założenia i oceny dominują u pacjenta?</li>
+                           <li>Czy pacjent traktuje swoje myśli jak fakty (fuzja poznawcza)?</li>
+                           <li>Czy potrafi zauważać proces myślenia, zachowując dystans (defuzja)?</li>
+                         </ul>`,
+            'ja': `<h4 class="font-black text-purple-600 text-lg mb-2">JA (Poczucie siebie)</h4>
+                   <ul class="list-disc pl-5 space-y-2">
+                     <li>Jak pacjent definiuje samego siebie? (np. "jestem bezwartościowy", "muszę być silny")</li>
+                     <li>Czy jest sztywno przywiązany do własnej opowieści o sobie (ja konceptualne)?</li>
+                     <li>Czy potrafi przyjąć perspektywę "Ja jako kontekst" (obserwatora swoich doświadczeń)?</li>
+                   </ul>`,
+            'afekt': `<h4 class="font-black text-red-600 text-lg mb-2">AFEKT (Odczuwanie)</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Jakie emocje pojawiają się u pacjenta? (lęk, złość, smutek, radość)</li>
+                        <li>Czy pacjent próbuje unikać, tłumić lub kontrolować swoje emocje (unikanie doświadczania)?</li>
+                        <li>Jakie ma zasoby w zakresie akceptacji dyskomfortu emocjonalnego?</li>
+                      </ul>`,
+            'zachowanie': `<h4 class="font-black text-emerald-600 text-lg mb-2">ZACHOWANIE (Działanie)</h4>
+                           <ul class="list-disc pl-5 space-y-2">
+                             <li>Co pacjent fizycznie robi w sytuacjach trudnych? (np. unika, krzyczy, wycofuje się)</li>
+                             <li>Czy jego repertuar zachowań jest zawężony i sztywny?</li>
+                             <li>Czy potrafi podejmować zaangażowane działanie, nawet gdy pojawia się trudność?</li>
+                           </ul>`,
+            'motywacja': `<h4 class="font-black text-cyan-600 text-lg mb-2">MOTYWACJA (Pragnienie)</h4>
+                          <ul class="list-disc pl-5 space-y-2">
+                            <li>Co jest dla pacjenta naprawdę ważne i nadaje sens jego życiu (wartości)?</li>
+                            <li>Czy jego działania są napędzane dążeniem do tego, co ważne, czy unikaniem cierpienia?</li>
+                            <li>Czy potrafi zidentyfikować swoje cele życiowe?</li>
+                          </ul>`,
+            'bio': `<h4 class="font-black text-slate-600 text-lg mb-2">BIOFIZJOLOGICZNY</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                      <li>Jak wygląda biologia i fizjologia pacjenta (jakość snu, dieta, aktywność fizyczna)?</li>
+                      <li>Czy choruje przewlekle lub stosuje leki / substancje psychoaktywne?</li>
+                      <li>Jakie fizjologiczne reakcje w ciele wyzwala stres?</li>
+                    </ul>`,
+            'kontekst': `<h4 class="font-black text-slate-600 text-lg mb-2">KONTEKST FIZYCZNY</h4>
+                         <ul class="list-disc pl-5 space-y-2">
+                           <li>Jakie środowisko fizyczne i materialne otacza pacjenta?</li>
+                           <li>Czy w jego bezpośrednim otoczeniu są fizyczne bariery lub wyzwalacze problemu?</li>
+                           <li>Jakie ma warunki mieszkaniowe i zabezpieczenie finansowe?</li>
+                         </ul>`,
+            'spoleczny': `<h4 class="font-black text-slate-600 text-lg mb-2">SPOŁECZNO-KULTUROWY</h4>
+                          <ul class="list-disc pl-5 space-y-2">
+                            <li>Jak wyglądają relacje społeczne pacjenta (wsparcie vs. środowisko toksyczne)?</li>
+                            <li>Jakie presje, normy kulturowe i oczekiwania środowiskowe na niego oddziałują?</li>
+                            <li>Czy doświadcza wykluczenia, uprzedzeń lub problemów w relacjach z bliskimi?</li>
+                          </ul>`
+        };
+
+        function showQuestion(dim) {
+            document.getElementById('questionContent').innerHTML = eemmQuestions[dim];
         }
     </script>
 </body>
