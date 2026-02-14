@@ -233,16 +233,15 @@
             let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
             let arrowTypeFrom = 'arrow'; 
             let enableFrom = false;
-            let edgeColor = '#848484';
 
             if (label === 'OSŁABIA') {
                 arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
-                edgeColor = '#FF0000';
+                edgeColor = '#28a745';
             } else if (label === 'WZAJEMNE') {
                 enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
-                edgeColor = '#0000FF';
+                edgeColor = '#343a40';
             }  else if (label === 'WZMACNIA') {
-                edgeColor = '#00FF00';
+                edgeColor = '#dc3545';
             }
 
             const newEdgeIds = edges.add({
