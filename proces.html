@@ -233,11 +233,16 @@
             let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
             let arrowTypeFrom = 'arrow'; 
             let enableFrom = false;
+            let edgeColor = '#848484';
 
             if (label === 'OSŁABIA') {
                 arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
+                edgeColor = '#FF0000';
             } else if (label === 'WZAJEMNE') {
                 enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
+                edgeColor = '#0000FF';
+            }  else if (label === 'WZMACNIA') {
+                edgeColor = '#00FF00';
             }
 
             const newEdgeIds = edges.add({
@@ -245,7 +250,11 @@
                 to: to,
                 label: label,
                 width: 2, // Stała grubość połączenia
-                color: { color: '#000000', highlight: '#000000' }, // Wszystko w kolorze czarnym
+                color: {
+            color: edgeColor,
+            highlight: edgeColor,
+            hover: edgeColor
+            },
                 dashes: false, // Brak przerywanych linii
                 arrows: {
                     to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
