@@ -96,9 +96,9 @@
                     <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
                     <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
                     <select id="edge-label" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
-                        <option value="NASILA">NASILA / WYZWALA (Grot zamknięty)</option>
-                        <option value="OSŁABIA">OSŁABIA (Grot otwarty)</option>
-                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE (Groty zamknięte)</option>
+                        <option value="NASILA">NASILA / WYZWALA </option>
+                        <option value="OSŁABIA">OSŁABIA </option>
+                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE </option>
                     </select>
                     <div class="range-container">
                         <label class="text-[10px] font-bold uppercase text-slate-400">Wielkość grotu strzałki:</label>
@@ -241,7 +241,7 @@
             } else if (label === 'WZAJEMNE') {
                 enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
                 edgeColor = '#343a40';
-            }  else if (label === 'WZMACNIA') {
+            }  else if (label === 'NASILA') {
                 edgeColor = '#dc3545';
             }
 
