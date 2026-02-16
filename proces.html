@@ -12,16 +12,14 @@
         
         @media print {
             @page {
-                size: landscape;
-                margin: 0.5cm;
+                size: landscape; margin: 0.5cm;
             }
-            header, aside, .no-print, button, label, input, select, .range-container { display: none !important; }
+            header, aside, .no-print, button, label, input, select, textarea, .range-container { display: none !important; }
             body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
             
             #network-container { 
-                border: none !important;
-                height: 95vh !important;
+                border: none !important; height: 95vh !important;
                 width: 100% !important;
                 position: absolute;
                 top: 0;
@@ -56,7 +54,7 @@
                 <div class="space-y-4 italic">
                     <div>
                         <label class="text-[10px] font-bold uppercase text-slate-400">Treść procesu:</label>
-                        <input type="text" id="proc-label" placeholder="np. Myśl 'nie dam rady'" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200">
+                        <textarea id="proc-label" rows="2" placeholder="np. Myśl 'nie dam rady'&#10;(Enter = nowa linia)" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
@@ -131,6 +129,7 @@
                     <button onclick="resetAll()" class="text-[10px] text-red-500 font-bold uppercase ml-4 no-print">Resetuj wszystko</button>
                     <button onclick="undoLast()" class="text-[10px] text-orange-500 font-bold uppercase ml-4 no-print">Cofnij</button>
                 </div>
+                <p class="text-center text-slate-400 text-xs mt-2 no-print italic">Wskazówka: Kliknij dwukrotnie na proces na planszy, aby edytować jego treść.</p>
             </div>
         </main>
     </div>
@@ -179,7 +178,9 @@
                 size: 35,
                 font: { size: 12, face: 'Verdana', color: '#1e293b' },
                 borderWidth: 5,
-                shadow: true
+                shadow: true,
+                // ZMIANA: Limit szerokości węzła zmuszający tekst do zawijania
+                widthConstraint: { maximum: 160 } 
             },
             edges: {
                 font: { size: 10, background: '#ffffff', align: 'middle' },
@@ -198,6 +199,25 @@
             }
         };
         const network = new vis.Network(container, data, options);
+
+        // ZMIANA: Nasłuchiwanie dwukrotnego kliknięcia w celu edycji
+        network.on("doubleClick", function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const nodeToEdit = nodes.get(nodeId);
+                
+                // Okno dialogowe przeglądarki do zmiany tekstu
+                const newLabel = prompt("Edytuj treść procesu:", nodeToEdit.label);
+                
+                if (newLabel !== null && newLabel.trim() !== "") {
+                    // Dodajemy stary stan do historii "Cofnij"
+                    historyStack.push({ type: 'edit', id: nodeId, oldLabel: nodeToEdit.label });
+                    // Aktualizujemy etykietę węzła
+                    nodes.update({ id: nodeId, label: newLabel });
+                    updateSelects();
+                }
+            }
+        });
 
         function addNode() {
             const label = document.getElementById('proc-label').value;
@@ -228,18 +248,20 @@
             const arrowScale = parseFloat(document.getElementById('edge-weight').value);
             
             if (!from || !to) return;
-
             // Ustalanie typów strzałek na podstawie relacji
-            let arrowTypeTo = 'arrow'; // Domyślnie zamknięty grot
-            let arrowTypeFrom = 'arrow'; 
+            let arrowTypeTo = 'arrow';
+            // Domyślnie zamknięty grot
+            let arrowTypeFrom = 'arrow';
             let enableFrom = false;
             let edgeColor = '#dc3545';
 
             if (label === 'OSŁABIA') {
-                arrowTypeTo = 'vee'; // Otwarty grot (kształt V)
+                arrowTypeTo = 'vee';
+                // Otwarty grot (kształt V)
                 edgeColor = '#28a745';
             } else if (label === 'WZAJEMNE') {
-                enableFrom = true; // Wzajemne - strzałki po obu stronach (zamknięte)
+                enableFrom = true;
+                // Wzajemne - strzałki po obu stronach (zamknięte)
                 edgeColor = '#343a40';
             }  else if (label === 'NASILA') {
                 edgeColor = '#dc3545';
@@ -251,17 +273,16 @@
                 label: label,
                 width: 2, // Stała grubość połączenia
                 color: {
-            color: edgeColor,
-            highlight: edgeColor,
-            hover: edgeColor
-            },
+                    color: edgeColor,
+                    highlight: edgeColor,
+                    hover: edgeColor
+                },
                 dashes: false, // Brak przerywanych linii
                 arrows: {
                     to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
                     from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
                 }
             });
-            
             const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
             historyStack.push({ type: 'edge', id: edgeId });
         }
@@ -271,7 +292,7 @@
             const toSelect = document.getElementById('edge-to');
             fromSelect.innerHTML = ""; toSelect.innerHTML = "";
             nodes.forEach(node => {
-                let opt = `<option value="${node.id}">${node.label}</option>`;
+                let opt = `<option value="${node.id}">${node.label.substring(0, 30)}${node.label.length > 30 ? '...' : ''}</option>`;
                 fromSelect.innerHTML += opt; toSelect.innerHTML += opt;
             });
         }
@@ -286,10 +307,14 @@
         function undoLast() {
             if (historyStack.length === 0) return;
             const lastAction = historyStack.pop();
+            
             if (lastAction.type === 'edge') {
                 try { edges.remove(lastAction.id); } catch (e) { }
             } else if (lastAction.type === 'node') {
                 try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { }
+            } else if (lastAction.type === 'edit') {
+                // ZMIANA: Obsługa cofania zmiany tekstu w procesie
+                try { nodes.update({ id: lastAction.id, label: lastAction.oldLabel }); updateSelects(); } catch (e) { }
             }
         }
         
