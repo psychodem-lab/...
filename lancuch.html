@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analiza Łańcuchowa DBT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Style specyficzne dla wydruku */
+        @media print {
+            body { background-color: white; color: black; }
+            .no-print { display: none !important; }
+            textarea, input { 
+                border: none !important; 
+                resize: none !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+                height: auto;
+            }
+            .print-border { border-bottom: 1px solid #ccc; margin-bottom: 1rem; padding-bottom: 1rem; }
+            .shadow-md { box-shadow: none !important; }
+            .bg-white { background-color: transparent !important; }
+        }
+        
+        /* Płynne dopasowywanie wysokości textarea */
+        textarea {
+            field-sizing: content; /* Nowoczesne dopasowanie w CSS (działa w nowszych przeglądarkach) */
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 border-b pb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-700">Analiza Łańcuchowa DBT</h1>
+                <p class="text-sm text-gray-500 mt-1">Narzędzie do analizy zachowań problemowych na podstawie protokołów Marthy Linehan.</p>
+            </div>
+            <button onclick="window.print()" class="no-print mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded shadow transition duration-200">
+                <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Drukuj formularz
+            </button>
+        </header>
+
+        <form id="dbtForm" class="space-y-6">
+            
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">1. Zachowanie problemowe</h2>
+                <p class="text-sm text-gray-600 mb-3">Opisz dokładnie, w sposób behawioralny i obiektywny, co zrobiono, powiedziano, pomyślano lub poczuto. Co dokładnie chcesz zmienić?</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Wypiłem 3 piwa, krzyczałem na partnera..."></textarea>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">2. Zdarzenie wyzwalające (Prompting Event)</h2>
+                <p class="text-sm text-gray-600 mb-3">Co dokładnie wydarzyło się w środowisku lub w Tobie, co uruchomiło reakcję łańcuchową?</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Otrzymałem krytycznego maila od szefa..."></textarea>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">3. Czynniki uwrażliwiające (Vulnerability Factors)</h2>
+                <p class="text-sm text-gray-600 mb-3">Co działo się wcześniej (brak snu, głód, używki, choroba, stres w relacjach), co sprawiło, że byłeś/aś bardziej podatny/a na zdarzenie wyzwalające?</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Spałem tylko 4 godziny, pominąłem obiad..."></textarea>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">4. Łańcuch zdarzeń (Ogniwa)</h2>
+                <p class="text-sm text-gray-600 mb-4">Wypisz krok po kroku, co działo się między zdarzeniem wyzwalającym a zachowaniem problemowym. Uwzględnij: myśli, emocje, doznania z ciała i działania z zewnątrz.</p>
+                
+                <div id="chainContainer" class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-indigo-100 text-indigo-800 font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1">1</div>
+                        <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="Myśl / Emocja / Działanie / Doznanie..."></textarea>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="addChainLink()" class="no-print mt-4 text-indigo-600 font-medium hover:text-indigo-800 flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Dodaj kolejne ogniwo
+                </button>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">5. Konsekwencje</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dla Ciebie (krótko- i długoterminowe)</label>
+                        <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Chwilowa ulga, potem ogromne poczucie winy..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Dla Twojego otoczenia</label>
+                        <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Partner się wystraszył i wyszedł..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">6. Rozwiązania i Umiejętności Zastępcze</h2>
+                <p class="text-sm text-gray-600 mb-3">Jakich umiejętności DBT możesz użyć w poszczególnych "ogniwach" łańcucha, aby w przyszłości uniknąć zachowania problemowego?</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Akceptacja rzeczywistości, STOP, TIP (zimna woda na twarz)..."></textarea>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">7. Plan zapobiegania</h2>
+                <p class="text-sm text-gray-600 mb-3">Jak możesz zredukować swoje czynniki uwrażliwiające? (np. dbanie o sen, jedzenie, regularne leki).</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Będę ustawiać budzik na 22:30, żeby iść spać wcześniej..."></textarea>
+            </section>
+
+            <section class="bg-white p-6 rounded-lg shadow-md print-border">
+                <h2 class="text-xl font-semibold mb-3 text-indigo-600">8. Naprawa (Overcorrection)</h2>
+                <p class="text-sm text-gray-600 mb-3">Co zrobisz, aby naprawić wyrządzone szkody (sobie lub innym)? Nie tylko przeprosiny, ale faktyczna naprawa.</p>
+                <textarea class="w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500" placeholder="np. Przeproszę partnera i przejmę jego obowiązki domowe na ten weekend..."></textarea>
+            </section>
+
+        </form>
+    </div>
+
+    <script>
+        let linkCount = 1;
+
+        function addChainLink() {
+            linkCount++;
+            const container = document.getElementById('chainContainer');
+            
+            const div = document.createElement('div');
+            div.className = 'flex items-start gap-4';
+            
+            const numberDiv = document.createElement('div');
+            numberDiv.className = 'bg-indigo-100 text-indigo-800 font-bold rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1';
+            numberDiv.textContent = linkCount;
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full border border-gray-300 rounded p-3 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500';
+            textarea.placeholder = 'Myśl / Emocja / Działanie / Doznanie...';
+            
+            div.appendChild(numberDiv);
+            div.appendChild(textarea);
+            container.appendChild(div);
+        }
+
+        // Dopasowanie wysokości wszystkich textarea przed wydrukiem, aby uniknąć ucięcia tekstu
+        window.addEventListener('beforeprint', function() {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(ta => {
+                ta.style.height = 'auto';
+                ta.style.height = (ta.scrollHeight) + 'px';
+            });
+        });
+    </script>
+</body>
+</html>
