@@ -3,69 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Racing Pro Mobile</title>
+    <title>Pro Racing - Ultimate Edition</title>
     <style>
-        :root { --accent: #3498db; --danger: #e74c3c; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #111; overflow: hidden; touch-action: none; font-family: 'Segoe UI', sans-serif; }
+        :root { --accent: #00d4ff; --meta: #ff4757; --active: #eccc68; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #0a0a0a; overflow: hidden; touch-action: none; font-family: 'Segoe UI', Arial, sans-serif; }
         
-        #game-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        canvas { background: #222; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-width: 100%; max-height: 70vh; cursor: crosshair; }
+        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* HUD - Statystyki */
+        #hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 10px; border-left: 5px solid var(--accent); color: white; z-index: 10; pointer-events: none; backdrop-filter: blur(5px); }
+        .hud-row { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; opacity: 0.7; }
+        .hud-val { font-size: 20px; font-weight: 900; color: #fff; display: block; }
+        
+        /* Menu Ustawień */
+        #settings-btn { position: absolute; top: 15px; right: 15px; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; z-index: 20; }
+        #menu-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
+        .menu-card { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; }
+        .mode-btn { margin: 10px; padding: 15px 30px; width: 280px; background: #222; border: 2px solid #444; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .mode-btn.active { border-color: var(--accent); background: #003a4d; }
 
-        /* UI Overlay */
-        #hud { position: absolute; top: 15px; left: 15px; color: white; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent); pointer-events: none; z-index: 10; min-width: 120px; }
-        .stat { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; opacity: 0.8; }
-        .val { font-size: 18px; font-weight: bold; color: var(--accent); display: block; }
-        
-        /* Menu */
-        #settings-trigger { position: absolute; top: 15px; right: 15px; padding: 10px 15px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; z-index: 20; cursor: pointer; }
-        #overlay-menu { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
-        .opt { margin: 10px; padding: 15px; width: 280px; background: #222; border-radius: 10px; text-align: center; border: 2px solid #444; transition: 0.3s; }
-        .opt.active { border-color: var(--accent); background: #2c3e50; }
+        canvas { display: block; background: #1b5e20; margin: 0 auto; max-width: 100%; max-height: 70vh; }
 
-        /* Joysticks Visible Area */
-        #controls-container { position: absolute; bottom: 0; width: 100%; height: 30vh; background: linear-gradient(to top, #000, transparent); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; }
+        /* Kontrolery */
+        #controls-root { position: relative; width: 100%; height: 30vh; background: #0f0f0f; border-top: 2px solid #222; display: flex; justify-content: space-around; align-items: center; padding: 0 10px; }
         
-        .joy-visual-base { width: 120px; height: 120px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; }
-        .joy-visual-stick { width: 50px; height: 50px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); opacity: 0.6; position: absolute; }
+        /* Joysticki (Widoczne) */
+        .joy-container { width: 130px; height: 130px; background: radial-gradient(circle, #222 0%, #111 100%); border-radius: 50%; border: 3px solid #333; position: relative; display: flex; align-items: center; justify-content: center; }
+        .joy-handle { width: 55px; height: 55px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 20px var(--accent); opacity: 0.8; position: absolute; transition: transform 0.05s linear; }
         
-        #arrows-grid { display: none; grid-template-columns: repeat(3, 70px); gap: 10px; }
-        .btn-a { width: 70px; height: 70px; background: #333; border: none; border-radius: 10px; color: white; font-size: 24px; }
+        /* Strzałki */
+        #arrows-ui { display: none; grid-template-columns: repeat(3, 75px); gap: 10px; }
+        .arrow-btn { width: 75px; height: 75px; background: #222; border: 1px solid #444; color: white; border-radius: 15px; font-size: 30px; display: flex; align-items: center; justify-content: center; -webkit-user-select: none; }
+        .arrow-btn:active { background: var(--accent); color: black; }
     </style>
 </head>
 <body>
 
-<div id="game-wrapper">
+<div id="game-container">
     <div id="hud">
-        <div class="stat">Czas <span id="time" class="val">0.00s</span></div>
-        <div class="stat">Najlepszy <span id="best" class="val">--</span></div>
-        <div class="stat">Bramka <span id="cp" class="val">0/4</span></div>
-        <div class="stat">Uszkodzenia <span id="dmg" class="val" style="color:var(--danger)">0%</span></div>
+        <div class="hud-row">Czas Okrążenia</div>
+        <span id="ui-time" class="hud-val">0.00s</span>
+        <div class="hud-row" style="margin-top:10px">Najlepszy Wynik</div>
+        <span id="ui-best" class="hud-val" style="color:var(--active)">--</span>
+        <div class="hud-row" style="margin-top:10px">Uszkodzenia</div>
+        <span id="ui-dmg" class="hud-val" style="color:var(--meta)">0%</span>
     </div>
 
-    <div id="settings-trigger" onclick="toggleMenu()">⚙ Opcje</div>
+    <div id="settings-btn" onclick="openMenu()">⚙ Ustawienia</div>
 
-    <div id="overlay-menu">
-        <h2>WYBIERZ STEROWANIE</h2>
-        <div class="opt" onclick="setControl('one')" id="m-one">Jeden Joystick (L)</div>
-        <div class="opt" onclick="setControl('two')" id="m-two">Dwa Joysticki (L: Gaz, R: Skręt)</div>
-        <div class="opt" onclick="setControl('arrows')" id="m-arrows">Klasyczne Strzałki</div>
-        <button onclick="toggleMenu()" style="margin-top:30px; padding:15px 50px; background:var(--accent); border:none; color:white; font-weight:bold; border-radius:30px;">START</button>
+    <div id="menu-overlay">
+        <div class="menu-card">
+            <h2>STEROWANIE</h2>
+            <div class="mode-btn" id="m-arrows" onclick="setControl('arrows')">Strzałki Klasyczne</div>
+            <div class="mode-btn" id="m-two" onclick="setControl('two')">Dwa Joysticki (Gaz/Skręt)</div>
+            <div class="mode-btn" id="m-one" onclick="setControl('one')">Jeden Joystick (Pełny)</div>
+            <button onclick="closeMenu()" style="margin-top:25px; padding:15px 60px; background:var(--accent); border:none; border-radius:30px; font-weight:bold; cursor:pointer;">GRAJ</button>
+        </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="controls-container">
-        <div id="joy-l-box" class="joy-visual-base">
-            <div id="joy-l-stick" class="joy-visual-stick"></div>
+    <div id="controls-root">
+        <div id="joy-l-box" class="joy-container">
+            <div id="joy-l-handle" class="joy-handle"></div>
         </div>
 
-        <div id="arrows-grid">
-            <div></div><button class="btn-a" id="u">↑</button><div></div>
-            <button class="btn-a" id="l">←</button><button class="btn-a" id="d">↓</button><button class="btn-a" id="r">→</button>
+        <div id="arrows-ui">
+            <div></div><div class="arrow-btn" id="btn-u">↑</div><div></div>
+            <div class="arrow-btn" id="btn-l">←</div><div class="arrow-btn" id="btn-d">↓</div><div class="arrow-btn" id="btn-r">→</div>
         </div>
 
-        <div id="joy-r-box" class="joy-visual-base">
-            <div id="joy-r-stick" class="joy-visual-stick"></div>
+        <div id="joy-r-box" class="joy-container">
+            <div id="joy-r-handle" class="joy-handle"></div>
         </div>
     </div>
 </div>
@@ -74,122 +83,112 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Stała rozdzielczość logiczna
-    const W = 1200, H = 800;
+    // Rozdzielczość wewnętrzna (logiczna)
+    const W = 1200, H = 850;
     canvas.width = W; canvas.height = H;
 
     let controlMode = 'two';
     const input = { up: 0, down: 0, left: 0, right: 0 };
     
     const car = {
-        x: 600, y: 720, angle: Math.PI, speed: 0,
-        maxS: 8, acc: 0.2, frict: 0.97, turnS: 0.08,
-        w: 18, h: 35, dmg: 0, onGrass: false
+        x: 600, y: 740, angle: Math.PI, speed: 0,
+        maxS: 9, acc: 0.22, frict: 0.97, turnS: 0.08,
+        w: 20, h: 38, dmg: 0, onGrass: false
     };
 
     let startTime = 0, bestTime = Infinity, running = false, currentCp = 0;
     
-    const checkpoints = [
-        { x: 550, y: 680, w: 100, h: 80, label: 'START/META' },
-        { x: 80, y: 350, w: 100, h: 100, label: 'CP 1' },
-        { x: 550, y: 40, w: 100, h: 80, label: 'CP 2' },
-        { x: 1020, y: 350, w: 100, h: 100, label: 'CP 3' }
+    // Bramki (Linie przecinające tor)
+    const gates = [
+        { x1: 600, y1: 680, x2: 600, y2: 800, color: '#ff4757', label: 'META' }, // Startowa
+        { x1: 100, y1: 350, x2: 220, y2: 350, color: '#eccc68', label: 'CP1' },
+        { x1: 600, y1: 50, x2: 600, y2: 170, color: '#eccc68', label: 'CP2' },
+        { x1: 980, y1: 350, x2: 1100, y2: 350, color: '#eccc68', label: 'CP3' }
     ];
 
-    function toggleMenu() {
-        const m = document.getElementById('overlay-menu');
-        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-    }
+    function openMenu() { document.getElementById('menu-overlay').style.display = 'flex'; }
+    function closeMenu() { document.getElementById('menu-overlay').style.display = 'none'; }
 
     function setControl(mode) {
         controlMode = mode;
-        document.querySelectorAll('.opt').forEach(o => o.classList.remove('active'));
-        document.getElementById('m-'+mode).classList.add('active');
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('m-' + mode.split('-')[0]).classList.add('active');
         
-        document.getElementById('joy-l-box').style.visibility = (mode === 'arrows') ? 'hidden' : 'visible';
-        document.getElementById('joy-r-box').style.visibility = (mode === 'two') ? 'visible' : 'hidden';
-        document.getElementById('arrows-grid').style.display = (mode === 'arrows') ? 'grid' : 'none';
+        document.getElementById('arrows-ui').style.display = (mode === 'arrows') ? 'grid' : 'none';
+        document.getElementById('joy-l-box').style.display = (mode === 'arrows') ? 'none' : 'flex';
+        document.getElementById('joy-r-box').style.display = (mode === 'two') ? 'flex' : 'none';
     }
 
-    function drawTrack() {
-        // Trawa (tło)
-        ctx.fillStyle = '#1e5d2f';
-        ctx.fillRect(0,0,W,H);
+    function drawWorld() {
+        // Podłoże
+        ctx.fillStyle = '#1b5e20'; ctx.fillRect(0,0,W,H);
         
-        // Detale trawy (kropki)
-        ctx.fillStyle = '#27ae60';
-        for(let i=0; i<400; i+=40) for(let j=0; j<400; j+=40) ctx.fillRect(i*3, j*2, 2, 2);
-
-        // Krawężniki (zewnętrzne)
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 110;
-        ctx.lineJoin = 'round';
-        const path = new Path2D();
-        path.roundRect(100, 100, 1000, 600, 180);
-        ctx.stroke(path);
-
-        // Asfalt
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 100;
-        ctx.stroke(path);
-
-        // Linie krawędziowe (czerwone/białe)
-        ctx.setLineDash([20, 20]);
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 100;
-        ctx.stroke(path);
+        // Tor (Asfalt)
+        const track = new Path2D();
+        track.roundRect(100, 100, 1000, 650, 180);
+        
+        ctx.strokeStyle = '#222'; ctx.lineWidth = 130; ctx.stroke(track); // Pobocze
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 120; ctx.stroke(track); // Asfalt główny
+        
+        // Tarki (Kerby)
+        ctx.setLineDash([30, 30]);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 120; ctx.stroke(track);
         ctx.setLineDash([]);
 
-        // Pit Stop
-        ctx.fillStyle = 'rgba(52, 152, 219, 0.3)';
-        ctx.fillRect(700, 710, 120, 60);
-        ctx.fillStyle = 'white'; ctx.font = "bold 14px Arial";
-        ctx.fillText("PIT STOP", 730, 745);
+        // Wnętrze toru (trawa)
+        ctx.fillStyle = '#1b5e20';
+        const inner = new Path2D();
+        inner.roundRect(220, 220, 760, 410, 100);
+        ctx.fill(inner);
 
-        // Checkpointy
-        checkpoints.forEach((c, i) => {
-            ctx.fillStyle = (i === currentCp) ? "rgba(52, 152, 219, 0.5)" : "rgba(255,255,255,0.1)";
-            if(i === 0) ctx.fillStyle = "rgba(231, 76, 60, 0.6)";
-            ctx.fillRect(c.x, c.y, c.w, c.h);
+        // Rysowanie bramek
+        gates.forEach((g, i) => {
+            ctx.beginPath();
+            ctx.strokeStyle = (i === currentCp) ? '#ffff00' : (i === 0 ? '#ff4757' : 'rgba(255,255,255,0.3)');
+            ctx.lineWidth = 8;
+            ctx.moveTo(g.x1, g.y1); ctx.lineTo(g.x2, g.y2);
+            ctx.stroke();
         });
+
+        // Pit Stop
+        ctx.fillStyle = 'rgba(0, 168, 255, 0.3)';
+        ctx.fillRect(750, 745, 150, 60);
+        ctx.fillStyle = 'white'; ctx.font = "bold 16px Arial"; ctx.fillText("PIT STOP", 785, 782);
     }
 
-    function update() {
-        // Fizyka
+    function updatePhysics() {
+        // Obsługa wejścia
         if (input.up > 0 && car.dmg < 100) car.speed += car.acc * input.up;
-        if (input.down > 0) car.speed -= car.acc * 0.6 * input.down;
-        
+        if (input.down > 0) car.speed -= car.acc * 0.5 * input.down;
         car.speed *= car.frict;
-        
-        let steer = (input.right - input.left) * car.turnS;
-        if (Math.abs(car.speed) > 0.5) car.angle += steer * (car.speed / car.maxS);
+
+        let turn = (input.right - input.left) * car.turnS;
+        if (Math.abs(car.speed) > 0.5) car.angle += turn * (car.speed / car.maxS);
 
         car.x += Math.cos(car.angle) * car.speed;
         car.y += Math.sin(car.angle) * car.speed;
 
-        // Wykrywanie podłoża (Pixel Check dla dokładności)
-        const trackPath = new Path2D();
-        trackPath.roundRect(100, 100, 1000, 600, 180);
-        
-        // Czy jesteśmy wewnątrz obrysu toru?
-        ctx.lineWidth = 110;
-        const onTrack = ctx.isPointInStroke(trackPath, car.x, car.y);
+        // Wykrywanie trawy
+        const trackTest = new Path2D();
+        trackTest.roundRect(100, 100, 1000, 650, 180);
+        ctx.lineWidth = 120;
+        const onTrack = ctx.isPointInStroke(trackTest, car.x, car.y);
         
         car.onGrass = !onTrack;
         if(car.onGrass) {
-            car.speed *= 0.94;
+            car.speed *= 0.95;
             car.dmg = Math.min(100, car.dmg + 0.15);
-            car.x += (Math.random()-0.5)*2; // Drgania na trawie
         }
 
-        // Pitstop Naprawa
-        if(car.speed < 0.5 && car.x > 700 && car.x < 820 && car.y > 710) {
-            car.dmg = Math.max(0, car.dmg - 0.4);
+        // Naprawa w Pit Stopie
+        if(car.speed < 0.5 && car.x > 750 && car.x < 900 && car.y > 740) {
+            car.dmg = Math.max(0, car.dmg - 0.5);
         }
 
-        // Logika Checkpointów
-        let cp = checkpoints[currentCp];
-        if (car.x > cp.x && car.x < cp.x + cp.w && car.y > cp.y && car.y < cp.y + cp.h) {
+        // Logika bramek (Checkpointów)
+        let g = gates[currentCp];
+        let dist = Math.hypot(car.x - (g.x1+g.x2)/2, car.y - (g.y1+g.y2)/2);
+        if(dist < 70) {
             if(currentCp === 0) {
                 if(!running) { running = true; startTime = Date.now(); }
                 else {
@@ -198,106 +197,106 @@
                     startTime = Date.now();
                 }
             }
-            currentCp = (currentCp + 1) % checkpoints.length;
+            currentCp = (currentCp + 1) % gates.length;
         }
 
         render();
-        requestAnimationFrame(update);
+        requestAnimationFrame(updatePhysics);
     }
 
     function render() {
         ctx.clearRect(0,0,W,H);
-        drawTrack();
+        drawWorld();
 
-        // Rysowanie Auta (z cieniem)
+        // Samochód
         ctx.save();
         ctx.translate(car.x, car.y);
         ctx.rotate(car.angle);
         
-        // Cień
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
-        ctx.fillRect(-car.h/2 + 5, -car.w/2 + 5, car.h, car.w);
-        
         // Karoseria
-        ctx.fillStyle = (car.dmg > 70) ? "#555" : "#e74c3c";
+        ctx.fillStyle = car.dmg > 80 ? "#444" : "#ff4757";
+        ctx.shadowBlur = 10; ctx.shadowColor = "black";
         ctx.fillRect(-car.h/2, -car.w/2, car.h, car.w);
         
-        // Szyba i spojler
-        ctx.fillStyle = "#3498db";
-        ctx.fillRect(car.h/2 - 12, -car.w/2 + 2, 8, car.w - 4);
-        ctx.fillStyle = "#222";
-        ctx.fillRect(-car.h/2, -car.w/2, 4, car.w);
-        
+        // Detale (okno, spoiler)
+        ctx.fillStyle = "#2f3542"; ctx.fillRect(car.h/2 - 12, -car.w/2 + 2, 8, car.w - 4);
+        ctx.fillStyle = "#1e272e"; ctx.fillRect(-car.h/2, -car.w/2, 5, car.w);
         ctx.restore();
 
-        // UI Update
-        document.getElementById('time').innerText = running ? ((Date.now() - startTime)/1000).toFixed(2) + "s" : "0.00s";
-        document.getElementById('best').innerText = bestTime === Infinity ? "--" : bestTime.toFixed(2) + "s";
-        document.getElementById('cp').innerText = `${currentCp}/4`;
-        document.getElementById('dmg').innerText = Math.floor(car.dmg) + "%";
+        // UI
+        document.getElementById('ui-time').innerText = running ? ((Date.now() - startTime)/1000).toFixed(2) + "s" : "0.00s";
+        document.getElementById('ui-best').innerText = bestTime === Infinity ? "--" : bestTime.toFixed(2) + "s";
+        document.getElementById('ui-dmg').innerText = Math.floor(car.dmg) + "%";
     }
 
-    // --- LOGIKA DOTYKU / JOYSTICKÓW ---
-    function handleJoy(id, stickId, type) {
-        const box = document.getElementById(id);
-        const stick = document.getElementById(stickId);
-        
+    // --- STEROWANIE ---
+    
+    // Klucze klawiatury
+    window.addEventListener('keydown', e => {
+        if(e.key === 'ArrowUp') input.up = 1; if(e.key === 'ArrowDown') input.down = 1;
+        if(e.key === 'ArrowLeft') input.left = 1; if(e.key === 'ArrowRight') input.right = 1;
+    });
+    window.addEventListener('keyup', e => {
+        if(e.key === 'ArrowUp') input.up = 0; if(e.key === 'ArrowDown') input.down = 0;
+        if(e.key === 'ArrowLeft') input.left = 0; if(e.key === 'ArrowRight') input.right = 0;
+    });
+
+    // Przyciski ekranowe (Naprawione)
+    const setupBtn = (id, key) => {
+        const b = document.getElementById(id);
+        const start = (e) => { e.preventDefault(); input[key] = 1; };
+        const end = () => input[key] = 0;
+        b.addEventListener('touchstart', start); b.addEventListener('touchend', end);
+        b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', end);
+    };
+    setupBtn('btn-u', 'up'); setupBtn('btn-d', 'down'); setupBtn('btn-l', 'left'); setupBtn('btn-r', 'right');
+
+    // Joysticki
+    function initJoy(boxId, handleId, type) {
+        const box = document.getElementById(boxId);
+        const handle = document.getElementById(handleId);
+        let active = false;
+
         const move = (e) => {
+            if(!active) return;
             e.preventDefault();
-            const touch = e.touches[0];
+            const touch = e.touches ? e.touches[0] : e;
             const rect = box.getBoundingClientRect();
-            const centerX = rect.left + rect.width/2;
-            const centerY = rect.top + rect.height/2;
+            const cx = rect.left + rect.width/2;
+            const cy = rect.top + rect.height/2;
             
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
-            const angle = Math.atan2(dy, dx);
+            let dx = touch.clientX - cx; let dy = touch.clientY - cy;
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+            const ang = Math.atan2(dy, dx);
 
-            const tx = Math.cos(angle) * dist;
-            const ty = Math.sin(angle) * dist;
-            stick.style.transform = `translate(${tx}px, ${ty}px)`;
+            const tx = Math.cos(ang) * dist; const ty = Math.sin(ang) * dist;
+            handle.style.transform = `translate(${tx}px, ${ty}px)`;
 
-            const nx = tx / 40; const ny = ty / 40;
-
+            const nx = tx/50; const ny = ty/50;
             if(controlMode === 'one') {
-                input.up = ny < -0.2 ? -ny : 0;
-                input.down = ny > 0.2 ? ny : 0;
-                input.left = nx < -0.2 ? -nx : 0;
-                input.right = nx > 0.2 ? nx : 0;
+                input.up = ny < -0.2 ? -ny : 0; input.down = ny > 0.2 ? ny : 0;
+                input.left = nx < -0.2 ? -nx : 0; input.right = nx > 0.2 ? nx : 0;
             } else if(type === 'L') {
-                input.up = ny < -0.2 ? -ny : 0;
-                input.down = ny > 0.2 ? ny : 0;
+                input.up = ny < -0.2 ? -ny : 0; input.down = ny > 0.2 ? ny : 0;
             } else {
-                input.left = nx < -0.2 ? -nx : 0;
-                input.right = nx > 0.2 ? nx : 0;
+                input.left = nx < -0.2 ? -nx : 0; input.right = nx > 0.2 ? nx : 0;
             }
         };
 
-        const end = () => {
-            stick.style.transform = `translate(0,0)`;
+        const stop = () => { active = false; handle.style.transform = `translate(0,0)`; 
             if(controlMode === 'one' || type === 'L') { input.up = 0; input.down = 0; }
             if(controlMode === 'one' || type === 'R') { input.left = 0; input.right = 0; }
         };
 
-        box.addEventListener('touchstart', move);
+        box.addEventListener('touchstart', (e) => { active = true; move(e); });
         box.addEventListener('touchmove', move);
-        box.addEventListener('touchend', end);
+        box.addEventListener('touchend', stop);
     }
 
-    // Inicjalizacja
-    handleJoy('joy-l-box', 'joy-l-stick', 'L');
-    handleJoy('joy-r-box', 'joy-r-stick', 'R');
+    initJoy('joy-l-box', 'joy-l-handle', 'L');
+    initJoy('joy-r-box', 'joy-r-handle', 'R');
     setControl('two');
-    
-    // Obsługa strzałek (PC i przyciski)
-    const bArr = (id, k) => {
-        const b = document.getElementById(id);
-        b.ontouchstart = () => input[k] = 1; b.ontouchend = () => input[k] = 0;
-    };
-    bArr('u','up'); bArr('d','down'); bArr('l','left'); bArr('r','right');
-
-    update();
+    requestAnimationFrame(updatePhysics);
 </script>
 </body>
 </html>
