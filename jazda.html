@@ -174,17 +174,17 @@
     canvas.width = W; canvas.height = H;
 
     let controlMode = 'two';
+    // Teraz input przechowuje wartości analogowe (0.0 do 1.0) zamiast tylko 0/1
     const input = { up: 0, down: 0, left: 0, right: 0 };
     
     const car = {
         x: 600, y: 740, angle: Math.PI, speed: 0,
-        maxS: 9, acc: 0.22, frict: 0.97, turnS: 0.08,
+        maxS: 9, acc: 0.25, frict: 0.97, turnS: 0.09,
         w: 20, h: 38, dmg: 0, onGrass: false
     };
 
     let startTime = 0, bestTime = Infinity, running = false, currentCp = 0;
     
-    // Bramki idealnie dopasowane do szerokości asfaltu (120px)
     const gates = [
         { x1: 600, y1: 690, x2: 600, y2: 810, label: 'META' }, 
         { x1: 40, y1: 425, x2: 160, y2: 425, label: 'CP1' },
@@ -207,17 +207,13 @@
 
     function drawWorld() {
         ctx.fillStyle = '#1b5e20'; ctx.fillRect(0,0,W,H);
-        
         const track = new Path2D();
         track.roundRect(100, 100, 1000, 650, 180);
-        
         ctx.strokeStyle = '#222'; ctx.lineWidth = 130; ctx.stroke(track);
         ctx.strokeStyle = '#333'; ctx.lineWidth = 120; ctx.stroke(track);
-        
         ctx.setLineDash([30, 30]);
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 120; ctx.stroke(track);
         ctx.setLineDash([]);
-
         ctx.fillStyle = '#1b5e20';
         const inner = new Path2D();
         inner.roundRect(220, 220, 760, 410, 100);
@@ -237,17 +233,29 @@
     }
 
     function updatePhysics() {
-        if (input.up > 0 && car.dmg < 100) car.speed += car.acc * input.up;
-        if (input.down > 0) car.speed -= car.acc * 0.5 * input.down;
+        // PROGRESYWNY GAZ: Prędkość zwiększa się proporcjonalnie do wychylenia (input.up)
+        if (input.up > 0 && car.dmg < 100) {
+            car.speed += car.acc * input.up;
+        }
+        // PROGRESYWNY HAMULEC / WSTECZNY
+        if (input.down > 0) {
+            car.speed -= (car.acc * 0.5) * input.down;
+        }
+        
         car.speed *= car.frict;
 
-        let turn = (input.right - input.left) * car.turnS;
-        if (Math.abs(car.speed) > 0.5) car.angle += turn * (car.speed / car.maxS);
+        // PROGRESYWNE SKRĘCANIE: Im mocniej wychylony joystick, tym szybsza zmiana kąta
+        let turnIntensity = (input.right - input.left); 
+        let turn = turnIntensity * car.turnS;
+        
+        if (Math.abs(car.speed) > 0.5) {
+            car.angle += turn * (car.speed / car.maxS);
+        }
 
         car.x += Math.cos(car.angle) * car.speed;
         car.y += Math.sin(car.angle) * car.speed;
 
-        // --- BLOKADA WOKÓŁ TORU (Granice ekranu) ---
+        // Granice ekranu
         if (car.x < 15) { car.x = 15; car.speed *= 0.5; }
         if (car.x > W - 15) { car.x = W - 15; car.speed *= 0.5; }
         if (car.y < 15) { car.y = 15; car.speed *= 0.5; }
@@ -289,7 +297,6 @@
     function render() {
         ctx.clearRect(0,0,W,H);
         drawWorld();
-
         ctx.save();
         ctx.translate(car.x, car.y);
         ctx.rotate(car.angle);
@@ -305,6 +312,7 @@
         document.getElementById('ui-dmg').innerText = Math.floor(car.dmg) + "%";
     }
 
+    // Obsługa klawiatury (nadal 0/1 dla kompatybilności)
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') input.up = 1; if(e.key === 'ArrowDown') input.down = 1;
         if(e.key === 'ArrowLeft') input.left = 1; if(e.key === 'ArrowRight') input.right = 1;
@@ -322,55 +330,95 @@
         b.addEventListener('touchend', end);
         b.addEventListener('mousedown', start); 
         b.addEventListener('mouseup', end); 
-        b.addEventListener('mouseleave', end);
     };
     setupBtn('btn-u', 'up'); setupBtn('btn-d', 'down'); setupBtn('btn-l', 'left'); setupBtn('btn-r', 'right');
 
+    // MULTI-TOUCH ANALOG JOYSTICK
     function initJoy(boxId, handleId, type) {
         const box = document.getElementById(boxId);
         const handle = document.getElementById(handleId);
-        let active = false;
+        let activeTouchId = null;
 
-        const move = (e) => {
-            if(!active) return;
-            e.preventDefault();
-            const touch = e.touches ? e.touches[0] : e;
-            const rect = box.getBoundingClientRect();
-            const cx = rect.left + rect.width/2;
-            const cy = rect.top + rect.height/2;
-            
-            let dx = touch.clientX - cx; let dy = touch.clientY - cy;
-            const maxDist = rect.width / 2.5;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
-            const ang = Math.atan2(dy, dx);
+        const updateInput = (nx, ny, isStop = false) => {
+            const deadzone = 0.15;
+            if (isStop) {
+                if (controlMode === 'one' || type === 'L') { input.up = 0; input.down = 0; }
+                if (controlMode === 'one' || type === 'R') { input.left = 0; input.right = 0; }
+                return;
+            }
 
-            const tx = Math.cos(ang) * dist; const ty = Math.sin(ang) * dist;
-            handle.style.transform = `translate(${tx}px, ${ty}px)`;
-
-            const nx = tx/maxDist; const ny = ty/maxDist;
-            if(controlMode === 'one') {
-                input.up = ny < -0.2 ? -ny : 0; input.down = ny > 0.2 ? ny : 0;
-                input.left = nx < -0.2 ? -nx : 0; input.right = nx > 0.2 ? nx : 0;
-            } else if(type === 'L') {
-                input.up = ny < -0.2 ? -ny : 0; input.down = ny > 0.2 ? ny : 0;
-            } else {
-                input.left = nx < -0.2 ? -nx : 0; input.right = nx > 0.2 ? nx : 0;
+            if (controlMode === 'one') {
+                input.up = ny < -deadzone ? Math.abs(ny) : 0;
+                input.down = ny > deadzone ? ny : 0;
+                input.left = nx < -deadzone ? Math.abs(nx) : 0;
+                input.right = nx > deadzone ? nx : 0;
+            } else if (type === 'L') {
+                input.up = ny < -deadzone ? Math.abs(ny) : 0;
+                input.down = ny > deadzone ? ny : 0;
+            } else if (type === 'R') {
+                input.left = nx < -deadzone ? Math.abs(nx) : 0;
+                input.right = nx > deadzone ? nx : 0;
             }
         };
 
-        const stop = () => { 
-            active = false; 
-            handle.style.transform = `translate(0,0)`; 
-            if(controlMode === 'one' || type === 'L') { input.up = 0; input.down = 0; }
-            if(controlMode === 'one' || type === 'R') { input.left = 0; input.right = 0; }
+        const handleMove = (clientX, clientY) => {
+            const rect = box.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const maxDist = rect.width / 2.5;
+            const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+            const ang = Math.atan2(dy, dx);
+            const tx = Math.cos(ang) * dist;
+            const ty = Math.sin(ang) * dist;
+            handle.style.transform = `translate(${tx}px, ${ty}px)`;
+            updateInput(tx / maxDist, ty / maxDist);
         };
 
-        box.addEventListener('touchstart', (e) => { active = true; move(e); }, {passive: false});
-        box.addEventListener('touchmove', move, {passive: false});
-        box.addEventListener('touchend', stop);
-        box.addEventListener('mousedown', (e) => { active = true; move(e); });
-        window.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', stop);
+        box.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            activeTouchId = touch.identifier;
+            handleMove(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeTouchId) {
+                    handleMove(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+                }
+            }
+        }, { passive: false });
+
+        const endHandler = (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === activeTouchId) {
+                    activeTouchId = null;
+                    handle.style.transform = `translate(0,0)`;
+                    updateInput(0, 0, true);
+                }
+            }
+        };
+
+        window.addEventListener('touchend', endHandler);
+        window.addEventListener('touchcancel', endHandler);
+        
+        // Wsparcie dla myszki (Single-touch)
+        box.addEventListener('mousedown', (e) => {
+            activeTouchId = 'mouse';
+            handleMove(e.clientX, e.clientY);
+            const mouseMove = (me) => { if(activeTouchId === 'mouse') handleMove(me.clientX, me.clientY); };
+            const mouseUp = () => { 
+                activeTouchId = null; 
+                handle.style.transform = `translate(0,0)`; 
+                updateInput(0, 0, true);
+                window.removeEventListener('mousemove', mouseMove);
+                window.removeEventListener('mouseup', mouseUp);
+            };
+            window.addEventListener('mousemove', mouseMove);
+            window.addEventListener('mouseup', mouseUp);
+        });
     }
 
     initJoy('joy-l-box', 'joy-l-handle', 'L');
