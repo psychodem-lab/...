@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gra Wyścigowa 2D</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #2c3e50; font-family: sans-serif;
+            overflow: hidden; touch-action: none; /* Zapobiega przewijaniu na telefonie */
+        }
+        #gameCanvas {
+            display: block; width: 100%; height: 70vh; background-color: #27ae60;
+        }
+        #ui-layer {
+            position: absolute; top: 10px; left: 10px;
+            color: white; font-weight: bold; font-size: 14px;
+            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px;
+            pointer-events: none;
+        }
+        /* Kontrolki dla urządzeń mobilnych */
+        #controls {
+            height: 30vh; background-color: #34495e;
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 10px; box-sizing: border-box;
+        }
+        .btn-group {
+            display: grid; grid-template-columns: 60px 60px 60px; grid-gap: 10px;
+        }
+        .btn {
+            background-color: #ecf0f1; border: none; border-radius: 10px;
+            font-size: 24px; font-weight: bold; color: #2c3e50;
+            width: 60px; height: 60px; user-select: none;
+        }
+        .btn:active { background-color: #bdc3c7; }
+        .empty { visibility: hidden; }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    
+    <div id="ui-layer">
+        <div>Czas: <span id="time">0.00</span>s</div>
+        <div>Najlepszy: <span id="bestTime">--</span>s</div>
+        <div>Okrążenie: <span id="lap">0</span></div>
+        <div>Checkpoint: <span id="cp">0/4</span></div>
+        <hr style="border-color: #7f8c8d; margin: 5px 0;">
+        <div style="color:#f1c40f;">Paliwo: <span id="fuel">100</span>%</div>
+        <div style="color:#e67e22;">Opony: <span id="tires">100</span>%</div>
+        <div style="color:#e74c3c;">Uszkodzenia: <span id="damage">0</span>%</div>
+    </div>
+
+    <div id="controls">
+        <div class="btn-group">
+            <div class="empty"></div>
+            <button class="btn" id="btnUp">↑</button>
+            <div class="empty"></div>
+            <button class="btn" id="btnLeft">←</button>
+            <button class="btn" id="btnDown">↓</button>
+            <button class="btn" id="btnRight">→</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const uiTime = document.getElementById('time');
+    const uiBestTime = document.getElementById('bestTime');
+    const uiLap = document.getElementById('lap');
+    const uiCp = document.getElementById('cp');
+    const uiFuel = document.getElementById('fuel');
+    const uiTires = document.getElementById('tires');
+    const uiDamage = document.getElementById('damage');
+
+    // Sterowanie
+    const keys = { up: false, down: false, left: false, right: false };
+
+    // Samochód
+    const car = {
+        x: 400, y: 400, angle: 0, speed: 0,
+        maxSpeed: 5, acceleration: 0.1, friction: 0.95, turnSpeed: 0.06,
+        width: 15, height: 25,
+        fuel: 100, tires: 100, damage: 0
+    };
+
+    // Stoper
+    let startTime = 0;
+    let running = false;
+    let lapTime = 0;
+    let bestLapTime = Infinity;
+    let laps = 0;
+
+    // Checkpointy (x, y, szerokość, wysokość)
+    const checkpoints = [
+        { x: 350, y: 380, w: 100, h: 40, id: 0 }, // Linia Start/Meta
+        { x: 100, y: 100, w: 40, h: 100, id: 1 },
+        { x: 400, y: 50, w: 100, h: 40, id: 2 },
+        { x: 700, y: 300, w: 40, h: 100, id: 3 }
+    ];
+    let currentCheckpoint = 0;
+
+    // Pitstop
+    const pitstop = { x: 300, y: 430, w: 100, h: 60 };
+
+    // Główna pętla gry
+    function update() {
+        handleInput();
+        updatePhysics();
+        checkCollisions();
+        updateUI();
+        draw();
+        requestAnimationFrame(update);
+    }
+
+    function handleInput() {
+        if (keys.up && car.fuel > 0 && car.damage < 100) {
+            car.speed += car.acceleration;
+            car.fuel -= 0.05; // Zużycie paliwa
+        }
+        if (keys.down) car.speed -= car.acceleration;
+        
+        // Zmiana sterowności w zależności od opon
+        let currentTurnSpeed = car.turnSpeed * (car.tires / 100);
+        if (currentTurnSpeed < 0.02) currentTurnSpeed = 0.02;
+
+        if (car.speed !== 0) {
+            if (keys.left) car.angle -= currentTurnSpeed;
+            if (keys.right) car.angle += currentTurnSpeed;
+        }
+    }
+
+    function updatePhysics() {
+        // Tarcie
+        car.speed *= car.friction;
+        
+        // Limit prędkości
+        if (car.speed > car.maxSpeed) car.speed = car.maxSpeed;
+        if (car.speed < -car.maxSpeed / 2) car.speed = -car.maxSpeed / 2; // Wsteczny
+
+        // Ruch
+        car.x += Math.cos(car.angle - Math.PI/2) * car.speed;
+        car.y += Math.sin(car.angle - Math.PI/2) * car.speed;
+
+        // Zużycie opon podczas jazdy
+        if (Math.abs(car.speed) > 0.5) car.tires -= 0.01;
+        if (car.tires < 0) car.tires = 0;
+        if (car.fuel < 0) car.fuel = 0;
+
+        // Proste ograniczenie - bandy powodują uszkodzenia i zatrzymanie
+        if (car.x < 0 || car.x > canvas.width || car.y < 0 || car.y > canvas.height) {
+            car.speed = -car.speed * 0.5; // Odbicie
+            car.damage += 5; // Uszkodzenia
+            if (car.damage > 100) car.damage = 100;
+            
+            // Cofnięcie w granice
+            if(car.x < 0) car.x = 0; if(car.x > canvas.width) car.x = canvas.width;
+            if(car.y < 0) car.y = 0; if(car.y > canvas.height) car.y = canvas.height;
+        }
+    }
+
+    function checkCollisions() {
+        // Kolizja z checkpointem
+        const targetCp = checkpoints[currentCheckpoint];
+        if (car.x > targetCp.x && car.x < targetCp.x + targetCp.w &&
+            car.y > targetCp.y && car.y < targetCp.y + targetCp.h) {
+            
+            if (currentCheckpoint === 0 && !running) {
+                // Start stopera
+                startTime = performance.now();
+                running = true;
+            }
+
+            currentCheckpoint++;
+            
+            if (currentCheckpoint >= checkpoints.length) {
+                // Okrążenie zaliczone
+                laps++;
+                currentCheckpoint = 0;
+                let finalTime = (performance.now() - startTime) / 1000;
+                if (finalTime < bestLapTime && finalTime > 1) bestLapTime = finalTime;
+                startTime = performance.now(); // Reset na nowe okrążenie
+            }
+        }
+
+        // Pitstop logic
+        if (car.speed > -0.5 && car.speed < 0.5 &&
+            car.x > pitstop.x && car.x < pitstop.x + pitstop.w &&
+            car.y > pitstop.y && car.y < pitstop.y + pitstop.h) {
+            if (car.fuel < 100) car.fuel += 0.5;
+            if (car.tires < 100) car.tires += 0.5;
+            if (car.damage > 0) car.damage -= 0.5;
+        }
+    }
+
+    function updateUI() {
+        if (running) {
+            let currentTime = (performance.now() - startTime) / 1000;
+            uiTime.innerText = currentTime.toFixed(2);
+        }
+        if (bestLapTime !== Infinity) uiBestTime.innerText = bestLapTime.toFixed(2);
+        
+        uiLap.innerText = laps;
+        uiCp.innerText = `${currentCheckpoint}/${checkpoints.length}`;
+        uiFuel.innerText = Math.floor(car.fuel);
+        uiTires.innerText = Math.floor(car.tires);
+        uiDamage.innerText = Math.floor(car.damage);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Rysowanie uproszczonego toru
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(50, 50, 700, 400); // Szare tło toru
+        ctx.fillStyle = '#27ae60';
+        ctx.fillRect(150, 150, 500, 200); // Wewnętrzna "trawa"
+
+        // Rysowanie pitstopu
+        ctx.fillStyle = 'rgba(52, 152, 219, 0.5)';
+        ctx.fillRect(pitstop.x, pitstop.y, pitstop.w, pitstop.h);
+        ctx.fillStyle = 'white';
+        ctx.fillText("PIT", pitstop.x + 40, pitstop.y + 35);
+
+        // Rysowanie checkpointów
+        checkpoints.forEach((cp, index) => {
+            ctx.fillStyle = index === currentCheckpoint ? 'rgba(241, 196, 15, 0.5)' : 'rgba(255, 255, 255, 0.2)';
+            if (index === 0) ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; // Linia startu
+            ctx.fillRect(cp.x, cp.y, cp.w, cp.h);
+        });
+
+        // Rysowanie Autka
+        ctx.save();
+        ctx.translate(car.x, car.y);
+        ctx.rotate(car.angle);
+        ctx.fillStyle = 'red';
+        ctx.fillRect(-car.width/2, -car.height/2, car.width, car.height);
+        // Szyba dla orientacji przodu
+        ctx.fillStyle = 'cyan';
+        ctx.fillRect(-car.width/2 + 2, -car.height/2 + 2, car.width - 4, 6);
+        ctx.restore();
+    }
+
+    // --- OBSŁUGA ZDARZEŃ (Touch & Klawiatura) ---
+    
+    // Klawiatura (PC)
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowUp') keys.up = true;
+        if(e.key === 'ArrowDown') keys.down = true;
+        if(e.key === 'ArrowLeft') keys.left = true;
+        if(e.key === 'ArrowRight') keys.right = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowUp') keys.up = false;
+        if(e.key === 'ArrowDown') keys.down = false;
+        if(e.key === 'ArrowLeft') keys.left = false;
+        if(e.key === 'ArrowRight') keys.right = false;
+    });
+
+    // Przyciski dotykowe (Mobilne)
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+
+    const bindBtn = (btn, key) => {
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        // Wsparcie dla myszki do testów
+        btn.addEventListener('mousedown', () => keys[key] = true);
+        btn.addEventListener('mouseup', () => keys[key] = false);
+        btn.addEventListener('mouseleave', () => keys[key] = false);
+    };
+
+    bindBtn(btnUp, 'up'); bindBtn(btnDown, 'down');
+    bindBtn(btnLeft, 'left'); bindBtn(btnRight, 'right');
+
+    // Uruchomienie gry
+    requestAnimationFrame(update);
+</script>
+
+</body>
+</html>
