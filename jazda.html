@@ -55,7 +55,6 @@
         .mode-btn { margin: 8px 0; padding: 12px; width: 100%; background: #222; border: 2px solid #444; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .mode-btn.active { border-color: var(--accent); background: #003a4d; }
 
-        /* Ulepszony widok Canvas */
         canvas { 
             display: block; 
             background: #1b5e20; 
@@ -63,10 +62,9 @@
             width: 100%;
             height: auto;
             max-height: 65vh;
-            object-fit: contain; /* Kluczowe dla mobilnych: zachowuje proporcje bez ucinania */
+            object-fit: contain; 
         }
 
-        /* Kontrolery - Poprawiony spód */
         #controls-root { 
             width: 100%; 
             height: 35vh; 
@@ -76,7 +74,7 @@
             display: flex; 
             justify-content: space-around; 
             align-items: center; 
-            padding-bottom: env(safe-area-inset-bottom); /* Obsługa "notcha" w iPhone */
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
         .joy-container { 
@@ -186,11 +184,12 @@
 
     let startTime = 0, bestTime = Infinity, running = false, currentCp = 0;
     
+    // Bramki idealnie dopasowane do szerokości asfaltu (120px)
     const gates = [
-        { x1: 600, y1: 680, x2: 600, y2: 800, color: '#ff4757', label: 'META' },
-        { x1: 100, y1: 350, x2: 220, y2: 350, color: '#eccc68', label: 'CP1' },
-        { x1: 600, y1: 50, x2: 600, y2: 170, color: '#eccc68', label: 'CP2' },
-        { x1: 980, y1: 350, x2: 1100, y2: 350, color: '#eccc68', label: 'CP3' }
+        { x1: 600, y1: 690, x2: 600, y2: 810, label: 'META' }, 
+        { x1: 40, y1: 425, x2: 160, y2: 425, label: 'CP1' },
+        { x1: 600, y1: 40, x2: 600, y2: 160, label: 'CP2' },
+        { x1: 1040, y1: 425, x2: 1160, y2: 425, label: 'CP3' }
     ];
 
     function openMenu() { document.getElementById('menu-overlay').style.display = 'flex'; }
@@ -227,7 +226,7 @@
         gates.forEach((g, i) => {
             ctx.beginPath();
             ctx.strokeStyle = (i === currentCp) ? '#ffff00' : (i === 0 ? '#ff4757' : 'rgba(255,255,255,0.3)');
-            ctx.lineWidth = 8;
+            ctx.lineWidth = 6;
             ctx.moveTo(g.x1, g.y1); ctx.lineTo(g.x2, g.y2);
             ctx.stroke();
         });
@@ -247,6 +246,12 @@
 
         car.x += Math.cos(car.angle) * car.speed;
         car.y += Math.sin(car.angle) * car.speed;
+
+        // --- BLOKADA WOKÓŁ TORU (Granice ekranu) ---
+        if (car.x < 15) { car.x = 15; car.speed *= 0.5; }
+        if (car.x > W - 15) { car.x = W - 15; car.speed *= 0.5; }
+        if (car.y < 15) { car.y = 15; car.speed *= 0.5; }
+        if (car.y > H - 15) { car.y = H - 15; car.speed *= 0.5; }
 
         const trackTest = new Path2D();
         trackTest.roundRect(100, 100, 1000, 650, 180);
