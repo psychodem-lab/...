@@ -8,33 +8,122 @@
         :root { --accent: #00d4ff; --meta: #ff4757; --active: #eccc68; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #0a0a0a; overflow: hidden; touch-action: none; font-family: 'Segoe UI', Arial, sans-serif; }
         
-        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        #game-container { 
+            position: relative; 
+            width: 100vw; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+        }
         
         /* HUD - Statystyki */
-        #hud { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 10px; border-left: 5px solid var(--accent); color: white; z-index: 10; pointer-events: none; backdrop-filter: blur(5px); }
-        .hud-row { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; opacity: 0.7; }
-        .hud-val { font-size: 20px; font-weight: 900; color: #fff; display: block; }
+        #hud { 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            background: rgba(0,0,0,0.8); 
+            padding: 10px; 
+            border-radius: 8px; 
+            border-left: 4px solid var(--accent); 
+            color: white; 
+            z-index: 10; 
+            pointer-events: none; 
+            backdrop-filter: blur(5px);
+            font-size: 12px;
+        }
+        .hud-row { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; opacity: 0.7; }
+        .hud-val { font-size: 16px; font-weight: 900; color: #fff; display: block; }
         
         /* Menu Ustawień */
-        #settings-btn { position: absolute; top: 15px; right: 15px; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; z-index: 20; }
+        #settings-btn { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            padding: 10px 15px; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 8px; 
+            color: white; 
+            cursor: pointer; 
+            z-index: 20;
+            font-size: 14px;
+        }
+        
         #menu-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
-        .menu-card { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; }
-        .mode-btn { margin: 10px; padding: 15px 30px; width: 280px; background: #222; border: 2px solid #444; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .menu-card { background: #1a1a1a; padding: 20px; border-radius: 20px; border: 1px solid #333; text-align: center; width: 80%; max-width: 400px; }
+        .mode-btn { margin: 8px 0; padding: 12px; width: 100%; background: #222; border: 2px solid #444; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; box-sizing: border-box; }
         .mode-btn.active { border-color: var(--accent); background: #003a4d; }
 
-        canvas { display: block; background: #1b5e20; margin: 0 auto; max-width: 100%; max-height: 70vh; }
+        /* Ulepszony widok Canvas */
+        canvas { 
+            display: block; 
+            background: #1b5e20; 
+            flex-grow: 1;
+            width: 100%;
+            height: auto;
+            max-height: 65vh;
+            object-fit: contain; /* Kluczowe dla mobilnych: zachowuje proporcje bez ucinania */
+        }
 
-        /* Kontrolery */
-        #controls-root { position: relative; width: 100%; height: 30vh; background: #0f0f0f; border-top: 2px solid #222; display: flex; justify-content: space-around; align-items: center; padding: 0 10px; }
+        /* Kontrolery - Poprawiony spód */
+        #controls-root { 
+            width: 100%; 
+            height: 35vh; 
+            min-height: 180px;
+            background: #0f0f0f; 
+            border-top: 2px solid #222; 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            padding-bottom: env(safe-area-inset-bottom); /* Obsługa "notcha" w iPhone */
+        }
         
-        /* Joysticki (Widoczne) */
-        .joy-container { width: 130px; height: 130px; background: radial-gradient(circle, #222 0%, #111 100%); border-radius: 50%; border: 3px solid #333; position: relative; display: flex; align-items: center; justify-content: center; }
-        .joy-handle { width: 55px; height: 55px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 20px var(--accent); opacity: 0.8; position: absolute; transition: transform 0.05s linear; }
+        .joy-container { 
+            width: 120px; 
+            height: 120px; 
+            background: radial-gradient(circle, #222 0%, #111 100%); 
+            border-radius: 50%; 
+            border: 3px solid #333; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            touch-action: none;
+        }
+        .joy-handle { 
+            width: 50px; 
+            height: 50px; 
+            background: var(--accent); 
+            border-radius: 50%; 
+            box-shadow: 0 0 15px var(--accent); 
+            opacity: 0.8; 
+            position: absolute; 
+            pointer-events: none;
+        }
         
-        /* Strzałki */
-        #arrows-ui { display: none; grid-template-columns: repeat(3, 75px); gap: 10px; }
-        .arrow-btn { width: 75px; height: 75px; background: #222; border: 1px solid #444; color: white; border-radius: 15px; font-size: 30px; display: flex; align-items: center; justify-content: center; -webkit-user-select: none; }
+        #arrows-ui { display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 220px; }
+        .arrow-btn { 
+            width: 65px; 
+            height: 65px; 
+            background: #222; 
+            border: 1px solid #444; 
+            color: white; 
+            border-radius: 15px; 
+            font-size: 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
         .arrow-btn:active { background: var(--accent); color: black; }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            #controls-root { height: 25vh; }
+            .joy-container { width: 90px; height: 90px; }
+            .joy-handle { width: 40px; height: 40px; }
+        }
     </style>
 </head>
 <body>
@@ -43,21 +132,21 @@
     <div id="hud">
         <div class="hud-row">Czas Okrążenia</div>
         <span id="ui-time" class="hud-val">0.00s</span>
-        <div class="hud-row" style="margin-top:10px">Najlepszy Wynik</div>
+        <div class="hud-row">Najlepszy</div>
         <span id="ui-best" class="hud-val" style="color:var(--active)">--</span>
-        <div class="hud-row" style="margin-top:10px">Uszkodzenia</div>
+        <div class="hud-row">Uszkodzenia</div>
         <span id="ui-dmg" class="hud-val" style="color:var(--meta)">0%</span>
     </div>
 
-    <div id="settings-btn" onclick="openMenu()">⚙ Ustawienia</div>
+    <div id="settings-btn" onclick="openMenu()">⚙</div>
 
     <div id="menu-overlay">
         <div class="menu-card">
-            <h2>STEROWANIE</h2>
+            <h2 style="margin-top:0">STEROWANIE</h2>
             <div class="mode-btn" id="m-arrows" onclick="setControl('arrows')">Strzałki Klasyczne</div>
-            <div class="mode-btn" id="m-two" onclick="setControl('two')">Dwa Joysticki (Gaz/Skręt)</div>
-            <div class="mode-btn" id="m-one" onclick="setControl('one')">Jeden Joystick (Pełny)</div>
-            <button onclick="closeMenu()" style="margin-top:25px; padding:15px 60px; background:var(--accent); border:none; border-radius:30px; font-weight:bold; cursor:pointer;">GRAJ</button>
+            <div class="mode-btn" id="m-two" onclick="setControl('two')">Dwa Joysticki</div>
+            <div class="mode-btn" id="m-one" onclick="setControl('one')">Jeden Joystick</div>
+            <button onclick="closeMenu()" style="margin-top:20px; padding:15px 40px; background:var(--accent); border:none; border-radius:30px; font-weight:bold; width: 100%;">GRAJ</button>
         </div>
     </div>
 
@@ -83,7 +172,6 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Rozdzielczość wewnętrzna (logiczna)
     const W = 1200, H = 850;
     canvas.width = W; canvas.height = H;
 
@@ -98,9 +186,8 @@
 
     let startTime = 0, bestTime = Infinity, running = false, currentCp = 0;
     
-    // Bramki (Linie przecinające tor)
     const gates = [
-        { x1: 600, y1: 680, x2: 600, y2: 800, color: '#ff4757', label: 'META' }, // Startowa
+        { x1: 600, y1: 680, x2: 600, y2: 800, color: '#ff4757', label: 'META' },
         { x1: 100, y1: 350, x2: 220, y2: 350, color: '#eccc68', label: 'CP1' },
         { x1: 600, y1: 50, x2: 600, y2: 170, color: '#eccc68', label: 'CP2' },
         { x1: 980, y1: 350, x2: 1100, y2: 350, color: '#eccc68', label: 'CP3' }
@@ -120,28 +207,23 @@
     }
 
     function drawWorld() {
-        // Podłoże
         ctx.fillStyle = '#1b5e20'; ctx.fillRect(0,0,W,H);
         
-        // Tor (Asfalt)
         const track = new Path2D();
         track.roundRect(100, 100, 1000, 650, 180);
         
-        ctx.strokeStyle = '#222'; ctx.lineWidth = 130; ctx.stroke(track); // Pobocze
-        ctx.strokeStyle = '#333'; ctx.lineWidth = 120; ctx.stroke(track); // Asfalt główny
+        ctx.strokeStyle = '#222'; ctx.lineWidth = 130; ctx.stroke(track);
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 120; ctx.stroke(track);
         
-        // Tarki (Kerby)
         ctx.setLineDash([30, 30]);
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 120; ctx.stroke(track);
         ctx.setLineDash([]);
 
-        // Wnętrze toru (trawa)
         ctx.fillStyle = '#1b5e20';
         const inner = new Path2D();
         inner.roundRect(220, 220, 760, 410, 100);
         ctx.fill(inner);
 
-        // Rysowanie bramek
         gates.forEach((g, i) => {
             ctx.beginPath();
             ctx.strokeStyle = (i === currentCp) ? '#ffff00' : (i === 0 ? '#ff4757' : 'rgba(255,255,255,0.3)');
@@ -150,14 +232,12 @@
             ctx.stroke();
         });
 
-        // Pit Stop
         ctx.fillStyle = 'rgba(0, 168, 255, 0.3)';
         ctx.fillRect(750, 745, 150, 60);
         ctx.fillStyle = 'white'; ctx.font = "bold 16px Arial"; ctx.fillText("PIT STOP", 785, 782);
     }
 
     function updatePhysics() {
-        // Obsługa wejścia
         if (input.up > 0 && car.dmg < 100) car.speed += car.acc * input.up;
         if (input.down > 0) car.speed -= car.acc * 0.5 * input.down;
         car.speed *= car.frict;
@@ -168,7 +248,6 @@
         car.x += Math.cos(car.angle) * car.speed;
         car.y += Math.sin(car.angle) * car.speed;
 
-        // Wykrywanie trawy
         const trackTest = new Path2D();
         trackTest.roundRect(100, 100, 1000, 650, 180);
         ctx.lineWidth = 120;
@@ -180,12 +259,10 @@
             car.dmg = Math.min(100, car.dmg + 0.15);
         }
 
-        // Naprawa w Pit Stopie
         if(car.speed < 0.5 && car.x > 750 && car.x < 900 && car.y > 740) {
             car.dmg = Math.max(0, car.dmg - 0.5);
         }
 
-        // Logika bramek (Checkpointów)
         let g = gates[currentCp];
         let dist = Math.hypot(car.x - (g.x1+g.x2)/2, car.y - (g.y1+g.y2)/2);
         if(dist < 70) {
@@ -208,30 +285,21 @@
         ctx.clearRect(0,0,W,H);
         drawWorld();
 
-        // Samochód
         ctx.save();
         ctx.translate(car.x, car.y);
         ctx.rotate(car.angle);
-        
-        // Karoseria
         ctx.fillStyle = car.dmg > 80 ? "#444" : "#ff4757";
         ctx.shadowBlur = 10; ctx.shadowColor = "black";
         ctx.fillRect(-car.h/2, -car.w/2, car.h, car.w);
-        
-        // Detale (okno, spoiler)
         ctx.fillStyle = "#2f3542"; ctx.fillRect(car.h/2 - 12, -car.w/2 + 2, 8, car.w - 4);
         ctx.fillStyle = "#1e272e"; ctx.fillRect(-car.h/2, -car.w/2, 5, car.w);
         ctx.restore();
 
-        // UI
         document.getElementById('ui-time').innerText = running ? ((Date.now() - startTime)/1000).toFixed(2) + "s" : "0.00s";
         document.getElementById('ui-best').innerText = bestTime === Infinity ? "--" : bestTime.toFixed(2) + "s";
         document.getElementById('ui-dmg').innerText = Math.floor(car.dmg) + "%";
     }
 
-    // --- STEROWANIE ---
-    
-    // Klucze klawiatury
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') input.up = 1; if(e.key === 'ArrowDown') input.down = 1;
         if(e.key === 'ArrowLeft') input.left = 1; if(e.key === 'ArrowRight') input.right = 1;
@@ -241,17 +309,18 @@
         if(e.key === 'ArrowLeft') input.left = 0; if(e.key === 'ArrowRight') input.right = 0;
     });
 
-    // Przyciski ekranowe (Naprawione)
     const setupBtn = (id, key) => {
         const b = document.getElementById(id);
         const start = (e) => { e.preventDefault(); input[key] = 1; };
         const end = () => input[key] = 0;
-        b.addEventListener('touchstart', start); b.addEventListener('touchend', end);
-        b.addEventListener('mousedown', start); b.addEventListener('mouseup', end); b.addEventListener('mouseleave', end);
+        b.addEventListener('touchstart', start, {passive: false}); 
+        b.addEventListener('touchend', end);
+        b.addEventListener('mousedown', start); 
+        b.addEventListener('mouseup', end); 
+        b.addEventListener('mouseleave', end);
     };
     setupBtn('btn-u', 'up'); setupBtn('btn-d', 'down'); setupBtn('btn-l', 'left'); setupBtn('btn-r', 'right');
 
-    // Joysticki
     function initJoy(boxId, handleId, type) {
         const box = document.getElementById(boxId);
         const handle = document.getElementById(handleId);
@@ -266,13 +335,14 @@
             const cy = rect.top + rect.height/2;
             
             let dx = touch.clientX - cx; let dy = touch.clientY - cy;
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+            const maxDist = rect.width / 2.5;
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), maxDist);
             const ang = Math.atan2(dy, dx);
 
             const tx = Math.cos(ang) * dist; const ty = Math.sin(ang) * dist;
             handle.style.transform = `translate(${tx}px, ${ty}px)`;
 
-            const nx = tx/50; const ny = ty/50;
+            const nx = tx/maxDist; const ny = ty/maxDist;
             if(controlMode === 'one') {
                 input.up = ny < -0.2 ? -ny : 0; input.down = ny > 0.2 ? ny : 0;
                 input.left = nx < -0.2 ? -nx : 0; input.right = nx > 0.2 ? nx : 0;
@@ -283,14 +353,19 @@
             }
         };
 
-        const stop = () => { active = false; handle.style.transform = `translate(0,0)`; 
+        const stop = () => { 
+            active = false; 
+            handle.style.transform = `translate(0,0)`; 
             if(controlMode === 'one' || type === 'L') { input.up = 0; input.down = 0; }
             if(controlMode === 'one' || type === 'R') { input.left = 0; input.right = 0; }
         };
 
-        box.addEventListener('touchstart', (e) => { active = true; move(e); });
-        box.addEventListener('touchmove', move);
+        box.addEventListener('touchstart', (e) => { active = true; move(e); }, {passive: false});
+        box.addEventListener('touchmove', move, {passive: false});
         box.addEventListener('touchend', stop);
+        box.addEventListener('mousedown', (e) => { active = true; move(e); });
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', stop);
     }
 
     initJoy('joy-l-box', 'joy-l-handle', 'L');
