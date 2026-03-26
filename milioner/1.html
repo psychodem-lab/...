@@ -4,65 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gra Milionerzy</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body {
-            background-color: #0b1021;
+            /* Nowoczesne tło dla lepszego kontrastu ze szkłem */
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden; /* Zapobiega pojawianiu się pasków przewijania przy konfetti */
         }
 
         #game-container {
-            width: 80%;
+            width: 90%;
             max-width: 800px;
             text-align: center;
+            position: relative;
+        }
+
+        /* Styl "Glassmorphism" bazowy */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        #header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
         #prize-display {
             font-size: 1.2rem;
             color: #ffcc00;
-            margin-bottom: 20px;
             font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+
+        #lifeline-btn {
+            background: rgba(255, 204, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #lifeline-btn:hover:not(:disabled) {
+            background: rgba(255, 204, 0, 0.5);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+        }
+
+        #lifeline-btn:disabled {
+            color: #888;
+            border-color: #555;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
         }
 
         #question-box {
-            background-color: #000080;
-            border: 2px solid #ffffff;
-            border-radius: 50px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 30px 20px;
             font-size: 1.5rem;
             margin-bottom: 30px;
-            min-height: 60px;
+            min-height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
 
         #answers-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
         }
 
         .answer-btn {
-            background-color: #000000;
             color: #ffffff;
-            border: 2px solid #000080;
-            border-radius: 30px;
-            padding: 15px;
+            border-radius: 15px;
+            padding: 20px;
             font-size: 1.2rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
 
-        .answer-btn:hover {
-            background-color: #ff9900;
-            color: #000;
+        .answer-btn:hover:not(:disabled) {
+            background: rgba(255, 153, 0, 0.3);
+            border-color: rgba(255, 153, 0, 0.8);
+            transform: translateY(-2px);
         }
 
         .answer-btn:disabled {
@@ -70,67 +114,82 @@
             pointer-events: none;
         }
 
+        /* Widoczność przycisków w przypadku użycia 50/50 */
+        .hidden-answer {
+            visibility: hidden;
+        }
+
         .correct {
-            background-color: #008000 !important;
-            color: #fff !important;
+            background: rgba(0, 128, 0, 0.6) !important;
             border-color: #00ff00 !important;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
         }
 
         .wrong {
-            background-color: #ff0000 !important;
-            color: #fff !important;
+            background: rgba(255, 0, 0, 0.6) !important;
             border-color: #ff6666 !important;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
         }
 
         #restart-btn {
-            margin-top: 30px;
-            padding: 10px 30px;
+            margin: 30px auto 0;
+            padding: 15px 40px;
             font-size: 1.2rem;
-            background-color: #ffcc00;
+            color: #000;
+            background: linear-gradient(45deg, #ffcc00, #ff9900);
             border: none;
-            border-radius: 10px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
             display: none;
+            box-shadow: 0 4px 15px rgba(255, 153, 0, 0.4);
+            transition: transform 0.2s;
         }
 
         #restart-btn:hover {
-            background-color: #e6b800;
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <div id="prize-display">Przygotowywanie gry...</div>
-        <div id="question-box">Ładowanie pytań...</div>
+        <div id="header-info">
+            <div id="prize-display" class="glass">Przygotowywanie gry...</div>
+            <button id="lifeline-btn" class="glass" onclick="useFiftyFifty()" disabled>50/50 (Pozostało: 3)</button>
+        </div>
+        
+        <div id="question-box" class="glass">Ładowanie pytań...</div>
         
         <div id="answers-container" style="display: none;">
-            <button class="answer-btn" onclick="checkAnswer(0)"></button>
-            <button class="answer-btn" onclick="checkAnswer(1)"></button>
-            <button class="answer-btn" onclick="checkAnswer(2)"></button>
-            <button class="answer-btn" onclick="checkAnswer(3)"></button>
+            <button class="answer-btn glass" onclick="checkAnswer(0)"></button>
+            <button class="answer-btn glass" onclick="checkAnswer(1)"></button>
+            <button class="answer-btn glass" onclick="checkAnswer(2)"></button>
+            <button class="answer-btn glass" onclick="checkAnswer(3)"></button>
         </div>
         
         <button id="restart-btn" onclick="initGame()">Zagraj ponownie</button>
     </div>
 
     <script>
-        // Tablica nagród (12 pytań)
         const prizeTree = [500, 1000, 2000, 5000, 10000, 20000, 40000, 75000, 125000, 250000, 500000, 1000000];
         
         let allQuestions = [];
         let currentGameQuestions = [];
         let currentQuestionIndex = 0;
         
-        // Zmienne obsługujące elementy DOM
+        // Zmienne koła ratunkowego
+        let lifelinesLeft = 3;
+        let lifelineUsedCurrentQuestion = false;
+        
+        // Elementy DOM
         const questionBox = document.getElementById('question-box');
         const prizeDisplay = document.getElementById('prize-display');
         const answersContainer = document.getElementById('answers-container');
         const buttons = document.querySelectorAll('.answer-btn');
         const restartBtn = document.getElementById('restart-btn');
+        const lifelineBtn = document.getElementById('lifeline-btn');
 
-        // Funkcja ładująca plik JSON
         async function fetchQuestions() {
             try {
                 const response = await fetch('milion.json');
@@ -140,30 +199,28 @@
                 initGame();
             } catch (error) {
                 console.error(error);
-                questionBox.innerText = "Błąd: Nie można wczytać pliku milion.json. Pamiętaj, aby uruchomić plik przez serwer lokalny (np. Live Server w VS Code).";
+                questionBox.innerText = "Błąd: Nie można wczytać pliku milion.json. Pamiętaj, aby uruchomić plik przez serwer lokalny.";
             }
         }
 
-        // Funkcja przygotowująca nową grę
         function initGame() {
             if (allQuestions.length < 12) {
                 questionBox.innerText = "Błąd: Za mało pytań w pliku JSON! Potrzebujesz co najmniej 12.";
                 return;
             }
 
-            // Losowanie 12 unikalnych pytań na grę
+            // Losowanie 12 unikalnych pytań
             let shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
             currentGameQuestions = shuffled.slice(0, 12);
             
             currentQuestionIndex = 0;
+            lifelinesLeft = 3;
             
-            // Reset interfejsu
             answersContainer.style.display = 'grid';
             restartBtn.style.display = 'none';
             loadQuestion();
         }
 
-        // Funkcja wyświetlająca pytanie i resetująca przyciski
         function loadQuestion() {
             const currentQ = currentGameQuestions[currentQuestionIndex];
             
@@ -172,22 +229,58 @@
             let currentGuaranteed = currentQuestionIndex >= 7 ? 40000 : (currentQuestionIndex >= 2 ? 1000 : 0);
             prizeDisplay.innerText = `Pytanie o: ${prizeTree[currentQuestionIndex]} zł | Gwarantowane: ${currentGuaranteed} zł`;
 
+            // Reset koła ratunkowego na nowe pytanie
+            lifelineUsedCurrentQuestion = false;
+            updateLifelineUI();
+
             buttons.forEach((btn, idx) => {
                 btn.innerText = currentQ.a[idx];
-                btn.className = 'answer-btn'; // Reset klas CSS
+                btn.className = 'answer-btn glass'; // Reset klas CSS i widoczności
                 btn.disabled = false;
             });
         }
 
-        // Funkcja sprawdzająca odpowiedź i obsługująca kolory przycisków
+        function updateLifelineUI() {
+            lifelineBtn.innerText = `50/50 (Pozostało: ${lifelinesLeft})`;
+            if (lifelinesLeft > 0 && !lifelineUsedCurrentQuestion) {
+                lifelineBtn.disabled = false;
+            } else {
+                lifelineBtn.disabled = true;
+            }
+        }
+
+        function useFiftyFifty() {
+            if (lifelinesLeft <= 0 || lifelineUsedCurrentQuestion) return;
+
+            lifelinesLeft--;
+            lifelineUsedCurrentQuestion = true;
+            updateLifelineUI();
+
+            const currentQ = currentGameQuestions[currentQuestionIndex];
+            const correctIndex = currentQ.c;
+            
+            // Pobranie indeksów błędnych odpowiedzi
+            let incorrectIndices = [0, 1, 2, 3].filter(index => index !== correctIndex);
+            
+            // Wymieszanie i wybranie dwóch do usunięcia
+            incorrectIndices.sort(() => 0.5 - Math.random());
+            const indicesToRemove = incorrectIndices.slice(0, 2);
+
+            indicesToRemove.forEach(index => {
+                // Używamy visibility: hidden, aby zachować układ siatki (grid)
+                buttons[index].classList.add('hidden-answer');
+                buttons[index].disabled = true;
+            });
+        }
+
         function checkAnswer(selectedIndex) {
             const currentQ = currentGameQuestions[currentQuestionIndex];
             
-            // Zablokuj kliknięcia po wyborze odpowiedzi
+            // Zablokuj kliknięcia po wyborze, w tym koło ratunkowe
             buttons.forEach(btn => btn.disabled = true);
+            lifelineBtn.disabled = true;
 
             if (selectedIndex === currentQ.c) {
-                // Poprawna odpowiedź -> ZIELONY
                 buttons[selectedIndex].classList.add('correct');
                 
                 setTimeout(() => {
@@ -197,11 +290,11 @@
                     } else {
                         endGame(true);
                     }
-                }, 1500); // 1.5 sekundy opóźnienia, aby gracz zobaczył poprawną odpowiedź
+                }, 1500);
                 
             } else {
-                // Zła odpowiedź -> CZERWONY, Prawdziwa -> ZIELONY
                 buttons[selectedIndex].classList.add('wrong');
+                buttons[currentQ.c].classList.remove('hidden-answer'); // Upewnij się, że prawidłowa odpowiedź jest widoczna
                 buttons[currentQ.c].classList.add('correct');
                 
                 setTimeout(() => {
@@ -210,28 +303,60 @@
             }
         }
 
-        // Funkcja kończąca grę (wygrana / przegrana)
+        function triggerGoldenConfetti() {
+            const duration = 5000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // Złote kolory
+                const goldColors = ['#FFD700', '#DAA520', '#FCE688', '#B8860B'];
+
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    colors: goldColors,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    colors: goldColors,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+                }));
+            }, 250);
+        }
+
         function endGame(won) {
             answersContainer.style.display = 'none';
+            lifelineBtn.style.display = 'none'; // Ukryj koło na ekranie końcowym
             restartBtn.style.display = 'block';
             prizeDisplay.innerText = "";
             
             if (won) {
                 questionBox.innerText = "GRATULACJE! Zostałeś milionerem! Wygrywasz 1 000 000 zł!";
+                triggerGoldenConfetti();
             } else {
-                // Obliczanie wygranej gwarantowanej
                 let finalPrize = 0;
                 if (currentQuestionIndex >= 7) {
                     finalPrize = 40000;
                 } else if (currentQuestionIndex >= 2) {
                     finalPrize = 1000;
                 }
-                
                 questionBox.innerText = `Przykro mi, to błędna odpowiedź. Twoja wygrana to: ${finalPrize} zł.`;
             }
         }
 
-        // Start aplikacji po załadowaniu DOM
         window.onload = fetchQuestions;
     </script>
 </body>
