@@ -81,7 +81,7 @@
     {"q": "Co jest stolicą Japonii?", "a": ["Pekin", "Seul", "Tokio", "Bangkok"], "c": 2},
     {"q": "Jak nazywa się największy ssak lądowy?", "a": ["Nosorożec", "Słoń", "Hipopotam", "Niedźwiedź"], "c": 1},
     {"q": "Które ciało niebieskie daje nam światło w dzień?", "a": ["Księżyc", "Gwiazdy", "Słońce", "Kometa"], "c": 2},
-    {"q": "Jak nazywa się przyrząd do pisania ołówkiem?", "a": ["Długopis", "Ołówek", "Pióro", "Mazak"], "c": 1},
+    {"q": "Jak nazywa się przyrząd do pisania grafitem?", "a": ["Długopis", "Ołówek", "Pióro", "Mazak"], "c": 1},
     {"q": "Z czego robi się frytki?", "a": ["Z batatów", "Z ziemniaków", "Z marchwi", "Z dyni"], "c": 1},
     {"q": "Ile nóg ma pies?", "a": ["2", "4", "6", "8"], "c": 1},
     {"q": "Jak nazywa się stolica Grecji?", "a": ["Rzym", "Ateny", "Stambuł", "Nikozja"], "c": 1},
