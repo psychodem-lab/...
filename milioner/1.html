@@ -168,7 +168,7 @@
             <button class="answer-btn glass" onclick="checkAnswer(3)"></button>
         </div>
         
-        <button id="restart-btn" onclick="initGame()">Zagraj ponownie</button>
+        <button id="restart-btn" onclick="restartGame()">Zagraj ponownie</button>
     </div>
 
     <script>
@@ -355,6 +355,9 @@
                 }
                 questionBox.innerText = `Przykro mi, to błędna odpowiedź. Twoja wygrana to: ${finalPrize} zł.`;
             }
+        }
+        function restartGame() {
+    location.reload();
         }
 
         window.onload = fetchQuestions;
