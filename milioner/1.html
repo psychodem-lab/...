@@ -105,16 +105,16 @@
         }
 
         .answer-btn:hover:not(:disabled) {
-            background: rgba(255, 153, 0, 0.3);
-            border-color: rgba(255, 153, 0, 0.8);
-            transform: translateY(-2px);
-        }
+             background: rgba(255, 255, 255, 0.15); /* Delikatne rozjaśnienie szkła */
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+            }
 
         .answer-btn:disabled {
                background: rgba(255, 255, 255, 0.05) !important; /* Powrót do koloru szkła */
             border-color: rgba(255, 255, 255, 0.1) !important;
             color: rgba(255, 255, 255, 0.5); /* Lekko przygaszony tekst */
-            cursor: not-allowed;
             transform: none !important; /* Usuwa ewentualne podniesienie przycisku */
         }}
 
