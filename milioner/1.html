@@ -111,9 +111,12 @@
         }
 
         .answer-btn:disabled {
+               background: rgba(255, 255, 255, 0.05) !important; /* Powrót do koloru szkła */
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: rgba(255, 255, 255, 0.5); /* Lekko przygaszony tekst */
             cursor: not-allowed;
-            pointer-events: none;
-        }
+            transform: none !important; /* Usuwa ewentualne podniesienie przycisku */
+        }}
 
         /* Widoczność przycisków w przypadku użycia 50/50 */
         .hidden-answer {
@@ -238,6 +241,7 @@
                 btn.innerText = currentQ.a[idx];
                 btn.className = 'answer-btn glass'; // Reset klas CSS i widoczności
                 btn.disabled = false;
+                btn.style.visibility = 'visible';
             });
         }
 
