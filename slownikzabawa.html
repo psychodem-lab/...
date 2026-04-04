@@ -31,7 +31,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            touch-action: none; /* Zapobiega przewijaniu na mobile */
+            touch-action: none;
         }
 
         #ui-layer {
@@ -90,9 +90,28 @@
             margin-top: 3px;
         }
 
+        /* Ustawienia poziomu trudności */
+        #settings-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        #difficulty-select {
+            background: var(--surface);
+            color: var(--text-color);
+            border: 1px solid var(--primary);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+
         /* Aktualne słowo */
         #word-display {
-            min-height: 60px;
+            min-height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -268,6 +287,13 @@
             </div>
         </div>
 
+        <div id="settings-bar">
+            <select id="difficulty-select">
+                <option value="hard">Tryb: Trudny (Tylko sąsiednie litery)</option>
+                <option value="easy">Tryb: Łatwy (Z dowolnego miejsca)</option>
+            </select>
+        </div>
+
         <div id="word-display"></div>
 
         <div id="grid-container">
@@ -281,18 +307,11 @@
     </div>
 
     <script>
-        /**
-         * GŁÓWNY SILNIK GRY SŁOWNEJ "SŁOWOTWÓRCZY LOCH"
-         * Zoptymalizowany dla mobilnych urządzeń z obsługą dotyku,
-         * dynamicznym generowaniem planszy i walidacją leksykalną.
-         */
-
         // 1. STRUKTURY DANYCH I KONFIGURACJA
         const CONFIG = {
-            gridSize: 5, // Plansza 5x5
+            gridSize: 5,
             basePlayerHP: 100,
             lettersConfig: [
-                // Wagi oparte na częstotliwości występowania liter w języku polskim
                 { char: 'a', weight: 89 }, { char: 'i', weight: 82 }, { char: 'o', weight: 77 },
                 { char: 'e', weight: 76 }, { char: 'z', weight: 56 }, { char: 'n', weight: 55 },
                 { char: 'r', weight: 46 }, { char: 'w', weight: 46 }, { char: 's', weight: 43 },
@@ -307,22 +326,22 @@
             ],
             enemyPrefixes: ["Gniewny", "Szybki", "Zgniły", "Mroczny", "Krzywy", "Wielki", "Ślepy", "Krwawy"],
             enemyNouns: ["Goblin", "Ork", "Troll", "Smok", "Demon", "Szkielet", "Zombi", "Wampir"],
-            pointsPerLetter: [0, 0, 1, 2, 4, 7, 12, 20, 35, 50] // Skalowanie obrażeń wg długości słowa
+            pointsPerLetter: [0, 0, 1, 2, 4, 7, 12, 20, 35, 50]
         };
 
         const STATE = {
             dictionary: new Set(),
             grid: [],
-            selectedTiles: [], // Przechowuje indeksy wybranych kafelków
+            selectedTiles: [],
             player: { hp: 100, maxHp: 100, level: 1, score: 0 },
             enemy: { hp: 30, maxHp: 30, name: "Szczur" },
-            isInputLocked: false
+            isInputLocked: false,
+            difficulty: 'hard' // Domyślny tryb
         };
 
         // 2. ELEMENTY DOM
         const DOM = {
             grid: document.getElementById('grid'),
-            wordDisplay: document.getElementById('wordDisplay'),
             overlay: document.getElementById('overlay'),
             overlayTitle: document.getElementById('overlay-title'),
             overlayDesc: document.getElementById('overlay-desc'),
@@ -340,62 +359,45 @@
             btnAttack: document.getElementById('btn-attack'),
             btnClear: document.getElementById('btn-clear'),
             canvas: document.getElementById('particles-canvas'),
-            enemyContainer: document.getElementById('enemy-container')
+            enemyContainer: document.getElementById('enemy-container'),
+            difficultySelect: document.getElementById('difficulty-select')
         };
 
         const ctx = DOM.canvas.getContext('2d');
         let particles = [];
 
+        // Nasłuchiwanie zmiany poziomu trudności
+        DOM.difficultySelect.addEventListener('change', (e) => {
+            STATE.difficulty = e.target.value;
+            clearSelection(); // Czyścimy zaznaczenie przy zmianie trybu, by uniknąć błędów
+        });
+
         // 3. INICJALIZACJA I ŁADOWANIE SŁOWNIKA
-async function initGame() {
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    
-    // Lista plików do załadowania
-    const dictionaries = ['slowa.txt', 'slowa2.txt']; 
-    
-    try {
-        DOM.overlayTitle.innerText = "Ładowanie zasobów...";
-        
-        // Pobieranie wszystkich plików jednocześnie
-        const responses = await Promise.all(dictionaries.map(url => fetch(url)));
-        
-        // Sprawdzenie czy wszystkie pliki zostały znalezione
-        responses.forEach((res, index) => {
-            if (!res.ok) throw new Error(`Nie znaleziono pliku: ${dictionaries[index]}`);
-        });
-
-        // Odczyt treści plików
-        const texts = await Promise.all(responses.map(res => res.text()));
-        
-        let totalWords = 0;
-
-        // Przetwarzanie i łączenie słowników
-        texts.forEach((content, index) => {
-            const words = content.split(/\r?\n/);
-            for (let i = 0; i < words.length; i++) {
-                const word = words[i].trim().toLowerCase();
-                if (word.length >= 2) {
-                    STATE.dictionary.add(word);
-                    totalWords++;
+        async function initGame() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            try {
+                const response = await fetch('slowa.txt');
+                if (!response.ok) throw new Error("Nie znaleziono pliku slowa.txt");
+                const text = await response.text();
+                
+                const words = text.split(/\r?\n/);
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i].trim().toLowerCase();
+                    if (word.length >= 2) STATE.dictionary.add(word);
                 }
+                
+                DOM.overlay.classList.add('hidden');
+                startNewGame();
+                requestAnimationFrame(animateParticles);
+            } catch (error) {
+                DOM.overlayTitle.innerText = "Błąd!";
+                DOM.overlayTitle.style.color = "var(--error)";
+                DOM.overlayDesc.innerText = "Nie można wczytać slowa.txt. Upewnij się, że plik jest na serwerze.";
+                console.error(error);
             }
-            console.log(`Załadowano słownik ${index + 1}: ${words.length} linii.`);
-        });
-
-        console.log(`Łączna liczba unikalnych słów: ${STATE.dictionary.size}`);
-        
-        DOM.overlay.classList.add('hidden');
-        startNewGame();
-        requestAnimationFrame(animateParticles);
-
-    } catch (error) {
-        DOM.overlayTitle.innerText = "Błąd krytyczny";
-        DOM.overlayTitle.style.color = "var(--error)";
-        DOM.overlayDesc.innerText = error.message + "\nUpewnij się, że pliki są w tym samym folderze.";
-        console.error(error);
-    }
-}
+        }
 
         // 4. LOGIKA GENEROWANIA PLANSZY
         function getRandomLetter() {
@@ -426,7 +428,6 @@ async function initGame() {
                 tile.innerText = letter;
                 tile.dataset.index = i;
                 
-                // Obsługa dotyku i myszy dla każdego kafelka
                 tile.addEventListener('touchstart', handleTileTouch, {passive: false});
                 tile.addEventListener('mousedown', handleTileClick);
                 
@@ -436,7 +437,7 @@ async function initGame() {
 
         // 5. OBSŁUGA INTERAKCJI UŻYTKOWNIKA
         function handleTileTouch(e) {
-            e.preventDefault(); // Zapobiega scrollowaniu
+            e.preventDefault();
             if (STATE.isInputLocked) return;
             const touch = e.touches[0];
             const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -455,19 +456,18 @@ async function initGame() {
             const pos = STATE.selectedTiles.indexOf(index);
             
             if (pos === -1) {
-                // Sprawdzenie sąsiedztwa (można zaznaczać tylko przyległe kafelki)
-                if (STATE.selectedTiles.length > 0) {
+                // Sprawdzanie sąsiedztwa TYLKO gdy wybrany jest tryb 'hard'
+                if (STATE.difficulty === 'hard' && STATE.selectedTiles.length > 0) {
                     const lastIndex = STATE.selectedTiles[STATE.selectedTiles.length - 1];
                     if (!isAdjacent(lastIndex, index)) return; 
                 }
+                
                 STATE.selectedTiles.push(index);
                 tileEl.classList.add('selected');
             } else if (pos === STATE.selectedTiles.length - 1) {
-                // Odznaczenie ostatniego kafelka
                 STATE.selectedTiles.pop();
                 tileEl.classList.remove('selected');
             } else {
-                // Jeśli kliknięto w środek słowa, cofamy zaznaczenie do tego momentu
                 while (STATE.selectedTiles.length > pos + 1) {
                     const removedIndex = STATE.selectedTiles.pop();
                     DOM.grid.children[removedIndex].classList.remove('selected');
@@ -485,7 +485,6 @@ async function initGame() {
             const rowDiff = Math.abs(row1 - row2);
             const colDiff = Math.abs(col1 - col2);
             
-            // Przyległe horyzontalnie, wertykalnie lub diagonalnie
             return (rowDiff <= 1 && colDiff <= 1 && !(rowDiff === 0 && colDiff === 0));
         }
 
@@ -506,7 +505,6 @@ async function initGame() {
         function calculateDamage(wordLength) {
             if (wordLength < 2) return 0;
             const multiplier = wordLength < CONFIG.pointsPerLetter.length ? CONFIG.pointsPerLetter[wordLength] : CONFIG.pointsPerLetter[CONFIG.pointsPerLetter.length - 1] + (wordLength * 5);
-            // Obrażenia zależne od długości słowa i poziomu gracza
             return Math.floor(multiplier * (1 + (STATE.player.level * 0.1)));
         }
 
@@ -516,7 +514,6 @@ async function initGame() {
             const word = STATE.selectedTiles.map(idx => STATE.grid[idx]).join('').toLowerCase();
             
             if (!STATE.dictionary.has(word)) {
-                // Słowo nie istnieje
                 STATE.selectedTiles.forEach(idx => DOM.grid.children[idx].classList.add('invalid'));
                 setTimeout(() => {
                     STATE.selectedTiles.forEach(idx => DOM.grid.children[idx].classList.remove('invalid'));
@@ -524,7 +521,6 @@ async function initGame() {
                 return;
             }
 
-            // Pomyślny atak
             STATE.isInputLocked = true;
             const damage = calculateDamage(word.length);
             
@@ -534,17 +530,14 @@ async function initGame() {
             STATE.enemy.hp -= damage;
             STATE.player.score += damage * 10;
             
-            // Usunięcie wykorzystanych liter z planszy i "opadanie" nowych
             replaceUsedTiles();
             updateUI();
 
             await delay(500);
 
             if (STATE.enemy.hp <= 0) {
-                // Pokonanie przeciwnika
                 await levelUp();
             } else {
-                // Tura przeciwnika
                 await enemyAttack();
             }
             
@@ -559,7 +552,6 @@ async function initGame() {
                 tileEl.innerText = newLetter;
                 tileEl.classList.remove('selected');
                 
-                // Efekt pojawienia
                 tileEl.style.transform = 'scale(0)';
                 setTimeout(() => tileEl.style.transform = 'scale(1)', 50);
             });
@@ -568,7 +560,6 @@ async function initGame() {
         }
 
         async function enemyAttack() {
-            // Obrażenia rosną wraz z poziomem przeciwnika
             const enemyDmg = Math.floor(5 + (STATE.player.level * 1.5) + (Math.random() * 5));
             STATE.player.hp -= enemyDmg;
             
@@ -583,13 +574,11 @@ async function initGame() {
 
         async function levelUp() {
             STATE.player.level++;
-            // Leczenie przy level upie
             const heal = Math.floor(STATE.player.maxHp * 0.3);
             STATE.player.hp = Math.min(STATE.player.maxHp, STATE.player.hp + heal);
             
             showFloatingText(document.querySelector('.entity'), `+${heal} HP`, 'damage-text heal-text');
             
-            // Generowanie nowego przeciwnika
             STATE.enemy.maxHp = Math.floor(30 * Math.pow(1.2, STATE.player.level));
             STATE.enemy.hp = STATE.enemy.maxHp;
             
@@ -649,7 +638,6 @@ async function initGame() {
             setTimeout(() => el.remove(), 1000);
         }
 
-        // Silnik cząsteczek Canvas (Particles)
         function resizeCanvas() {
             DOM.canvas.width = window.innerWidth;
             DOM.canvas.height = window.innerHeight;
@@ -708,7 +696,6 @@ async function initGame() {
             startNewGame();
         });
 
-        // Uruchomienie sekwencji startowej
         window.onload = initGame;
 
     </script>
