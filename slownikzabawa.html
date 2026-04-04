@@ -347,32 +347,55 @@
         let particles = [];
 
         // 3. INICJALIZACJA I ŁADOWANIE SŁOWNIKA
-        async function initGame() {
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            try {
-                const response = await fetch('slowa.txt');
-                if (!response.ok) throw new Error("Nie znaleziono pliku slowa.txt");
-                const text = await response.text();
-                
-                // Parsowanie słownika - wspiera formatowanie Windows (\\r\\n) i Unix (\\n)
-                const words = text.split(/\\r?\\n/);
-                for (let i = 0; i < words.length; i++) {
-                    const word = words[i].trim().toLowerCase();
-                    if (word.length >= 2) STATE.dictionary.add(word);
+async function initGame() {
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Lista plików do załadowania
+    const dictionaries = ['slowa.txt', 'slowa2.txt']; 
+    
+    try {
+        DOM.overlayTitle.innerText = "Ładowanie zasobów...";
+        
+        // Pobieranie wszystkich plików jednocześnie
+        const responses = await Promise.all(dictionaries.map(url => fetch(url)));
+        
+        // Sprawdzenie czy wszystkie pliki zostały znalezione
+        responses.forEach((res, index) => {
+            if (!res.ok) throw new Error(`Nie znaleziono pliku: ${dictionaries[index]}`);
+        });
+
+        // Odczyt treści plików
+        const texts = await Promise.all(responses.map(res => res.text()));
+        
+        let totalWords = 0;
+
+        // Przetwarzanie i łączenie słowników
+        texts.forEach((content, index) => {
+            const words = content.split(/\r?\n/);
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].trim().toLowerCase();
+                if (word.length >= 2) {
+                    STATE.dictionary.add(word);
+                    totalWords++;
                 }
-                
-                DOM.overlay.classList.add('hidden');
-                startNewGame();
-                requestAnimationFrame(animateParticles);
-            } catch (error) {
-                DOM.overlayTitle.innerText = "Błąd!";
-                DOM.overlayTitle.style.color = "var(--error)";
-                DOM.overlayDesc.innerText = "Nie można wczytać slowa.txt.\nUpewnij się, że plik jest w tym samym folderze i używasz lokalnego serwera (np. Live Server).";
-                console.error(error);
             }
-        }
+            console.log(`Załadowano słownik ${index + 1}: ${words.length} linii.`);
+        });
+
+        console.log(`Łączna liczba unikalnych słów: ${STATE.dictionary.size}`);
+        
+        DOM.overlay.classList.add('hidden');
+        startNewGame();
+        requestAnimationFrame(animateParticles);
+
+    } catch (error) {
+        DOM.overlayTitle.innerText = "Błąd krytyczny";
+        DOM.overlayTitle.style.color = "var(--error)";
+        DOM.overlayDesc.innerText = error.message + "\nUpewnij się, że pliki są w tym samym folderze.";
+        console.error(error);
+    }
+}
 
         // 4. LOGIKA GENEROWANIA PLANSZY
         function getRandomLetter() {
