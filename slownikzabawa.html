@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Słowotwórczy Loch</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --error: #cf6679;
+            --surface: #1e1e1e;
+            --grid-size: 5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none; /* Zapobiega przewijaniu na mobile */
+        }
+
+        #ui-layer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            z-index: 10;
+        }
+
+        /* Sekcja Statystyk i Walki */
+        #combat-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--surface);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .entity {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 45%;
+        }
+
+        .entity-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .hp-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #333;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.3s ease-out;
+        }
+
+        #player-hp-bar { background: var(--secondary); }
+        #enemy-hp-bar { background: var(--error); }
+
+        .hp-text {
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+
+        /* Aktualne słowo */
+        #word-display {
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Siatka liter */
+        #grid-container {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1 / 1;
+        }
+
+        .tile {
+            background: var(--surface);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+
+        .tile.selected {
+            background: var(--primary);
+            color: #000;
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #000;
+        }
+
+        .tile.invalid {
+            animation: shake 0.4s;
+            background: var(--error);
+        }
+
+        /* Przyciski akcji */
+        #controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-color);
+            box-shadow: 0 4px 0 #000;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #000;
+        }
+
+        #btn-attack {
+            background: var(--primary);
+            color: #121212;
+        }
+
+        /* System cząsteczek Canvas */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Ekrany ładowania i końcowe */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(18, 18, 18, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        @keyframes damagePopup {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        .damage-text {
+            position: absolute;
+            color: var(--error);
+            font-size: 2rem;
+            font-weight: bold;
+            animation: damagePopup 1s forwards;
+            pointer-events: none;
+            z-index: 30;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .heal-text { color: var(--secondary); }
+    </style>
+</head>
+<body>
+
+    <canvas id="particles-canvas"></canvas>
+
+    <div id="overlay">
+        <h1 id="overlay-title" style="margin-bottom: 20px; color: var(--primary);">Ładowanie Słownika...</h1>
+        <p id="overlay-desc">Wczytywanie pliku slowa.txt</p>
+        <button id="btn-restart" class="hidden" style="margin-top: 20px; padding: 15px 30px;">Zagraj Ponownie</button>
+    </div>
+
+    <div id="ui-layer">
+        <div id="combat-area">
+            <div class="entity">
+                <div class="entity-name">Ty (Poziom <span id="player-level">1</span>)</div>
+                <div class="hp-bar-container">
+                    <div id="player-hp-bar" class="hp-bar" style="width: 100%;"></div>
+                </div>
+                <div class="hp-text"><span id="player-hp">100</span> / <span id="player-max-hp">100</span> HP</div>
+                <div class="hp-text">Wynik: <span id="score">0</span></div>
+            </div>
+            <div class="entity" style="font-size: 2rem;">⚔️</div>
+            <div class="entity" id="enemy-container">
+                <div class="entity-name" id="enemy-name">Goblin Sylab</div>
+                <div class="hp-bar-container">
+                    <div id="enemy-hp-bar" class="hp-bar" style="width: 100%;"></div>
+                </div>
+                <div class="hp-text"><span id="enemy-hp">30</span> / <span id="enemy-max-hp">30</span> HP</div>
+            </div>
+        </div>
+
+        <div id="word-display"></div>
+
+        <div id="grid-container">
+            <div id="grid"></div>
+        </div>
+
+        <div id="controls">
+            <button id="btn-clear">Wyczyść</button>
+            <button id="btn-attack">Atakuj!</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * GŁÓWNY SILNIK GRY SŁOWNEJ "SŁOWOTWÓRCZY LOCH"
+         * Zoptymalizowany dla mobilnych urządzeń z obsługą dotyku,
+         * dynamicznym generowaniem planszy i walidacją leksykalną.
+         */
+
+        // 1. STRUKTURY DANYCH I KONFIGURACJA
+        const CONFIG = {
+            gridSize: 5, // Plansza 5x5
+            basePlayerHP: 100,
+            lettersConfig: [
+                // Wagi oparte na częstotliwości występowania liter w języku polskim
+                { char: 'a', weight: 89 }, { char: 'i', weight: 82 }, { char: 'o', weight: 77 },
+                { char: 'e', weight: 76 }, { char: 'z', weight: 56 }, { char: 'n', weight: 55 },
+                { char: 'r', weight: 46 }, { char: 'w', weight: 46 }, { char: 's', weight: 43 },
+                { char: 't', weight: 39 }, { char: 'c', weight: 39 }, { char: 'y', weight: 37 },
+                { char: 'k', weight: 35 }, { char: 'd', weight: 32 }, { char: 'p', weight: 31 },
+                { char: 'm', weight: 28 }, { char: 'u', weight: 25 }, { char: 'j', weight: 22 },
+                { char: 'l', weight: 21 }, { char: 'ł', weight: 18 }, { char: 'b', weight: 14 },
+                { char: 'g', weight: 14 }, { char: 'ę', weight: 11 }, { char: 'h', weight: 10 },
+                { char: 'ą', weight: 9 },  { char: 'ó', weight: 8 },  { char: 'ż', weight: 7 },
+                { char: 'ś', weight: 6 },  { char: 'ć', weight: 4 },  { char: 'f', weight: 3 },
+                { char: 'ń', weight: 2 },  { char: 'ź', weight: 1 }
+            ],
+            enemyPrefixes: ["Gniewny", "Szybki", "Zgniły", "Mroczny", "Krzywy", "Wielki", "Ślepy", "Krwawy"],
+            enemyNouns: ["Goblin", "Ork", "Troll", "Smok", "Demon", "Szkielet", "Zombi", "Wampir"],
+            pointsPerLetter: [0, 0, 1, 2, 4, 7, 12, 20, 35, 50] // Skalowanie obrażeń wg długości słowa
+        };
+
+        const STATE = {
+            dictionary: new Set(),
+            grid: [],
+            selectedTiles: [], // Przechowuje indeksy wybranych kafelków
+            player: { hp: 100, maxHp: 100, level: 1, score: 0 },
+            enemy: { hp: 30, maxHp: 30, name: "Szczur" },
+            isInputLocked: false
+        };
+
+        // 2. ELEMENTY DOM
+        const DOM = {
+            grid: document.getElementById('grid'),
+            wordDisplay: document.getElementById('wordDisplay'),
+            overlay: document.getElementById('overlay'),
+            overlayTitle: document.getElementById('overlay-title'),
+            overlayDesc: document.getElementById('overlay-desc'),
+            btnRestart: document.getElementById('btn-restart'),
+            playerHpBar: document.getElementById('player-hp-bar'),
+            playerHpTxt: document.getElementById('player-hp'),
+            playerMaxHpTxt: document.getElementById('player-max-hp'),
+            playerLevelTxt: document.getElementById('player-level'),
+            scoreTxt: document.getElementById('score'),
+            enemyHpBar: document.getElementById('enemy-hp-bar'),
+            enemyHpTxt: document.getElementById('enemy-hp'),
+            enemyMaxHpTxt: document.getElementById('enemy-max-hp'),
+            enemyNameTxt: document.getElementById('enemy-name'),
+            wordDisplay: document.getElementById('word-display'),
+            btnAttack: document.getElementById('btn-attack'),
+            btnClear: document.getElementById('btn-clear'),
+            canvas: document.getElementById('particles-canvas'),
+            enemyContainer: document.getElementById('enemy-container')
+        };
+
+        const ctx = DOM.canvas.getContext('2d');
+        let particles = [];
+
+        // 3. INICJALIZACJA I ŁADOWANIE SŁOWNIKA
+        async function initGame() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            try {
+                const response = await fetch('slowa.txt');
+                if (!response.ok) throw new Error("Nie znaleziono pliku slowa.txt");
+                const text = await response.text();
+                
+                // Parsowanie słownika - wspiera formatowanie Windows (\\r\\n) i Unix (\\n)
+                const words = text.split(/\\r?\\n/);
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i].trim().toLowerCase();
+                    if (word.length >= 2) STATE.dictionary.add(word);
+                }
+                
+                DOM.overlay.classList.add('hidden');
+                startNewGame();
+                requestAnimationFrame(animateParticles);
+            } catch (error) {
+                DOM.overlayTitle.innerText = "Błąd!";
+                DOM.overlayTitle.style.color = "var(--error)";
+                DOM.overlayDesc.innerText = "Nie można wczytać slowa.txt.\nUpewnij się, że plik jest w tym samym folderze i używasz lokalnego serwera (np. Live Server).";
+                console.error(error);
+            }
+        }
+
+        // 4. LOGIKA GENEROWANIA PLANSZY
+        function getRandomLetter() {
+            const totalWeight = CONFIG.lettersConfig.reduce((sum, item) => sum + item.weight, 0);
+            let random = Math.random() * totalWeight;
+            for (let i = 0; i < CONFIG.lettersConfig.length; i++) {
+                if (random < CONFIG.lettersConfig[i].weight) {
+                    return CONFIG.lettersConfig[i].char;
+                }
+                random -= CONFIG.lettersConfig[i].weight;
+            }
+            return 'a';
+        }
+
+        function generateGrid() {
+            STATE.grid = [];
+            STATE.selectedTiles = [];
+            DOM.grid.innerHTML = '';
+            DOM.wordDisplay.innerText = '';
+            
+            const totalTiles = CONFIG.gridSize * CONFIG.gridSize;
+            for (let i = 0; i < totalTiles; i++) {
+                const letter = getRandomLetter();
+                STATE.grid.push(letter);
+                
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.innerText = letter;
+                tile.dataset.index = i;
+                
+                // Obsługa dotyku i myszy dla każdego kafelka
+                tile.addEventListener('touchstart', handleTileTouch, {passive: false});
+                tile.addEventListener('mousedown', handleTileClick);
+                
+                DOM.grid.appendChild(tile);
+            }
+        }
+
+        // 5. OBSŁUGA INTERAKCJI UŻYTKOWNIKA
+        function handleTileTouch(e) {
+            e.preventDefault(); // Zapobiega scrollowaniu
+            if (STATE.isInputLocked) return;
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.classList.contains('tile')) {
+                toggleTileSelection(parseInt(target.dataset.index));
+            }
+        }
+
+        function handleTileClick(e) {
+            if (STATE.isInputLocked) return;
+            toggleTileSelection(parseInt(e.target.dataset.index));
+        }
+
+        function toggleTileSelection(index) {
+            const tileEl = DOM.grid.children[index];
+            const pos = STATE.selectedTiles.indexOf(index);
+            
+            if (pos === -1) {
+                // Sprawdzenie sąsiedztwa (można zaznaczać tylko przyległe kafelki)
+                if (STATE.selectedTiles.length > 0) {
+                    const lastIndex = STATE.selectedTiles[STATE.selectedTiles.length - 1];
+                    if (!isAdjacent(lastIndex, index)) return; 
+                }
+                STATE.selectedTiles.push(index);
+                tileEl.classList.add('selected');
+            } else if (pos === STATE.selectedTiles.length - 1) {
+                // Odznaczenie ostatniego kafelka
+                STATE.selectedTiles.pop();
+                tileEl.classList.remove('selected');
+            } else {
+                // Jeśli kliknięto w środek słowa, cofamy zaznaczenie do tego momentu
+                while (STATE.selectedTiles.length > pos + 1) {
+                    const removedIndex = STATE.selectedTiles.pop();
+                    DOM.grid.children[removedIndex].classList.remove('selected');
+                }
+            }
+            updateWordDisplay();
+        }
+
+        function isAdjacent(index1, index2) {
+            const row1 = Math.floor(index1 / CONFIG.gridSize);
+            const col1 = index1 % CONFIG.gridSize;
+            const row2 = Math.floor(index2 / CONFIG.gridSize);
+            const col2 = index2 % CONFIG.gridSize;
+            
+            const rowDiff = Math.abs(row1 - row2);
+            const colDiff = Math.abs(col1 - col2);
+            
+            // Przyległe horyzontalnie, wertykalnie lub diagonalnie
+            return (rowDiff <= 1 && colDiff <= 1 && !(rowDiff === 0 && colDiff === 0));
+        }
+
+        function updateWordDisplay() {
+            const word = STATE.selectedTiles.map(idx => STATE.grid[idx]).join('');
+            DOM.wordDisplay.innerText = word;
+        }
+
+        function clearSelection() {
+            STATE.selectedTiles.forEach(idx => {
+                DOM.grid.children[idx].classList.remove('selected', 'invalid');
+            });
+            STATE.selectedTiles = [];
+            updateWordDisplay();
+        }
+
+        // 6. MECHANIKA WALKI
+        function calculateDamage(wordLength) {
+            if (wordLength < 2) return 0;
+            const multiplier = wordLength < CONFIG.pointsPerLetter.length ? CONFIG.pointsPerLetter[wordLength] : CONFIG.pointsPerLetter[CONFIG.pointsPerLetter.length - 1] + (wordLength * 5);
+            // Obrażenia zależne od długości słowa i poziomu gracza
+            return Math.floor(multiplier * (1 + (STATE.player.level * 0.1)));
+        }
+
+        async function executeAttack() {
+            if (STATE.isInputLocked || STATE.selectedTiles.length < 2) return;
+            
+            const word = STATE.selectedTiles.map(idx => STATE.grid[idx]).join('').toLowerCase();
+            
+            if (!STATE.dictionary.has(word)) {
+                // Słowo nie istnieje
+                STATE.selectedTiles.forEach(idx => DOM.grid.children[idx].classList.add('invalid'));
+                setTimeout(() => {
+                    STATE.selectedTiles.forEach(idx => DOM.grid.children[idx].classList.remove('invalid'));
+                }, 400);
+                return;
+            }
+
+            // Pomyślny atak
+            STATE.isInputLocked = true;
+            const damage = calculateDamage(word.length);
+            
+            createParticles(DOM.enemyContainer, varColor('--primary'));
+            showFloatingText(DOM.enemyContainer, `-${damage}`, 'damage-text');
+            
+            STATE.enemy.hp -= damage;
+            STATE.player.score += damage * 10;
+            
+            // Usunięcie wykorzystanych liter z planszy i "opadanie" nowych
+            replaceUsedTiles();
+            updateUI();
+
+            await delay(500);
+
+            if (STATE.enemy.hp <= 0) {
+                // Pokonanie przeciwnika
+                await levelUp();
+            } else {
+                // Tura przeciwnika
+                await enemyAttack();
+            }
+            
+            STATE.isInputLocked = false;
+        }
+
+        function replaceUsedTiles() {
+            STATE.selectedTiles.forEach(idx => {
+                const newLetter = getRandomLetter();
+                STATE.grid[idx] = newLetter;
+                const tileEl = DOM.grid.children[idx];
+                tileEl.innerText = newLetter;
+                tileEl.classList.remove('selected');
+                
+                // Efekt pojawienia
+                tileEl.style.transform = 'scale(0)';
+                setTimeout(() => tileEl.style.transform = 'scale(1)', 50);
+            });
+            STATE.selectedTiles = [];
+            updateWordDisplay();
+        }
+
+        async function enemyAttack() {
+            // Obrażenia rosną wraz z poziomem przeciwnika
+            const enemyDmg = Math.floor(5 + (STATE.player.level * 1.5) + (Math.random() * 5));
+            STATE.player.hp -= enemyDmg;
+            
+            createParticles(document.querySelector('.entity'), varColor('--error'));
+            showFloatingText(document.querySelector('.entity'), `-${enemyDmg}`, 'damage-text');
+            updateUI();
+
+            if (STATE.player.hp <= 0) {
+                gameOver();
+            }
+        }
+
+        async function levelUp() {
+            STATE.player.level++;
+            // Leczenie przy level upie
+            const heal = Math.floor(STATE.player.maxHp * 0.3);
+            STATE.player.hp = Math.min(STATE.player.maxHp, STATE.player.hp + heal);
+            
+            showFloatingText(document.querySelector('.entity'), `+${heal} HP`, 'damage-text heal-text');
+            
+            // Generowanie nowego przeciwnika
+            STATE.enemy.maxHp = Math.floor(30 * Math.pow(1.2, STATE.player.level));
+            STATE.enemy.hp = STATE.enemy.maxHp;
+            
+            const prefix = CONFIG.enemyPrefixes[Math.floor(Math.random() * CONFIG.enemyPrefixes.length)];
+            const noun = CONFIG.enemyNouns[Math.floor(Math.random() * CONFIG.enemyNouns.length)];
+            STATE.enemy.name = `${prefix} ${noun}`;
+            
+            updateUI();
+        }
+
+        // 7. ZARZĄDZANIE STANEM GRY I UI
+        function startNewGame() {
+            STATE.player = { hp: 100, maxHp: 100, level: 1, score: 0 };
+            STATE.enemy = { hp: 30, maxHp: 30, name: "Goblin Sylab" };
+            generateGrid();
+            updateUI();
+        }
+
+        function gameOver() {
+            DOM.overlayTitle.innerText = "Koniec Gry!";
+            DOM.overlayTitle.style.color = "var(--error)";
+            DOM.overlayDesc.innerText = `Dotarłeś do poziomu ${STATE.player.level}.\nTwój wynik: ${STATE.player.score}`;
+            DOM.btnRestart.classList.remove('hidden');
+            DOM.overlay.classList.remove('hidden');
+        }
+
+        function updateUI() {
+            DOM.playerHpTxt.innerText = STATE.player.hp;
+            DOM.playerMaxHpTxt.innerText = STATE.player.maxHp;
+            DOM.playerLevelTxt.innerText = STATE.player.level;
+            DOM.scoreTxt.innerText = STATE.player.score;
+            DOM.playerHpBar.style.width = `${Math.max(0, (STATE.player.hp / STATE.player.maxHp) * 100)}%`;
+
+            DOM.enemyNameTxt.innerText = STATE.enemy.name;
+            DOM.enemyHpTxt.innerText = Math.max(0, STATE.enemy.hp);
+            DOM.enemyMaxHpTxt.innerText = STATE.enemy.maxHp;
+            DOM.enemyHpBar.style.width = `${Math.max(0, (STATE.enemy.hp / STATE.enemy.maxHp) * 100)}%`;
+        }
+
+        // 8. EFEKTY WIZUALNE I POMOCNICZE
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function varColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        function showFloatingText(element, text, className) {
+            const rect = element.getBoundingClientRect();
+            const el = document.createElement('div');
+            el.className = className;
+            el.innerText = text;
+            el.style.left = `${rect.left + rect.width / 2}px`;
+            el.style.top = `${rect.top}px`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // Silnik cząsteczek Canvas (Particles)
+        function resizeCanvas() {
+            DOM.canvas.width = window.innerWidth;
+            DOM.canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.02;
+                this.color = color;
+                this.size = Math.random() * 5 + 2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw(ctx) {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createParticles(targetElement, color) {
+            const rect = targetElement.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            for (let i = 0; i < 30; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw(ctx);
+                if (particles[i].life <= 0) particles.splice(i, 1);
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(animateParticles);
+        }
+
+        // 9. PODPIĘCIE ZDARZEŃ
+        DOM.btnAttack.addEventListener('click', executeAttack);
+        DOM.btnClear.addEventListener('click', clearSelection);
+        DOM.btnRestart.addEventListener('click', () => {
+            DOM.overlay.classList.add('hidden');
+            startNewGame();
+        });
+
+        // Uruchomienie sekwencji startowej
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>
