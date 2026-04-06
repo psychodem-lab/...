@@ -2,197 +2,122 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Track Architect - Edytor Tras</title>
+    <title>Track Architect 3.0 - Modular Editor</title>
     <style>
-        :root { --accent: #00d4ff; --bg: #1a1a1a; }
-        body { margin: 0; font-family: sans-serif; background: #000; color: white; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar z ustawieniami */
-        #sidebar { width: 350px; background: var(--bg); border-right: 1px solid #333; padding: 20px; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.5); z-index: 10; }
-        h2 { color: var(--accent); margin-top: 0; font-size: 1.2rem; }
-        .control-group { margin-bottom: 20px; padding: 10px; background: #252525; border-radius: 8px; }
-        label { display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; opacity: 0.7; }
-        input[type="range"], input[type="text"] { width: 100%; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        
-        .mode-btn { background: #333; color: #fff; }
-        .mode-btn.active { background: var(--accent); color: #000; }
-        .action-btn { background: #27ae60; color: white; margin-top: 10px; }
-        
-        /* Podgląd trasy */
-        #viewport { flex-grow: 1; display: flex; align-items: center; justify-content: center; background: #111; position: relative; }
-        canvas { background: #1b5e20; box-shadow: 0 0 50px rgba(0,0,0,0.5); cursor: crosshair; }
-        
-        /* Modal z kodem */
-        #code-output { position: fixed; inset: 50px; background: #000; border: 2px solid var(--accent); padding: 20px; display: none; z-index: 100; flex-direction: column; }
-        textarea { flex-grow: 1; background: #111; color: #0f0; font-family: monospace; padding: 10px; border: 1px solid #333; }
+        body { margin: 0; display: flex; background: #111; color: white; font-family: sans-serif; }
+        #sidebar { width: 300px; padding: 20px; background: #222; border-right: 1px solid #444; height: 100vh; overflow-y: auto; }
+        #viewport { flex-grow: 1; display: flex; justify-content: center; align-items: center; }
+        canvas { background: #1b5e20; cursor: crosshair; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+        .control { margin-bottom: 15px; }
+        label { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: #00d4ff; }
+        input, button { width: 100%; padding: 10px; box-sizing: border-box; background: #333; border: 1px solid #555; color: white; border-radius: 5px; }
+        button { background: #00d4ff; color: black; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        button.alt { background: #ff4757; color: white; }
+        .hint { font-size: 11px; opacity: 0.6; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-<div id="sidebar">
-    <h2>TRACK ARCHITECT</h2>
-    
-    <div class="control-group">
-        <label>Nazwa Trasy</label>
-        <input type="text" id="t-name" value="Nowa Trasa">
+    <div id="sidebar">
+        <h2>NODE EDITOR</h2>
+        <div class="control">
+            <label>Nazwa Trasy</label>
+            <input type="text" id="t-name" value="Modularny Wyścig">
+        </div>
+        <div class="control">
+            <label>Szerokość Drogi</label>
+            <input type="range" id="t-width" min="40" max="200" value="100" oninput="draw()">
+        </div>
+        <div class="control">
+            <button onclick="undo()">Cofnij Punkt</button>
+            <button class="alt" onclick="clearAll()">Wyczyść Wszystko</button>
+        </div>
+        <div class="control">
+            <label>Tryb klikania</label>
+            <button id="m-path" onclick="setMode('path')">Rysuj Drogę</button>
+            <button id="m-start" onclick="setMode('start')">Ustaw Start</button>
+        </div>
+        <button style="background: #27ae60;" onclick="exportJSON()">GENERUJ KOD</button>
+        <div class="hint">
+            • Klikaj, aby dodawać zakręty<br>
+            • Pierwszy punkt to zawsze META<br>
+            • Zamknij pętlę, klikając blisko pierwszego punktu
+        </div>
     </div>
-
-    <div class="control-group">
-        <label>Zewnętrzna Krawędź (X, Y, W, H, Radius)</label>
-        <input type="range" id="o-w" min="400" max="1100" value="1000" oninput="update()">
-        <input type="range" id="o-h" min="300" max="750" value="650" oninput="update()">
-        <input type="range" id="o-r" min="0" max="300" value="180" oninput="update()">
+    <div id="viewport">
+        <canvas id="c"></canvas>
     </div>
-
-    <div class="control-group">
-        <label>Wewnętrzna Krawędź (Szerokość drogi)</label>
-        <input type="range" id="i-offset" min="50" max="250" value="120" oninput="update()">
-        <input type="range" id="i-r" min="0" max="250" value="100" oninput="update()">
-    </div>
-
-    <div class="control-group">
-        <label>Tryb kliknięcia</label>
-        <button class="mode-btn active" onclick="setMode('start', this)">Ustaw Start</button>
-        <button class="mode-btn" onclick="setMode('gate', this)">Dodaj Bramkę (CP)</button>
-        <button class="mode-btn" onclick="setMode('cone', this)">Postaw Pachołek</button>
-    </div>
-
-    <button onclick="resetElements()" style="background:#c0392b; color:white;">Wyczyść Bramki i Pachołki</button>
-    <button class="action-btn" onclick="generateCode()">GENERUJ KOD TRASY</button>
-</div>
-
-<div id="viewport">
-    <canvas id="editorCanvas"></canvas>
-</div>
-
-<div id="code-output">
-    <h3>Skopiuj i wklej do tablicy 'tracks' w grze:</h3>
-    <textarea id="output-area" readonly></textarea>
-    <button onclick="document.getElementById('code-output').style.display='none'">ZAMKNIJ</button>
-</div>
 
 <script>
-    const canvas = document.getElementById('editorCanvas');
+    const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d');
     const W = 1200, H = 850;
     canvas.width = W; canvas.height = H;
 
-    let mode = 'start';
-    let trackData = {
-        name: "Nowa Trasa",
-        start: { x: 600, y: 740, a: Math.PI },
-        gates: [],
-        cones: []
-    };
+    let nodes = [];
+    let startPos = {x: 600, y: 400, a: 0};
+    let mode = 'path';
 
-    function setMode(newMode, btn) {
-        mode = newMode;
-        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
+    function setMode(m) { mode = m; }
+    function undo() { nodes.pop(); draw(); }
+    function clearAll() { nodes = []; draw(); }
 
-    function resetElements() {
-        trackData.gates = [];
-        trackData.cones = [];
-        update();
-    }
-
-    canvas.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', e => {
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (W / rect.width);
-        const y = (e.clientY - rect.top) * (H / rect.height);
+        const x = Math.round((e.clientX - rect.left) * (W / rect.width));
+        const y = Math.round((e.clientY - rect.top) * (H / rect.height));
 
-        if(mode === 'start') {
-            trackData.start.x = Math.round(x);
-            trackData.start.y = Math.round(y);
-        } else if(mode === 'cone') {
-            trackData.cones.push({ x: Math.round(x), y: Math.round(y) });
-        } else if(mode === 'gate') {
-            // Tworzy pionową bramkę domyślnie, można ją później modyfikować ręcznie w kodzie
-            trackData.gates.push({ x1: Math.round(x)-60, y1: Math.round(y), x2: Math.round(x)+60, y2: Math.round(y) });
-        }
-        update();
+        if(mode === 'path') nodes.push({x, y});
+        else { startPos.x = x; startPos.y = y; }
+        draw();
     });
 
-    function update() {
-        const ow = parseInt(document.getElementById('o-w').value);
-        const oh = parseInt(document.getElementById('o-h').value);
-        const or = parseInt(document.getElementById('o-r').value);
-        const ox = (W - ow) / 2;
-        const oy = (H - oh) / 2;
-
-        const offset = parseInt(document.getElementById('i-offset').value);
-        const ir = parseInt(document.getElementById('i-r').value);
-        
-        // Render podglądu
+    function draw() {
         ctx.fillStyle = '#1b5e20'; ctx.fillRect(0,0,W,H);
-        
-        // Asfalt
-        ctx.beginPath();
-        ctx.strokeStyle = '#333'; ctx.lineWidth = offset; ctx.lineJoin = "round";
-        ctx.roundRect(ox + offset/2, oy + offset/2, ow - offset, oh - offset, or - offset/2);
-        ctx.stroke();
+        const width = parseInt(document.getElementById('t-width').value);
 
-        // Krawędzie (linie pomocnicze)
-        ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.setLineDash([5,5]);
-        ctx.roundRect(ox, oy, ow, oh, or); ctx.stroke();
-        
-        const ix = ox + offset;
-        const iy = oy + offset;
-        const iw = ow - (offset * 2);
-        const ih = oh - (offset * 2);
-        ctx.roundRect(ix, iy, iw, ih, ir); ctx.stroke();
-        ctx.setLineDash([]);
+        if(nodes.length > 1) {
+            ctx.beginPath();
+            ctx.lineWidth = width;
+            ctx.strokeStyle = '#333';
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.moveTo(nodes[0].x, nodes[0].y);
+            nodes.forEach(n => ctx.lineTo(n.x, n.y));
+            ctx.stroke();
 
-        // Bramki
-        trackData.gates.forEach((g, i) => {
-            ctx.strokeStyle = i === 0 ? '#ff4757' : '#ffff00';
-            ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.moveTo(g.x1, g.y1); ctx.lineTo(g.x2, g.y2); ctx.stroke();
-            ctx.fillStyle = "white"; ctx.fillText(i === 0 ? "START/META" : "CP" + i, g.x1, g.y1 - 5);
+            // Linie pomocnicze (krawężniki)
+            ctx.lineWidth = width + 10;
+            ctx.strokeStyle = 'white';
+            ctx.setLineDash([20, 20]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Rysuj punkty (Nodes)
+        nodes.forEach((n, i) => {
+            ctx.fillStyle = i === 0 ? '#ff4757' : '#00d4ff';
+            ctx.beginPath(); ctx.arc(n.x, n.y, 5, 0, 7); ctx.fill();
+            if(i === 0) {
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(n.x, n.y, 15, 0, 7); ctx.stroke();
+            }
         });
 
-        // Pachołki
-        trackData.cones.forEach(c => {
-            ctx.fillStyle = "#ff6b00"; ctx.beginPath(); ctx.arc(c.x, c.y, 7, 0, 7); ctx.fill();
-        });
-
-        // Auto (Start Pos)
-        ctx.save();
-        ctx.translate(trackData.start.x, trackData.start.y);
-        ctx.rotate(trackData.start.a);
-        ctx.fillStyle = "rgba(255, 71, 87, 0.6)";
-        ctx.fillRect(-18, -10, 36, 20);
-        ctx.strokeStyle = "white"; ctx.strokeRect(-18, -10, 36, 20);
-        ctx.restore();
+        // Start auto
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(startPos.x-10, startPos.y-18, 20, 36);
     }
 
-    function generateCode() {
-        const ow = parseInt(document.getElementById('o-w').value);
-        const oh = parseInt(document.getElementById('o-h').value);
-        const or = parseInt(document.getElementById('o-r').value);
-        const ox = (W - ow) / 2;
-        const oy = (H - oh) / 2;
-
-        const offset = parseInt(document.getElementById('i-offset').value);
-        const ir = parseInt(document.getElementById('i-r').value);
-
-        const finalData = {
+    function exportJSON() {
+        const data = {
             name: document.getElementById('t-name').value,
-            start: { x: trackData.start.x, y: trackData.start.y, a: trackData.start.a },
-            outer: [ox, oy, ow, oh, or],
-            inner: [ox + offset, oy + offset, ow - (offset*2), oh - (offset*2), ir],
-            gates: trackData.gates,
-            cones: trackData.cones
+            width: parseInt(document.getElementById('t-width').value),
+            nodes: nodes,
+            start: startPos
         };
-
-        const json = JSON.stringify(finalData, null, 4);
-        document.getElementById('output-area').value = json + ",";
-        document.getElementById('code-output').style.display = 'flex';
+        prompt("Skopiuj kod trasy:", JSON.stringify(data));
     }
-
-    update();
+    draw();
 </script>
 </body>
 </html>
