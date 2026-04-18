@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Krzyżówka (Mechanika WOW - Swipe)</title>
+    <title>Gra Słowna (Znajdź jak najwięcej słów)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,6 @@
             align-items: center;
             margin: 0;
             padding: 20px;
-            /* Blokada przewijania ekranu podczas mazania po literach na telefonie */
             touch-action: none; 
             user-select: none;
         }
@@ -22,40 +21,47 @@
         h1 { margin-bottom: 5px; text-align: center; }
         .info { font-size: 14px; color: #a0a0c0; margin-bottom: 20px; text-align: center; }
 
-        /* Plansza ze słowami */
-        .board {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 30px;
-            min-height: 200px;
-        }
-
-        .word-row {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .letter-box {
-            width: 40px;
-            height: 40px;
+        /* Panel na odgadnięte słowa */
+        .guessed-panel {
+            width: 100%;
+            max-width: 350px;
+            min-height: 120px;
             background-color: #1a1a2e;
             border: 2px solid #4a4a75;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 30px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: transparent;
-            transition: all 0.3s;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 8px;
+            box-sizing: border-box;
         }
 
-        .letter-box.revealed {
+        /* Pojedyncze odgadnięte słowo (kfelek) */
+        .word-chip {
             background-color: #e94560;
-            border-color: #e94560;
             color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Placeholder gdy panel jest pusty */
+        .empty-text {
+            color: #4a4a75;
+            font-style: italic;
+            width: 100%;
+            text-align: center;
+            margin-top: 35px;
         }
 
         /* Sekcja wprowadzania */
@@ -86,7 +92,6 @@
             margin-bottom: 20px;
         }
 
-        /* Płótno do rysowania linii musi ignorować kliknięcia, by przepuszczać je do liter */
         canvas {
             position: absolute;
             top: 0;
@@ -125,14 +130,23 @@
             color: #e94560;
             margin-top: 10px;
         }
+
+        .stats {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #a0a0c0;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Krzyżówka</h1>
-    <div class="info">Połącz litery A, K, O, T. Prawdziwe słowa z SJP.</div>
+    <h1>Znajdź Słowa</h1>
+    <div class="info">Połącz litery, aby utworzyć poprawne słowa. Zdobądź ich jak najwięcej!</div>
 
-    <div class="board" id="board"></div>
+    <div class="guessed-panel" id="guessed-panel">
+        <div class="empty-text" id="empty-text">Tu pojawią się odgadnięte słowa...</div>
+    </div>
+
     <div class="input-display" id="input-display"></div>
 
     <div class="wheel-container" id="wheel-container">
@@ -140,47 +154,40 @@
     </div>
 
     <div id="message"></div>
+    <div class="stats" id="stats">Odgadnięto: 0 / 23</div>
 
     <script>
-        const levelLetters = ['A', 'K', 'O', 'T'];
-        const validWords = ["AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA"];
+        // Litery do ułożenia na kole
+        const levelLetters = ['A', 'K', 'O', 'T', 'R'];
+        
+        // Pula słów symulująca słownik SJP dla liter A, K, O, T, R
+        const validWordsDictionary = [
+            "AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA", 
+            "RAK", "ROK", "TOR", "ORT", "KOR", "TAR", "ART", "TRA", 
+            "KORA", "ROTA", "TARO", "KART", "TORA", "TROK", "AKTOR"
+        ];
         
         let guessedWords = [];
         let currentWord = "";
         
-        // Zmienne do obsługi przeciągania
+        // Zmienne do rysowania
         let isDragging = false;
         let selectedNodes = [];
         let currentPointerPos = { x: 0, y: 0 };
 
-        const boardElement = document.getElementById('board');
+        const guessedPanel = document.getElementById('guessed-panel');
+        const emptyText = document.getElementById('empty-text');
         const inputDisplay = document.getElementById('input-display');
         const wheelContainer = document.getElementById('wheel-container');
         const messageElement = document.getElementById('message');
+        const statsElement = document.getElementById('stats');
         const canvas = document.getElementById('line-canvas');
         const ctx = canvas.getContext('2d');
 
-        // 1. Inicjalizacja planszy
-        function initBoard() {
-            validWords.forEach(word => {
-                const row = document.createElement('div');
-                row.className = 'word-row';
-                row.id = `word-${word}`;
-
-                for (let i = 0; i < word.length; i++) {
-                    const box = document.createElement('div');
-                    box.className = 'letter-box';
-                    box.innerText = word[i];
-                    row.appendChild(box);
-                }
-                boardElement.appendChild(row);
-            });
-        }
-
-        // 2. Inicjalizacja koła i układanie liter
+        // 1. Inicjalizacja koła liter
         function initWheel() {
             const radius = 80; 
-            const center = 125; // Połowa rozmiaru canvas (250/2)
+            const center = 125; 
             
             levelLetters.forEach((letter, index) => {
                 const angle = (index / levelLetters.length) * (2 * Math.PI) - (Math.PI / 2);
@@ -190,19 +197,19 @@
                 const btn = document.createElement('div');
                 btn.className = 'wheel-letter';
                 btn.innerText = letter;
-                // Środkowanie elementu (odjęcie połowy jego wymiaru 60x60)
                 btn.style.left = `${x - 30}px`;
                 btn.style.top = `${y - 30}px`;
                 
-                // Zapisujemy środek elementu do łatwiejszego rysowania linii
                 btn.dataset.cx = x;
                 btn.dataset.cy = y;
 
                 wheelContainer.appendChild(btn);
             });
+            
+            updateStats();
         }
 
-        // --- LOGIKA RYSOWANIA I ZAZNACZANIA ---
+        // --- LOGIKA RYSOWANIA ---
 
         function getClientPos(e) {
             if (e.touches && e.touches.length > 0) {
@@ -211,7 +218,6 @@
             return { x: e.clientX, y: e.clientY };
         }
 
-        // Zwraca pozycję relatywną do canvasu
         function getCanvasPos(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
             return {
@@ -231,7 +237,6 @@
 
             ctx.beginPath();
             
-            // Rysowanie linii między zaznaczonymi literami
             const firstNode = selectedNodes[0];
             ctx.moveTo(parseFloat(firstNode.dataset.cx), parseFloat(firstNode.dataset.cy));
 
@@ -240,7 +245,6 @@
                 ctx.lineTo(parseFloat(node.dataset.cx), parseFloat(node.dataset.cy));
             }
 
-            // Rysowanie linii do aktualnej pozycji palca/kursora
             if (isDragging) {
                 const canvasPos = getCanvasPos(currentPointerPos.x, currentPointerPos.y);
                 ctx.lineTo(canvasPos.x, canvasPos.y);
@@ -251,7 +255,6 @@
 
         function startDrag(e) {
             const pos = getClientPos(e);
-            // Wykrywanie elementu pod kursorem/palcem
             const target = document.elementFromPoint(pos.x, pos.y);
             
             if (target && target.classList.contains('wheel-letter')) {
@@ -268,13 +271,11 @@
 
         function moveDrag(e) {
             if (!isDragging) return;
-            // Zapobiega przewijaniu ekranu na urządzeniach mobilnych podczas gry
             e.preventDefault(); 
             
             currentPointerPos = getClientPos(e);
             const target = document.elementFromPoint(currentPointerPos.x, currentPointerPos.y);
 
-            // Jeśli najechaliśmy na nową literę
             if (target && target.classList.contains('wheel-letter') && !selectedNodes.includes(target)) {
                 selectedNodes.push(target);
                 currentWord += target.innerText;
@@ -282,7 +283,6 @@
                 inputDisplay.innerText = currentWord;
             }
 
-            // Opcjonalnie: funkcja cofania, jeśli najedziemy na przedostatnią literę
             if (target && selectedNodes.length > 1 && target === selectedNodes[selectedNodes.length - 2]) {
                 const removedNode = selectedNodes.pop();
                 removedNode.classList.remove('active');
@@ -297,55 +297,79 @@
             if (!isDragging) return;
             isDragging = false;
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Czyszczenie linii
-            selectedNodes.forEach(node => node.classList.remove('active')); // Reset stylów liter
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            selectedNodes.forEach(node => node.classList.remove('active')); 
             
-            checkWord(); // Sprawdzenie zbudowanego słowa
+            checkWord(); 
             
             selectedNodes = [];
-            drawLines(); // Wyczyść canvas z pamięci
+            drawLines(); 
         }
 
-        // --- SPRAWDZANIE SŁÓW ---
+        // --- SPRAWDZANIE SŁÓW I AKTUALIZACJA UI ---
 
         function checkWord() {
-            if (currentWord.length === 0) return;
+            // Ignorujemy pojedyncze litery
+            if (currentWord.length < 2) {
+                currentWord = "";
+                inputDisplay.innerText = "";
+                return;
+            }
 
             if (guessedWords.includes(currentWord)) {
-                messageElement.innerText = "To słowo zostało już odgadnięte!";
+                messageElement.innerText = "To słowo zostało już znalezione!";
                 messageElement.style.color = "#a0a0c0";
-            } else if (validWords.includes(currentWord)) {
+            } else if (validWordsDictionary.includes(currentWord)) {
+                // Dodajemy nowe, poprawne słowo
                 guessedWords.push(currentWord);
-                revealWord(currentWord);
-                messageElement.innerText = "Dobrze!";
+                addWordToPanel(currentWord);
+                updateStats();
+                
+                messageElement.innerText = "Świetnie!";
                 messageElement.style.color = "#4CAF50";
                 
-                if (guessedWords.length === validWords.length) {
-                    setTimeout(() => alert("Gratulacje! Odgadłeś wszystkie słowa!"), 300);
+                if (guessedWords.length === validWordsDictionary.length) {
+                    setTimeout(() => alert("Niesamowite! Znalazłeś wszystkie możliwe słowa z tego zestawu!"), 300);
                 }
             } else {
-                messageElement.innerText = "Nie ma takiego słowa!";
+                messageElement.innerText = "Brak słowa w słowniku.";
                 messageElement.style.color = "#e94560";
             }
             
-            // Czyszczenie interfejsu
             setTimeout(() => {
                 currentWord = "";
                 inputDisplay.innerText = "";
             }, 600);
         }
 
-        function revealWord(word) {
-            const row = document.getElementById(`word-${word}`);
-            const boxes = row.querySelectorAll('.letter-box');
-            boxes.forEach(box => {
-                box.classList.add('revealed');
-            });
+        function addWordToPanel(word) {
+            // Jeśli to pierwsze słowo, usuwamy napis "Tu pojawią się..."
+            if (guessedWords.length === 1) {
+                emptyText.style.display = 'none';
+            }
+
+            // Tworzymy kafelek ze słowem
+            const chip = document.createElement('div');
+            chip.className = 'word-chip';
+            chip.innerText = word;
+            
+            // Sortowanie alfabetyczne elementów w panelu (opcjonalne, ale ułatwia podgląd graczowi)
+            guessedPanel.appendChild(chip);
+            sortPanel();
+        }
+
+        function sortPanel() {
+            const chips = Array.from(guessedPanel.getElementsByClassName('word-chip'));
+            chips.sort((a, b) => a.innerText.localeCompare(b.innerText));
+            chips.forEach(chip => guessedPanel.appendChild(chip)); // Ponowne dodanie układa je w nowej kolejności
+        }
+
+        function updateStats() {
+            statsElement.innerText = `Odgadnięto: ${guessedWords.length} / ${validWordsDictionary.length}`;
         }
 
         // --- PODPIĘCIE EVENTÓW ---
 
-        // Nasłuchiwanie na całym oknie pozwala kontynuować ruch, nawet gdy palec/kursor wyjdzie poza koło
         window.addEventListener('mousedown', startDrag, { passive: false });
         window.addEventListener('mousemove', moveDrag, { passive: false });
         window.addEventListener('mouseup', stopDrag);
@@ -354,8 +378,7 @@
         window.addEventListener('touchmove', moveDrag, { passive: false });
         window.addEventListener('touchend', stopDrag);
 
-        // Inicjalizacja gry
-        initBoard();
+        // Uruchomienie
         initWheel();
     </script>
 </body>
