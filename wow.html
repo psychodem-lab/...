@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krzyżówka (Mechanika WOW)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2b2b45;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 5px; }
+        .info { font-size: 14px; color: #a0a0c0; margin-bottom: 20px; }
+
+        /* Plansza ze słowami */
+        .board {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+            min-height: 200px;
+        }
+
+        .word-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .letter-box {
+            width: 40px;
+            height: 40px;
+            background-color: #1a1a2e;
+            border: 2px solid #4a4a75;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: transparent; /* Ukryte litery */
+            transition: all 0.3s;
+        }
+
+        .letter-box.revealed {
+            background-color: #e94560;
+            border-color: #e94560;
+            color: white;
+        }
+
+        /* Sekcja wprowadzania */
+        .input-display {
+            font-size: 28px;
+            letter-spacing: 5px;
+            font-weight: bold;
+            height: 40px;
+            margin-bottom: 20px;
+            color: #0f3460;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px 20px;
+            border-radius: 20px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* Koło liter */
+        .wheel-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .wheel-letter {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #0f3460;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .wheel-letter:active {
+            transform: scale(0.9);
+            background-color: #e94560;
+        }
+
+        /* Przyciski sterujące */
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            background-color: #0f3460;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #e94560; }
+        
+        #message {
+            margin-top: 15px;
+            height: 20px;
+            font-weight: bold;
+            color: #e94560;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Krzyżówka</h1>
+    <div class="info">Słowa zgodne z SJP. Ułożone z liter: A, K, O, T</div>
+
+    <div class="board" id="board"></div>
+
+    <div class="input-display" id="input-display"></div>
+
+    <div class="wheel-container" id="wheel-container">
+        </div>
+
+    <div class="controls">
+        <button onclick="checkWord()">Sprawdź</button>
+        <button onclick="clearInput()">Wyczyść</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        // Dane poziomu (faktyczne słowa z SJP dla liter A, K, O, T)
+        const levelLetters = ['A', 'K', 'O', 'T'];
+        // Sortujemy od najkrótszego do najdłuższego słowa w celach wizualnych
+        const validWords = ["AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA"];
+        
+        let guessedWords = [];
+        let currentWord = "";
+
+        const boardElement = document.getElementById('board');
+        const inputDisplay = document.getElementById('input-display');
+        const wheelContainer = document.getElementById('wheel-container');
+        const messageElement = document.getElementById('message');
+
+        // 1. Inicjalizacja planszy (tworzenie pustych okienek na słowa)
+        function initBoard() {
+            validWords.forEach(word => {
+                const row = document.createElement('div');
+                row.className = 'word-row';
+                row.id = `word-${word}`;
+
+                for (let i = 0; i < word.length; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'letter-box';
+                    box.innerText = word[i]; // Tekst jest wstawiony, ale ukryty przez CSS (color: transparent)
+                    row.appendChild(box);
+                }
+                boardElement.appendChild(row);
+            });
+        }
+
+        // 2. Inicjalizacja koła liter (pozycjonowanie na okręgu)
+        function initWheel() {
+            const radius = 65; // Promień ułożenia liter
+            const center = 100; // Połowa szerokości/wysokości wheel-container
+            
+            levelLetters.forEach((letter, index) => {
+                const angle = (index / levelLetters.length) * (2 * Math.PI) - (Math.PI / 2); // Zaczynamy od góry
+                const x = center + radius * Math.cos(angle) - 25; // -25 bo to połowa szerokości elementu
+                const y = center + radius * Math.sin(angle) - 25;
+
+                const btn = document.createElement('div');
+                btn.className = 'wheel-letter';
+                btn.innerText = letter;
+                btn.style.left = `${x}px`;
+                btn.style.top = `${y}px`;
+                
+                // Dodawanie litery po kliknięciu
+                btn.onclick = () => {
+                    currentWord += letter;
+                    updateInputDisplay();
+                };
+
+                wheelContainer.appendChild(btn);
+            });
+        }
+
+        // 3. Aktualizacja ekranu wprowadzanego słowa
+        function updateInputDisplay() {
+            inputDisplay.innerText = currentWord;
+            messageElement.innerText = ""; // Czyszczenie komunikatów
+        }
+
+        // 4. Czyszczenie wprowadzanego słowa
+        function clearInput() {
+            currentWord = "";
+            updateInputDisplay();
+        }
+
+        // 5. Sprawdzanie poprawności słowa
+        function checkWord() {
+            if (currentWord.length === 0) return;
+
+            if (guessedWords.includes(currentWord)) {
+                messageElement.innerText = "To słowo zostało już odgadnięte!";
+            } else if (validWords.includes(currentWord)) {
+                // Słowo jest poprawne i nowe
+                guessedWords.push(currentWord);
+                revealWord(currentWord);
+                messageElement.innerText = "Dobrze!";
+                messageElement.style.color = "#4CAF50";
+                
+                // Sprawdzenie wygranej
+                if (guessedWords.length === validWords.length) {
+                    setTimeout(() => alert("Gratulacje! Odgadłeś wszystkie słowa!"), 500);
+                }
+            } else {
+                // Słowo nie występuje w bazie
+                messageElement.innerText = "Nie ma takiego słowa!";
+                messageElement.style.color = "#e94560";
+            }
+            
+            // Reset po sprawdzeniu
+            setTimeout(() => {
+                currentWord = "";
+                updateInputDisplay();
+            }, 800);
+        }
+
+        // 6. Odsłanianie odgadniętego słowa na planszy
+        function revealWord(word) {
+            const row = document.getElementById(`word-${word}`);
+            const boxes = row.querySelectorAll('.letter-box');
+            boxes.forEach(box => {
+                box.classList.add('revealed');
+            });
+        }
+
+        // Uruchomienie inicjalizacji
+        initBoard();
+        initWheel();
+    </script>
+</body>
+</html>
