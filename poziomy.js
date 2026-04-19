@@ -30,7 +30,7 @@ const gameLevels = [
     },
     {
         letters: ['M', 'A', 'R', 'K', 'A'],
-        words: ["MAK", "RAK", "RAM", "ARK", "ARM", "KARA", "MAKA", "MARA", "RAMA", "ARAK", "AKRA", "KARMA", "MARKA"]
+        words: ["MAK", "RAK", "RAM", "ARK", "ARM", "KARA", "MAKA", "MARA", "RAMA", "ARAK", "AKRA", "KARMA", "MARKA", "RAMKA"]
     },
     {
         letters: ['L', 'I', 'S', 'T', 'A'],
