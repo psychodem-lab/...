@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gra Słowna (Znajdź jak najwięcej słów)</title>
+    <title>Gra Słowna - Znajdź jak najwięcej słów</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,9 +36,9 @@
             align-content: flex-start;
             gap: 8px;
             box-sizing: border-box;
+            position: relative;
         }
 
-        /* Pojedyncze odgadnięte słowo (kfelek) */
         .word-chip {
             background-color: #e94560;
             color: white;
@@ -55,13 +55,14 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Placeholder gdy panel jest pusty */
         .empty-text {
             color: #4a4a75;
             font-style: italic;
             width: 100%;
             text-align: center;
             margin-top: 35px;
+            position: absolute;
+            left: 0;
         }
 
         /* Sekcja wprowadzania */
@@ -129,6 +130,7 @@
             font-weight: bold;
             color: #e94560;
             margin-top: 10px;
+            text-align: center;
         }
 
         .stats {
@@ -136,12 +138,35 @@
             font-size: 14px;
             color: #a0a0c0;
         }
+
+        /* Przycisk nowych liter */
+        .btn-new-level {
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-new-level:hover {
+            background-color: #45a049;
+        }
+
+        .btn-new-level:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
 
     <h1>Znajdź Słowa</h1>
-    <div class="info">Połącz litery, aby utworzyć poprawne słowa. Zdobądź ich jak najwięcej!</div>
+    <div class="info">Połącz litery. Znajdź jak najwięcej haseł ze słownika.</div>
 
     <div class="guessed-panel" id="guessed-panel">
         <div class="empty-text" id="empty-text">Tu pojawią się odgadnięte słowa...</div>
@@ -154,21 +179,39 @@
     </div>
 
     <div id="message"></div>
-    <div class="stats" id="stats">Odgadnięto: 0 / 23</div>
+    <div class="stats" id="stats">Odgadnięto: 0 / 0</div>
+
+    <button class="btn-new-level" onclick="loadRandomLevel()">Zmień zestaw liter</button>
 
     <script>
-        // Litery do ułożenia na kole
-        const levelLetters = ['A', 'K', 'O', 'T', 'R'];
-        
-        // Pula słów symulująca słownik SJP dla liter A, K, O, T, R
-        const validWordsDictionary = [
-            "AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA", 
-            "RAK", "ROK", "TOR", "ORT", "KOR", "TAR", "ART", "TRA", 
-            "KORA", "ROTA", "TARO", "KART", "TORA", "TROK", "AKTOR"
+        // Baza danych poziomów (Słowa zgodne z SJP)
+        const gameLevels = [
+            {
+                letters: ['A', 'K', 'O', 'T', 'R'],
+                words: ["AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA", "RAK", "ROK", "TOR", "ORT", "KOR", "TAR", "ART", "TRA", "KORA", "ROTA", "TARO", "KART", "TORA", "TROK", "AKTOR"]
+            },
+            {
+                letters: ['E', 'K', 'R', 'A', 'N'],
+                words: ["ERA", "RAK", "AKR", "KAR", "KRA", "NAR", "RAN", "REN", "NER", "EKA", "AREK", "KARE", "RENA", "KERA", "EKRAN"]
+            },
+            {
+                letters: ['P', 'L', 'A', 'N', 'O'],
+                words: ["PAL", "ALP", "NAP", "PAN", "POL", "LOP", "OPAL", "PLAN", "PLON", "LANO", "ALON"]
+            },
+            {
+                letters: ['S', 'M', 'O', 'K', 'I'],
+                words: ["SOK", "KOS", "SOM", "MOS", "KIM", "MIK", "KOM", "SIK", "KIS", "SKI", "KOSI", "MOKI", "SMOK", "SKOM", "SOKI", "MIKO", "SMOKI"]
+            },
+            {
+                letters: ['B', 'R', 'A', 'K', 'I'],
+                words: ["BAK", "KAB", "BAR", "RAB", "ARB", "RAK", "AKR", "KAR", "KRA", "IRA", "KIR", "BIK", "BARK", "KRAB", "BRAK", "BAKI", "KARI", "RAKI", "KIRA", "BARI", "BIRA", "BRAKI"]
+            }
         ];
-        
+
+        let currentLevel = null;
         let guessedWords = [];
         let currentWord = "";
+        let currentLevelIndex = -1;
         
         // Zmienne do rysowania
         let isDragging = false;
@@ -184,13 +227,48 @@
         const canvas = document.getElementById('line-canvas');
         const ctx = canvas.getContext('2d');
 
+        // --- ZARZĄDZANIE POZIOMAMI ---
+
+        function loadRandomLevel() {
+            // Losowanie nowego poziomu (innego niż obecny)
+            let newIndex = currentLevelIndex;
+            while (newIndex === currentLevelIndex) {
+                newIndex = Math.floor(Math.random() * gameLevels.length);
+            }
+            currentLevelIndex = newIndex;
+            currentLevel = gameLevels[currentLevelIndex];
+
+            // Resetowanie stanu gry
+            guessedWords = [];
+            currentWord = "";
+            inputDisplay.innerText = "";
+            messageElement.innerText = "";
+            
+            // Czyszczenie panelu słów (zostawiamy tylko empty-text)
+            const chips = guessedPanel.querySelectorAll('.word-chip');
+            chips.forEach(chip => chip.remove());
+            emptyText.style.display = 'block';
+
+            // Czyszczenie koła liter (usuwamy litery, zostawiamy canvas)
+            const oldLetters = wheelContainer.querySelectorAll('.wheel-letter');
+            oldLetters.forEach(l => l.remove());
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Generowanie nowego koła
+            initWheel();
+        }
+
         // 1. Inicjalizacja koła liter
         function initWheel() {
             const radius = 80; 
             const center = 125; 
+            const letters = currentLevel.letters;
             
-            levelLetters.forEach((letter, index) => {
-                const angle = (index / levelLetters.length) * (2 * Math.PI) - (Math.PI / 2);
+            // Delikatne mieszanie liter na okręgu dla odmiany
+            const shuffledLetters = [...letters].sort(() => Math.random() - 0.5);
+
+            shuffledLetters.forEach((letter, index) => {
+                const angle = (index / shuffledLetters.length) * (2 * Math.PI) - (Math.PI / 2);
                 const x = center + radius * Math.cos(angle);
                 const y = center + radius * Math.sin(angle);
 
@@ -309,7 +387,6 @@
         // --- SPRAWDZANIE SŁÓW I AKTUALIZACJA UI ---
 
         function checkWord() {
-            // Ignorujemy pojedyncze litery
             if (currentWord.length < 2) {
                 currentWord = "";
                 inputDisplay.innerText = "";
@@ -319,8 +396,7 @@
             if (guessedWords.includes(currentWord)) {
                 messageElement.innerText = "To słowo zostało już znalezione!";
                 messageElement.style.color = "#a0a0c0";
-            } else if (validWordsDictionary.includes(currentWord)) {
-                // Dodajemy nowe, poprawne słowo
+            } else if (currentLevel.words.includes(currentWord)) {
                 guessedWords.push(currentWord);
                 addWordToPanel(currentWord);
                 updateStats();
@@ -328,8 +404,8 @@
                 messageElement.innerText = "Świetnie!";
                 messageElement.style.color = "#4CAF50";
                 
-                if (guessedWords.length === validWordsDictionary.length) {
-                    setTimeout(() => alert("Niesamowite! Znalazłeś wszystkie możliwe słowa z tego zestawu!"), 300);
+                if (guessedWords.length === currentLevel.words.length) {
+                    setTimeout(() => alert("Niesamowite! Znalazłeś wszystkie możliwe słowa z tego zestawu! Możesz wylosować nowy."), 300);
                 }
             } else {
                 messageElement.innerText = "Brak słowa w słowniku.";
@@ -343,17 +419,14 @@
         }
 
         function addWordToPanel(word) {
-            // Jeśli to pierwsze słowo, usuwamy napis "Tu pojawią się..."
             if (guessedWords.length === 1) {
                 emptyText.style.display = 'none';
             }
 
-            // Tworzymy kafelek ze słowem
             const chip = document.createElement('div');
             chip.className = 'word-chip';
             chip.innerText = word;
             
-            // Sortowanie alfabetyczne elementów w panelu (opcjonalne, ale ułatwia podgląd graczowi)
             guessedPanel.appendChild(chip);
             sortPanel();
         }
@@ -361,11 +434,11 @@
         function sortPanel() {
             const chips = Array.from(guessedPanel.getElementsByClassName('word-chip'));
             chips.sort((a, b) => a.innerText.localeCompare(b.innerText));
-            chips.forEach(chip => guessedPanel.appendChild(chip)); // Ponowne dodanie układa je w nowej kolejności
+            chips.forEach(chip => guessedPanel.appendChild(chip)); 
         }
 
         function updateStats() {
-            statsElement.innerText = `Odgadnięto: ${guessedWords.length} / ${validWordsDictionary.length}`;
+            statsElement.innerText = `Odgadnięto: ${guessedWords.length} / ${currentLevel.words.length}`;
         }
 
         // --- PODPIĘCIE EVENTÓW ---
@@ -378,8 +451,8 @@
         window.addEventListener('touchmove', moveDrag, { passive: false });
         window.addEventListener('touchend', stopDrag);
 
-        // Uruchomienie
-        initWheel();
+        // Uruchomienie pierwszej gry (losowy poziom)
+        loadRandomLevel();
     </script>
 </body>
 </html>
