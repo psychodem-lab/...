@@ -9,10 +9,6 @@ const gameLevels = [
         words: ["ERA", "RAK", "AKR", "KAR", "KRA", "NAR", "RAN", "REN", "NER", "EKA", "AREK", "KARE", "RENA", "KERA", "EKRAN"]
     },
     {
-        letters: ['P', 'L', 'A', 'N', 'O'],
-        words: ["PAL", "ALP", "NAP", "PAN", "POL", "LOP", "OPAL", "PLAN", "PLON", "LANO", "ALON"]
-    },
-    {
         letters: ['S', 'M', 'O', 'K', 'I'],
         words: ["SOK", "KOS", "SOM", "MOS", "KIM", "MIK", "KOM", "SIK", "KIS", "SKI", "KOSI", "MOKI", "SMOK", "SKOM", "SOKI", "MIKO", "SMOKI"]
     },
