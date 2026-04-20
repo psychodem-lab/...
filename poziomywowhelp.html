@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Słownika Gry</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        textarea {
+            height: 150px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .copy-btn {
+            background-color: #28a745;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Generator Słownika</h2>
+    
+    <label for="mainWord">Słowo główne:</label>
+    <input type="text" id="mainWord" placeholder="np. PLANETA" value="PLANETA">
+
+    <label for="otherWords">Słowa inne (oddzielone spacją lub enterem):</label>
+    <textarea id="otherWords" placeholder="Wklej tutaj listę słów..."></textarea>
+
+    <button onclick="generateJSON()">Generuj wynik</button>
+    
+    <div id="resultContainer" style="display:none;">
+        <h3>Wynik:</h3>
+        <div id="output"></div>
+        <button class="copy-btn" onclick="copyToClipboard()">Kopiuj do schowka</button>
+    </div>
+</div>
+
+<script>
+    function generateJSON() {
+        const mainWordInput = document.getElementById('mainWord').value.trim().toUpperCase();
+        const otherWordsInput = document.getElementById('otherWords').value.trim();
+        
+        if (!mainWordInput) {
+            alert('Proszę podać słowo główne.');
+            return;
+        }
+
+        // Tworzenie tablicy liter ze słowa głównego
+        const letters = mainWordInput.split('');
+
+        // Czyszczenie i formatowanie listy słów
+        // Rozbijamy po białych znakach (spacje, entery, tabulacje)
+        const words = otherWordsInput
+            .split(/\s+/)
+            .filter(word => word.length > 0)
+            .map(word => word.toUpperCase());
+
+        const resultObject = {
+            letters: letters,
+            words: words
+        };
+
+        // Formatowanie wyjścia tak, aby wyglądało jak obiekt JS
+        const formattedOutput = JSON.stringify(resultObject, null, 8)
+            .replace(/"([^"]+)":/g, '$1:') // Usuwa cudzysłowy z kluczy (opcjonalne, dla stylu JS)
+            .replace(/"/g, '"'); // Zapewnia podwójne cudzysłowy w stringach
+
+        const outputDiv = document.getElementById('output');
+        outputDiv.textContent = formattedOutput;
+        document.getElementById('resultContainer').style.display = 'block';
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('output').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Skopiowano do schowka!');
+        }).catch(err => {
+            console.error('Błąd kopiowania: ', err);
+        });
+    }
+</script>
+
+</body>
+</html>
