@@ -171,6 +171,41 @@
         .btn-new-level:active {
             transform: scale(0.95);
         }
+                /* Przycisk losowania na środku koła */
+        .shuffle-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background-color: #4a4a75;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 20; /* Wyżej niż litery i linie */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .shuffle-btn:hover {
+            background-color: #5a5a85;
+        }
+        
+        .shuffle-btn:active {
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+        
+        .shuffle-btn svg {
+            transition: transform 0.4s ease;
+        }
+        
+        .shuffle-btn:active svg {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -186,6 +221,12 @@
 
     <div class="wheel-container" id="wheel-container">
         <canvas id="line-canvas" width="250" height="250"></canvas>
+        <button class="shuffle-btn" onclick="shuffleCurrentLetters()" title="Pomieszaj litery">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        </button>
     </div>
 
     <div id="message"></div>
@@ -270,6 +311,24 @@
                 wheelContainer.appendChild(btn);
             });
             updateStats();
+        }
+            function shuffleCurrentLetters() {
+            if (!currentLevel) return;
+        
+            // Usuwamy tylko wizualne elementy liter z koła (nie ruszamy canvasu ani stanu gry)
+            const oldLetters = wheelContainer.querySelectorAll('.wheel-letter');
+            oldLetters.forEach(l => l.remove());
+        
+            // Ponownie inicjalizujemy koło z tymi samymi literami poziomu
+            // Funkcja initWheel automatycznie wymiesza je przy tworzeniu (shuffledLetters)
+            initWheel();
+            
+            // Krótki komunikat dla gracza (opcjonalnie)
+            messageElement.innerText = "Pomieszano!";
+            messageElement.style.color = "#a0a0c0";
+            setTimeout(() => {
+                if(messageElement.innerText === "Pomieszano!") messageElement.innerText = "";
+            }, 1000);
         }
 
         // --- LOGIKA RYSOWANIA ---
