@@ -30,43 +30,39 @@ const gameLevels = [
     },
     {
         letters: ['O', 'B', 'R', 'A', 'Z'],
-        words: ["BAR", "BAZ", "BOA", "BOR", "BORA", "BRA", "OAZ", "OBRA", "RAB", "RAZ", "ROB", "OBRAZ"]
+        words: ["OBRAZ", "ZORBA", "ARBO", "BAOR", "BAZO", "BORA", "ROBA", "ZOBA", "ZORB", "ORAZ", "ABO", "ARB", "BAO", "BAR", "BAZ", "BOA", "BOR", "OBA", "RAB", "ROB", "ARO", "OAZ", "ORA", "ORZ", "RAZ", "BA", "BO", "AR", "OR", "OZ", "RO", "ZA"]
     },
     {
         letters: ['D', 'R', 'O', 'G', 'A'],
-        words: ["DAG", "DAR", "DOG", "GAR", "GOR", "GRA", "GRAD", "GRO", "ODA", "ODR", "OGAR", "RAD", "ROD", "DROGA"]
+        words: ["DOGRA", "DRAGO", "DROGA", "GARDO", "DAGO", "DOGA", "DRAG", "DRGA", "GARD", "GRAD", "AGOR", "GARO", "OGAR", "OGRA", "RAGO", "ODRA", "ORDA", "RADO", "DAG", "DOG", "GAD", "AGO", "GAR", "GRA", "GRO", "OGR", "RAG", "DAO", "DAR", "ODA", "ODR", "ORD", "RAD", "ROD", "ARO", "ORA", "AG", "GO", "AD", "DA", "DO", "OD", "AR", "OR", "RO"]
     },
     {
         letters: ['S', 'M', 'O', 'K', 'I'],
-        words: ["SOK", "KOS", "SOM", "MOS", "KIM", "MIK", "KOM", "SIK", "KIS", "SKI", "KOSI", "MOKI", "SMOK", "SKOM", "SOKI", "MIKO", "SMOKI"]
+        words: ["IKSOM", "ISKOM", "KOMIS", "MISKO", "OMSKI", "OSKIM", "SIKOM", "SMOKI", "KIMO", "KOMI", "MIKO", "MIKS", "MOKS", "SMOK", "IKOS", "KOSI", "MISO", "OSIK", "OSIM", "OSKI", "SIKO", "SIMO", "SOKI", "KIM", "KOM", "MIK", "IKS", "ISK", "KOI", "KOS", "KSI", "MIS", "MOI", "OKI", "OSM", "SIK", "SIM", "SKI", "SOK", "SOM", "OSI", "SIO", "SOI", "IM", "KI", "KO", "MI", "OK", "OM", "OS", "SI"]
     },
     {
         letters: ['B', 'R', 'A', 'K', 'I'],
-        words: ["BAK", "KAB", "BAR", "RAB", "ARB", "RAK", "AKR", "KAR", "KRA", "IRA", "KIR", "BIK", "BARK", "KRAB", "BRAK", "BAKI", "KARI", "RAKI", "KIRA", "BARI", "BIRA", "BRAKI"]
+        words: ["BARKI", "BRAKI", "KRABI", "BAKI", "BARK", "BRAK", "KABI", "KARB", "KRAB", "RABI", "ARKI", "IKAR", "IKRA", "KARI", "RAKI", "BAK", "ARB", "BAI", "BAR", "RAB", "AKR", "ARK", "IKR", "KAI", "KAR", "KIR", "KRA", "RAK", "AIR", "RAI", "BA", "BI", "KA", "KI", "AR"]
     },
     {
         letters: ['P', 'Y', 'T', 'A', 'N', 'I', 'E'],
-        words: ["ANT", "ENT", "ETA", "ETAN", "ETAP", "ITA", "NAP", "NAT", "NEP", "NET", "NIE", "NIP", "NIT", "PAN", "PANI", "PAT", "PEN", "PET", "PIAN", "PIN", "PIT", "PITA", "TAI", "TAP", "TEN", "TYP", "PYTANIE"]
+        words: ["ENTYPIA", "PATYNIE", "PYTANIE", "ATYPIE", "NAPITY", "PATENY", "PENATY", "PYTANE", "PYTANI", "NAPITE", "ETAPY", "PANTY", "PATYN", "PIETY", "PINTY", "PITNY", "PYTIA", "PYTIE", "TYPIE", "ENATY", "ETANY", "PATEN", "PEANY", "PIANY", "PIETA", "PINTA", "PITNA", "PITNE", "TEINY", "TYNIE", "NAPIE", "NATIE", "PANIE", "PENIA", "PIANE", "TANIE", "TEINA", "PATY", "PETY", "PITY", "PYTA", "TIPY", "TYPA", "ANTY", "ENTY", "ETAP", "ETYN", "NAPY", "NATY", "NEPY", "NETY", "NIPY", "NITY", "PANT", "PANY", "PENY", "PETA", "PIET", "PINT", "PINY", "PITA", "PITE", "TANY", "TIPA", "YETI", "ENAT", "ENTA", "ETAN", "INTE", "NETA", "NIPA", "NITA", "PANI", "PEAN", "PENA", "PIAN", "PINA", "PNIA", "PNIE", "TANI", "TEIN", "TNIE", "PYT", "TYP", "ATY", "ETY", "PAT", "PET", "PIT", "TIP", "TYN", "ANT", "ATE", "ENT", "ETA", "NAP", "NAT", "NEP", "NET", "NIP", "NIT", "PAI", "PAN", "PEN", "PIA", "PIE", "PIN", "PNI", "TAI", "TAN", "TEN", "YIN", "ANI", "NAI", "NIE", "TY", "AT", "ET", "NY", "PA", "PE", "PI", "TA", "TE", "EN", "IN", "NA", "NI"]
     },
     {
         letters: ['K', 'W', 'I', 'A', 'T'],
-        words: ["AKT", "KAT", "KIWA", "KWIT", "TAI", "TIK", "WAT", "WIK", "WIT", "KWIAT"]
-    },
-    {
-        letters: ['E', 'K', 'R', 'A', 'N'],
-        words: ["ERA", "RAK", "KAN", "REK", "AREK", "ARKA", "ERKA", "EKAN", "KARE", "NERA", "AREN", "KRAN", "NERK", "EKRAN"]
+        words: ["KWIAT", "KWITA", "WATKI", "WITKA", "AKIT", "KIAT", "KITA", "KWIT", "TAKI", "TIKA", "TKWI", "WIKT", "KAWI", "KIWA", "WAKI", "WIAT", "WITA", "AKT", "IKT", "KAT", "KIT", "TAK", "TIK", "TKA", "KAI", "KAW", "KWA", "KWI", "TAI", "TWA", "WAT", "WIT", "IWA", "AT", "KA", "KI", "TA", "IW"]
     },
     {
         letters: ['R', 'A', 'D', 'I', 'O'],
-        words: ["DAR", "DOA", "ORA", "RAD", "ROD", "ROI", "DORA", "ODRA", "DIOR", "ROID", "DRIO", "RADO", "RADIO"]
+        words: ["ADRIO", "RADIO", "DARI", "IRDA", "IRDO", "ODIA", "ODRA", "ORDA", "RADO", "RAID", "ARIO", "DAO", "DAR", "DOI", "IDO", "IRD", "ODA", "ODR", "ORD", "RAD", "ROD", "AIR", "ARO", "ORA", "RAI", "ROI", "AD", "DA", "DO", "ID", "OD", "AR", "OR", "RO"]
     },
     {
         letters: ['T', 'R', 'A', 'W', 'A'],
-        words: ["RAT", "TAR", "WAR", "ARA", "ARTA", "RATA", "TARA", "WATA", "WARA", "TRWA", "TAWA", "TRAWA"]
+        words: ["TRAWA", "WARTA", "WATRA", "ARAT", "ATAR", "RATA", "TARA", "TRAW", "TRWA", "WART", "WATA", "WATR", "WARA", "ATA", "RAT", "TAR", "TRA", "TWA", "WAT", "ARA", "RWA", "WAR", "AT", "TA", "AA", "AR"]
     },
     {
         letters: ['P', 'R', 'E', 'Z', 'E', 'N', 'T'],
-        words: ["ENT", "NEP", "NET", "PEN", "PER", "PERT", "PET", "PRE", "RENT", "REP", "RET", "TERN", "TEZ", "ZET", "PREZENT"]
+        words: ["PENTRZE", "PREZENT", "TERPEN", "PENTR", "REPET", "TRZEP", "ENTER", "NEPER", "PENER", "PERZE", "RENET", "TEREN", "TERZE", "NERZE", "PERT", "TREP", "ENTE", "ETEN", "ETER", "NERP", "PERZ", "PRZE", "RENT", "RZEP", "TERE", "TERN", "TREN", "TRZE", "ERZE", "PET", "ENT", "NEP", "NET", "PEN", "PER", "REP", "RET", "TEE", "TEN", "TER", "TEZ", "ZET", "NER", "REN", "ZEN", "ZER", "ET", "PE", "TE", "EE", "EN", "ER", "EZ", "RE", "ZE"]
     },
     {
         letters: ['M', 'A', 'R', 'K', 'A'],
