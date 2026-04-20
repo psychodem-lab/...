@@ -25,18 +25,22 @@
         .guessed-panel {
             width: 100%;
             max-width: 350px;
-            min-height: 120px;
+            height: 140px;
             background-color: #1a1a2e;
             border: 2px solid #4a4a75;
             border-radius: 12px;
             padding: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
             gap: 8px;
             box-sizing: border-box;
             position: relative;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4a4a75 #1a1a2e;
+            
         }
 
         .word-chip {
