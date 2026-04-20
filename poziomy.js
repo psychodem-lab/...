@@ -57,6 +57,46 @@ const gameLevels = [
         words: ["KAN", "ŁAN", "NAŁ", "AKA", "KAŁA", "KANA", "NAŁA", "ŁANA", "KANAŁ"]
     },
     {
+        letters: ['D', 'I', 'A', 'G', 'N', 'O', 'Z', 'A'],
+        words: ["DANIA", "DIODA", "GANDA", "GONIA", "NAGDA", "ZADAN", "ZAGON", "ZGODA", "ZNOI", "DAGO", "DINA", "DOZA", "GANI", "GNAJ", "NOGA", "Oaza", "ZNAI", "DIAGNOZA"]
+    },
+    {
+        letters: ['H', 'I', 'S', 'T', 'O', 'R', 'I', 'A'],
+        words: ["ASTIR", "HAITI", "HISTO", "IIRSI", "IRASI", "OSTRA", "ROTAS", "SITRI", "STORA", "TRAIS", "TRIAS", "AHIR", "HART", "HISA", "HOST", "IOTA", "SITA", "TRIA", "HISTORIA"]
+    },
+    {
+        letters: ['K', 'O', 'N', 'T', 'R', 'A', 'K', 'T'],
+        words: ["AKTOR", "KARTKA", "KONTRA", "KOTAR", "KRATA", "KRTOK", "TARKO", "TOKKA", "TRAKT", "TART", "AKOR", "KANT", "KOKA", "KORA", "KORT", "KROK", "RONA", "TRON", "KONTRAKT"]
+    },
+    {
+        letters: ['P', 'R', 'Ogram', 'A', 'M', 'O', 'W', 'A'],
+        words: ["MAPA", "MORA", "PARA", "PORA", "RAMA", "ROPA", "WAGA", "WARA", "WORM", "AGAR", "GRAM", "GRAPA", "MARA", "MOPR", "PROM", "RAMA", "ROMA", "WAGI", "PROGRAMA"]
+    },
+    {
+        letters: ['S', 'P', 'R', 'Z', 'E', 'D', 'A', 'Ż'],
+        words: ["DARZ", "DRES", "PADS", "PARA", "PRAD", "PRAS", "REDA", "SPRA", "SZAD", "ZEDA", "ZERA", "ZEPS", "ZRAD", "ŻADE", "ŻREB", "SPRZEDAŻ"]
+    },
+    {
+        letters: ['T', 'R', 'A', 'N', 'S', 'P', 'O', 'R'],
+        words: ["APORT", "ASTRO", "OPART", "ORANT", "PANTO", "PASTR", "PORTA", "PRANO", "PROST", "ROANT", "SOPRA", "SPORT", "STANO", "STRON", "TORAN", "TRANPO", "TRANSPORT"]
+    },
+    {
+        letters: ['W', 'A', 'R', 'S', 'Z', 'T', 'A', 'T'],
+        words: ["ASTRAT", "STARTA", "TARAWA", "TATARA", "TRAWA", "WARSZT", "WARSZA", "WARTA", "ZWARA", "ZWARAT", "SATA", "SWAT", "TARA", "TRAT", "WATA", "WARSZTAT"]
+    },
+    {
+        letters: ['Z', 'B', 'I', 'O', 'R', 'N', 'I', 'K'],
+        words: ["BIORNI", "BRONIK", "IKONII", "KORNII", "ROBNIK", "ZBIORN", "ZBROIK", "BIOR", "BOKI", "BORN", "IRON", "KINO", "KORB", "ORBI", "ZBIK", "ZBIORNIK"]
+    },
+    {
+        letters: ['P', 'R', 'Z', 'Y', 'G', 'O', 'D', 'A'],
+        words: ["DROGA", "GRYPA", "ODRAP", "PAGOD", "PORADY", "PRODY", "PRZYDA", "ZAGRO", "ZGORA", "DARY", "GADY", "GORA", "GRYZ", "PARO", "PRZY", "RDZA", "RYZA", "PRZYGODA"]
+    },
+    {
+        letters: ['K', 'O', 'M', 'P', 'U', 'T', 'E', 'R'],
+        words: ["KOMER", "KOMPUT", "KORUM", "KREMP", "METRO", "MUREK", "POKER", "PRUTE", "REKOM", "RUMEK", "TEMPO", "TREKO", "RUTE", "TROM", "TRUM", "KOMPUTER"]
+    },
+    {
         letters: ['S', 'T', 'O', 'P', 'A'],
         words: ["PAS", "PAT", "POT", "STO", "TAP", "OSTA", "OPAT", "PASO", "POST", "POTA", "STOP", "TOPA", "STOPA"]
     }
