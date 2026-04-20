@@ -48,6 +48,12 @@
             font-weight: bold;
             letter-spacing: 1px;
             animation: popIn 0.3s ease-out;
+            cursor: pointer; /* Dodano zmianę kursora dla lepszego UX */
+            transition: background-color 0.2s;
+        }
+
+        .word-chip:hover {
+            background-color: #ff5e78; /* Opcjonalny efekt najechania dla klikalnego elementu */
         }
 
         @keyframes popIn {
@@ -185,16 +191,12 @@
 
     <script src="poziomy.js"></script>
 
-
-
     <script>
-        
-
         let currentLevel = null;
         let guessedWords = [];
         let currentWord = "";
         let currentLevelIndex = -1;
-        
+
         // Zmienne do rysowania
         let isDragging = false;
         let selectedNodes = [];
@@ -242,13 +244,12 @@
 
         // 1. Inicjalizacja koła liter
         function initWheel() {
-            const radius = 80; 
+            const radius = 80;
             const center = 125; 
             const letters = currentLevel.letters;
             
             // Delikatne mieszanie liter na okręgu dla odmiany
             const shuffledLetters = [...letters].sort(() => Math.random() - 0.5);
-
             shuffledLetters.forEach((letter, index) => {
                 const angle = (index / shuffledLetters.length) * (2 * Math.PI) - (Math.PI / 2);
                 const x = center + radius * Math.cos(angle);
@@ -259,13 +260,11 @@
                 btn.innerText = letter;
                 btn.style.left = `${x - 30}px`;
                 btn.style.top = `${y - 30}px`;
-                
                 btn.dataset.cx = x;
                 btn.dataset.cy = y;
 
                 wheelContainer.appendChild(btn);
             });
-            
             updateStats();
         }
 
@@ -296,7 +295,6 @@
             ctx.strokeStyle = '#e94560';
 
             ctx.beginPath();
-            
             const firstNode = selectedNodes[0];
             ctx.moveTo(parseFloat(firstNode.dataset.cx), parseFloat(firstNode.dataset.cy));
 
@@ -363,7 +361,7 @@
             checkWord(); 
             
             selectedNodes = [];
-            drawLines(); 
+            drawLines();
         }
 
         // --- SPRAWDZANIE SŁÓW I AKTUALIZACJA UI ---
@@ -408,7 +406,15 @@
             const chip = document.createElement('div');
             chip.className = 'word-chip';
             chip.innerText = word;
+            chip.title = "Kliknij, aby sprawdzić znaczenie w sjp.pl";
             
+            // --- DODANA FUNKCJONALNOŚĆ SJP.PL ---
+            chip.addEventListener('click', function() {
+                // Używamy encodeURIComponent na wypadek polskich znaków w adresie URL
+                window.open(`https://sjp.pl/${encodeURIComponent(word)}`, '_blank');
+            });
+            // ------------------------------------
+
             guessedPanel.appendChild(chip);
             sortPanel();
         }
