@@ -8,7 +8,7 @@
         body {
             font-family: sans-serif;
             line-height: 1.6;
-            max-width: 800px;
+            max-width: 900px;
             margin: 20px auto;
             padding: 0 20px;
             background-color: #f4f4f9;
@@ -34,7 +34,7 @@
             font-family: monospace;
         }
         textarea {
-            height: 150px;
+            height: 120px;
         }
         button {
             background-color: #007bff;
@@ -52,11 +52,13 @@
             margin-top: 20px;
             background: #272822;
             color: #f8f8f2;
-            padding: 15px;
+            padding: 20px;
             border-radius: 4px;
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: break-word;
             font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.4;
         }
         .copy-btn {
             background-color: #28a745;
@@ -72,7 +74,7 @@
     <label for="mainWord">Słowo główne:</label>
     <input type="text" id="mainWord" placeholder="np. PLANETA" value="PLANETA">
 
-    <label for="otherWords">Słowa inne (oddzielone spacją lub enterem):</label>
+    <label for="otherWords">Słowa inne:</label>
     <textarea id="otherWords" placeholder="Wklej tutaj listę słów..."></textarea>
 
     <button onclick="generateJSON()">Generuj wynik</button>
@@ -94,28 +96,27 @@
             return;
         }
 
-        // Tworzenie tablicy liter ze słowa głównego
+        // Przygotowanie liter: ['P', 'L', 'A', ...]
         const letters = mainWordInput.split('');
+        const lettersFormatted = letters.map(l => `'${l}'`).join(', ');
 
-        // Czyszczenie i formatowanie listy słów
-        // Rozbijamy po białych znakach (spacje, entery, tabulacje)
+        // Przygotowanie słów: ["SŁOWO1", "SŁOWO2", ...]
         const words = otherWordsInput
             .split(/\s+/)
             .filter(word => word.length > 0)
-            .map(word => word.toUpperCase());
+            .map(word => `"${word.toUpperCase()}"`);
+        
+        const wordsFormatted = words.join(', ');
 
-        const resultObject = {
-            letters: letters,
-            words: words
-        };
-
-        // Formatowanie wyjścia tak, aby wyglądało jak obiekt JS
-        const formattedOutput = JSON.stringify(resultObject, null, 8)
-            .replace(/"([^"]+)":/g, '$1:') // Usuwa cudzysłowy z kluczy (opcjonalne, dla stylu JS)
-            .replace(/"/g, '"'); // Zapewnia podwójne cudzysłowy w stringach
+        // Ręczne składanie stringa, aby kontrolować entery
+        const finalOutput = 
+`{
+    letters: [${lettersFormatted}],
+    words: [${wordsFormatted}]
+}`;
 
         const outputDiv = document.getElementById('output');
-        outputDiv.textContent = formattedOutput;
+        outputDiv.textContent = finalOutput;
         document.getElementById('resultContainer').style.display = 'block';
     }
 
@@ -123,8 +124,6 @@
         const text = document.getElementById('output').textContent;
         navigator.clipboard.writeText(text).then(() => {
             alert('Skopiowano do schowka!');
-        }).catch(err => {
-            console.error('Błąd kopiowania: ', err);
         });
     }
 </script>
