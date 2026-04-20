@@ -90,15 +90,19 @@ const gameLevels = [
     },
     {
         letters: ['M', 'I', 'E', 'J', 'S', 'C', 'E'],
-        words: ["MIEJSCE", "MIEJSC", "EMISJE", "SEJMIE", "CESJE", "CESJI", "JECIE", "MISJE", "CISEM", "MECIE", "MISCE", "SIEJE", "ESICE", "MESIE", "SECIE", "SEMIE", "SJPJMIE", "MIEJ", "SEJM", "CIEM", "EMCE", "ESEJ", "MICE", "SIEJ", "ECIE", "ESCE", "ESEM", "ESIC", "SICE", "SIEC", "ESIE", "JEM", "MEJ", "CES", "CIE", "CIS", "MEE", "MES", "MIS", "SEC", "SEM", "SIC", "SIM", "EIS", "SIE", "EJ", "JE", "CE", "CI", "EM", "IM", "ME", "MI", "EE", "ES", "SE", "SI"
+        words: ["MIEJSCE", "MIEJSC", "EMISJE", "SEJMIE", "CESJE", "CESJI", "JECIE", "MISJE", "CISEM", "MECIE", "MISCE", "SIEJE", "ESICE", "MESIE", "SECIE", "SEMIE", "JMIE", "MIEJ", "SEJM", "CIEM", "EMCE", "ESEJ", "MICE", "SIEJ", "ECIE", "ESCE", "ESEM", "ESIC", "SICE", "SIEC", "ESIE", "JEM", "MEJ", "CES", "CIE", "CIS", "MEE", "MES", "MIS", "SEC", "SEM", "SIC", "SIM", "EIS", "SIE", "EJ", "JE", "CE", "CI", "EM", "IM", "ME", "MI", "EE", "ES", "SE", "SI"
     },
     {
         letters: ['W', 'O', 'L', 'N', 'O', 'Ś', 'Ć'],
         words: ["WOLNOŚĆ", "NOWOŚĆ", "WOLNOĆ", "WOLNO", "WNOŚ", "WOLO", "NOWO", "OŚĆ", "NOŚ", "ONO", "OWO", "WON", "OŚ", "NO", "ON", "OO"]
     },
     {
+        letters: ['M', 'A', 'R', 'K', 'A'],
+        words: ["KARMA", "MAKRA", "MARAK", "MARKA", "RAMKA", "AKAM", "KAMA", "KARM", "KRAM", "MAKA", "MAKR", "AKAR", "AKRA", "ARAK", "ARKA", "KARA", "MAAR", "MARA", "RAKA", "RAMA", "KAM", "MAK", "AKA", "AKR", "ARK", "KAR", "KRA", "MAA", "MAR", "RAK", "RAM", "ARA", "AM", "KA", "MA", "AA", "AR"]
+    },
+    {
         letters: ['S', 'T', 'O', 'P', 'A'],
-        words: ["PASTO", "PATOS", "POSTA", "POTAS", "PSOTA", "SJPSAPOT", "SPOTA", "STOPA", "OPAT", "PAST", "POST", "PSOT", "SPAT", "SPOT", "STOP", "OPAS", "OSPA", "SAPO", "STOA", "TOSA", "PAT", "POT", "PST", "TOP", "OPA", "OSP", "PAS", "PSA", "SAP", "SPA", "STO", "TAO", "TAS", "TOS", "OSA", "AT", "OP", "OT", "PA", "PO", "TA", "TO", "TS", "AS", "OS"]
+        words: ["PASTO", "PATOS", "POSTA", "POTAS", "PSOTA", "SAPOT", "SPOTA", "STOPA", "OPAT", "PAST", "POST", "PSOT", "SPAT", "SPOT", "STOP", "OPAS", "OSPA", "SAPO", "STOA", "TOSA", "PAT", "POT", "PST", "TOP", "OPA", "OSP", "PAS", "PSA", "SAP", "SPA", "STO", "TAO", "TAS", "TOS", "OSA", "AT", "OP", "OT", "PA", "PO", "TA", "TO", "TS", "AS", "OS"]
     }
 
 ];
