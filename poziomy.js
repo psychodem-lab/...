@@ -65,60 +65,32 @@ const gameLevels = [
         words: ["PENTRZE", "PREZENT", "TERPEN", "PENTR", "REPET", "TRZEP", "ENTER", "NEPER", "PENER", "PERZE", "RENET", "TEREN", "TERZE", "NERZE", "PERT", "TREP", "ENTE", "ETEN", "ETER", "NERP", "PERZ", "PRZE", "RENT", "RZEP", "TERE", "TERN", "TREN", "TRZE", "ERZE", "PET", "ENT", "NEP", "NET", "PEN", "PER", "REP", "RET", "TEE", "TEN", "TER", "TEZ", "ZET", "NER", "REN", "ZEN", "ZER", "ET", "PE", "TE", "EE", "EN", "ER", "EZ", "RE", "ZE"]
     },
     {
-        letters: ['M', 'A', 'R', 'K', 'A'],
-        words: ["MAK", "RAK", "RAM", "ARK", "ARM", "KARA", "MAKA", "MARA", "RAMA", "ARAK", "AKRA", "KARMA", "MARKA", "RAMKA"]
+        letters: ['M', 'A', 'T', 'K', 'A'],
+        words: ["MAKAT", "MATKA", "TKAM", "AKAM", "AKTA", "ATAK", "KAMA", "KATA", "MAKA", "MATA", "TAKA", "TAMA", "AKT", "KAM", "KAT", "MAK", "MAT", "TAK", "TAM", "TKA", "AKA", "ATA", "MAAAM", "AT", "KA", "MA", "TA", "AA"]
     },
     {
         letters: ['L', 'I', 'S', 'T', 'A'],
-        words: ["LIS", "SIT", "STO", "TAL", "SILA", "LIST", "STAL", "TALI", "LITA", "SALI", "LAST", "LISTA"]
-    },
-    {
-        letters: ['P', 'R', 'A', 'C', 'A'],
-        words: ["CAP", "CAR", "PAR", "RAP", "ACRA", "CAPA", "CARA", "PARA", "RACA", "PRAC", "PRACA"]
-    },
-    {
-        letters: ['O', 'B', 'R', 'A', 'Z'],
-        words: ["BAZ", "BOA", "RAZ", "ROB", "BARO", "BAZO", "BORA", "ORAZ", "ROBA", "ZORA", "ZROB", "OBRAZ"]
-    },
-    {
-        letters: ['S', 'T', 'R', 'U', 'N'],
-        words: ["NUR", "RUS", "STU", "TUN", "NURT", "RUST", "NURS", "STRUN", "NUTS", "TURA", "SURTN", "STRUN"]
-    },
-    {
-        letters: ['K', 'A', 'N', 'A', 'Ł'],
-        words: ["KAN", "ŁAN", "NAŁ", "AKA", "KAŁA", "KANA", "NAŁA", "ŁANA", "KANAŁ"]
+        words: ["LISTA", "STALI", "STILA", "ALIT", "LIST", "LITA", "SALT", "STAL", "STIL", "STLI", "TALI", "LAIS", "LASI", "LIAS", "LISA", "SALI", "SATI", "SIAL", "SIAT", "SITA", "STAI", "ALT", "LAT", "LIT", "TAL", "TLI", "ALI", "LAI", "LAS", "LIS", "SAL", "SIL", "SIT", "TAI", "TAS", "AIS", "SIA", "AL", "AT", "IL", "LA", "LI", "TA", "TS", "AS", "SI"]
     },
     {
         letters: ['P', 'R', 'O', 'C', 'E', 'N', 'T'],
-        words: ["CENT", "PERT", "PRET", "NERO", "NETO", "TREN", "TECO", "TENOR", "TRONE", "CREDO", "ORNET", "PROCENT"]
-    },
-    {
-        letters: ['P', 'R', 'E', 'Z', 'E', 'N', 'T'],
-        words: ["PRZEN", "PENT", "RETE", "TEZE", "TREP", "ZETP", "PEEN", "NERZ", "PRZEZ", "TEZEN", "TRZEN", "PREZENT"]
+        words: ["PROCENT", "CENTRO", "PENTRO", "POTERN", "TOPCE", "CENOT", "CENTO", "CENTR", "CERTO", "CETNO", "CONTR", "CREPO", "NEPOT", "NOTCE", "PENTR", "PERTO", "POTNE", "PROCE", "RECTO", "TONCE", "NERPO", "NORCE", "PERON", "RENTO", "ROPNE", "TENOR", "TERNO", "TONER", "CENT", "CERT", "CETN", "CNOT", "CREP", "OCET", "PERT", "PORT", "PROC", "PROT", "TREP", "TROP", "CENO", "CERO", "EROT", "ETNO", "NERP", "NETO", "NOCE", "OCEN", "OPEN", "OPER", "ORCE", "PEON", "PERO", "POEN", "RENT", "RONT", "TERN", "TERO", "TREN", "TRON", "NERO", "ORNE", "CEP", "PET", "POT", "TOP", "CEN", "CER", "CNE", "CNO", "ENT", "ETO", "NEP", "NET", "NOC", "NOT", "ORT", "PEN", "PER", "PON", "POR", "PRO", "REP", "RET", "ROP", "ROT", "TEN", "TER", "TON", "TOR", "EON", "ERO", "NER", "NOR", "ONE", "REN", "REO", "CE", "CO", "ET", "OP", "OT", "PE", "PO", "TE", "TO", "EN", "EO", "ER", "NO", "ON", "OR", "RE", "RO"]
     },
     {
         letters: ['B', 'U', 'T', 'E', 'L', 'K', 'A'],
-        words: ["BULA", "BUTA", "ETAL", "KALE", "KULA", "LUTE", "TAKE", "TULE", "BELKA", "BUŁKA", "LUTEK", "BUTELKA"]
+        words: ["BLEKAUT", "BLUETKA", "BUTELKA", "BALETU", "BETULA", "BUKALE", "KABULE", "LABETU", "TABULE", "BLETKA", "BALUT", "BETUL", "BLATU", "BUKAL", "BUKAT", "BUKLA", "BUKLE", "BUTEK", "BUTKA", "BUTLA", "BUTLE", "KABLU", "KABUL", "KLUBA", "KUBLE", "TABLU", "TABUL", "TUBEK", "TUBKA", "BEATU", "LATKU", "TAKLU", "TALKU", "UBEKA", "AUTEK", "BALET", "BELKA", "BETKA", "ELUAT", "KABEL", "KABLE", "LABET", "TABEL", "TABLE", "TAELU", "TEAKU", "KALET", "KELTA", "LATEK", "TAKLE", "TALEK", "KLUB", "BAKU", "BALU", "BATU", "BEKU", "BELU", "BETU", "BLEU", "BUKA", "BULA", "BULE", "BUTA", "KULT", "LUBA", "LUBE", "TABU", "TUBA", "TUBE", "UBEK", "UBKA", "AKTU", "AKUT", "ALTU", "BLAT", "KATU", "KELU", "KETU", "KULA", "KULE", "KUTA", "KUTE", "LAKU", "LATU", "LEKU", "LUKA", "LUTA", "LUTE", "TALU", "TEKU", "TUKA", "TULE", "ULTA", "UTKA", "AULE", "BALE", "BEAT", "BEKA", "BELA", "BETA", "KABE", "KELT", "KLAT", "LABE", "TALK", "ELKA", "ETKA", "KALE", "KETA", "LEKA", "TAEL", "TALE", "TEAK", "TEKA", "BUK", "BUL", "BUT", "KUB", "LUB", "TUB", "KUL", "LUK", "LUT", "TUK", "TUL", "ALB", "ATU", "AUT", "BAK", "BAL", "BAT", "BEK", "BEL", "BET", "BLA", "BLE", "LAB", "LEU", "TAB", "TAU", "ULA", "ULE", "UTA", "AKT", "ALK", "ALT", "KAL", "KAT", "KEL", "KET", "KLE", "LAK", "LAT", "LEK", "TAK", "TAL", "TEK", "TKA", "TLE", "ALE", "ATE", "ETA", "KEA", "BU", "KU", "LU", "TU", "UL", "UT", "AU", "BA", "BE", "AL", "AT", "EL", "ET", "KA", "LA", "TA", "TE"]
     },
     {
         letters: ['K', 'U', 'C', 'H', 'N', 'I', 'A'],
-        words: ["ACHI", "CHIN", "HUKI", "INCA", "KANI", "KUNA", "NACI", "UNIA", "CHUNA", "KUCHI", "UNICA", "KUCHNIA"]
+        words: ["KUCHNIA", "UNIKACH", "KUCHNI", "KUNACH", "KUNICH", "HUKANI", "KAHUNI", "NIUCHA", "UNIACH", "INKACH", "KACHIN", "KANICH", "KINACH", "KNUCIA", "KUCANI", "NAKUCI", "UCINKA", "UNICKA", "KUCHA", "ANCHU", "ANKHU", "CHANU", "HAIKU", "HAUKI", "NIUCH", "CIUKA", "KICHA", "KNUCI", "KUCIA", "NICKU", "CHINA", "KAHIN", "KUNIA", "NAUKI", "UCINA", "UNICA", "UNIKA", "CANKI", "NICKA", "KUCH", "HAKU", "HAUK", "HUKA", "HUKI", "UCHA", "HANU", "HUAN", "HUNA", "ICKU", "KACU", "KICH", "KICU", "KUCA", "KUCI", "ANCH", "ANKH", "CHAN", "CHIA", "CHIN", "CHNA", "HAIK", "HAKI", "INKU", "KANU", "KINU", "KUNA", "KUNI", "NAUK", "NICH", "NUCI", "UNIK", "CKNI", "ICKA", "KACI", "KICA", "NICK", "UNIA", "INKA", "KAIN", "KANI", "KINA", "NACI", "NICA", "CHU", "HUK", "UCH", "HAU", "HUN", "KUC", "UHA", "ACH", "CHA", "CHI", "HAK", "ICH", "KUI", "KUN", "HAI", "HAN", "KAC", "KIC", "UNI", "CNA", "CNI", "INK", "KAI", "KAN", "KIN", "NIC", "ANI", "NAI", "HU", "KU", "AU", "HA", "HI", "NU", "CI", "KA", "KI", "IN", "NA", "NI"]
     },
     {
         letters: ['D', 'R', 'Z', 'E', 'W', 'K', 'O'],
-        words: ["DREW", "KREW", "KRED", "KROZ", "KODER", "DREKO", "DREWO", "KREDO", "WODEK", "WOREK", "ZREDO", "DRZEWKO"]
+        words: ["DRZEWKO", "DREWKO", "DWOREK", "REDZKO", "DRZEWO", "DWORZE", "WZOREK", "ZDROWE", "ZWOREK", "DEKOR", "DERKO", "DOKER", "KODER", "KODZE", "KREDO", "DRZEW", "KORZE", "KOWER", "KOZER", "KREWO", "KREZO", "KRZEW", "ODEZW", "ODRZE", "ODZEW", "OKRZE", "REDOW", "ROWEK", "RZEKO", "WODZE", "WORED", "WOREK", "WZROK", "WORZE", "ZERWO", "DEKO", "KORD", "KRED", "DERO", "DEWO", "DREW", "DRZE", "ERKO", "KORE", "KORZ", "KREW", "KREZ", "KRZE", "ODER", "OREK", "RDZE", "RDZO", "REDO", "RZEK", "WEKO", "WERK", "WOKE", "ORZE", "OWER", "REWO", "WORZ", "WRZE", "ZERO", "ZERW", "DEK", "DOK", "KOD", "DEO", "DER", "DOZ", "EKO", "KEO", "KER", "KOR", "KRO", "KWO", "ODE", "ODR", "OKR", "ORD", "ORK", "RED", "REK", "ROD", "ROK", "WEK", "WOK", "ZEK", "ERO", "EWO", "EZO", "ORZ", "OWE", "REO", "REW", "RWO", "WRE", "ZER", "ZEW", "DE", "DO", "KO", "OD", "OK", "EO", "ER", "EW", "EZ", "OR", "OZ", "RE", "RO", "WE", "ZE"]
     },
     {
         letters: ['M', 'I', 'E', 'J', 'S', 'C', 'E'],
         words: ["CESI", "EMIS", "JECI", "MECI", "MISE", "SEJM", "SIEC", "SMEC", "EMSIJ", "MIESC", "SEJMI", "MIEJSCE"]
-    },
-    {
-        letters: ['P', 'L', 'A', 'N', 'E', 'T', 'A'],
-        words: ["ALAT", "ALEN", "ELAN", "LANT", "NAPA", "PALE", "PANA", "TELA", "APELT", "PANEL", "PLANT", "PLANETA"]
-    },
-    {
-        letters: ['B', 'R', 'A', 'M', 'K', 'A', 'R'],
-        words: ["ARAR", "BARA", "KAMA", "KARA", "MARA", "RAKA", "RAMA", "AMBRA", "BARKA", "KARMA", "MARKA", "BRAMKAR"]
     },
     {
         letters: ['W', 'O', 'L', 'N', 'O', 'Ś', 'Ć'],
