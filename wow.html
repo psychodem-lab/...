@@ -96,8 +96,8 @@
         /* Koło liter i Canvas */
         .wheel-container {
             position: relative;
-            width: 250px;
-            height: 250px;
+            width: 300px;
+            height: 300px;
             border-radius: 50%;
             background-color: #1a1a2e;
             margin-bottom: 20px;
@@ -115,14 +115,14 @@
 
         .wheel-letter {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             background-color: #0f3460;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 26px;
+            font-size: 22px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -220,7 +220,7 @@
     <div class="input-display" id="input-display"></div>
 
     <div class="wheel-container" id="wheel-container">
-        <canvas id="line-canvas" width="250" height="250"></canvas>
+        <canvas id="line-canvas" width="300" height="300"></canvas>
         <button class="shuffle-btn" onclick="shuffleCurrentLetters()" title="Pomieszaj litery">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"></polyline>
@@ -289,8 +289,8 @@
 
         // 1. Inicjalizacja koła liter
         function initWheel() {
-            const radius = 80;
-            const center = 125; 
+            const radius = 100;
+            const center = 150; 
             const letters = currentLevel.letters;
             
             // Delikatne mieszanie liter na okręgu dla odmiany
