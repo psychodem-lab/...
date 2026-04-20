@@ -13,12 +13,40 @@ const gameLevels = [
         words: ["TIK", "KROSTKI", "KROS", "TOR", "SIK", "TOK", "SROKI"]
     },
     {
+        letters: ['S', 'Z', 'K', 'O', 'Ł', 'A'],
+        words: ["KOS", "KOSZ", "KOZA", "KOŁA", "OSŁA", "SOK", "SZOK", "ŁOZA", "SZKOŁA"]
+    },
+    {
+        letters: ['L', 'A', 'P', 'T', 'O', 'P'],
+        words: ["LOT", "PAL", "PAT", "PLOT", "POL", "POP", "POT", "LAPTOP"]
+    },
+    {
+        letters: ['M', 'I', 'A', 'S', 'T', 'O'],
+        words: ["MAT", "MIT", "MOST", "OST", "SAM", "SIM", "SIT", "SITO", "SOM", "SOMA", "STO", "TAM", "TOM", "MIASTO"]
+    },
+    {
+        letters: ['O', 'B', 'R', 'A', 'Z'],
+        words: ["BAR", "BAZ", "BOA", "BOR", "BORA", "BRA", "OAZ", "OBRA", "RAB", "RAZ", "ROB", "OBRAZ"]
+    },
+    {
+        letters: ['D', 'R', 'O', 'G', 'A'],
+        words: ["DAG", "DAR", "DOG", "GAR", "GOR", "GRA", "GRAD", "GRO", "ODA", "ODR", "OGAR", "RAD", "ROD", "DROGA"]
+    },
+    {
         letters: ['S', 'M', 'O', 'K', 'I'],
         words: ["SOK", "KOS", "SOM", "MOS", "KIM", "MIK", "KOM", "SIK", "KIS", "SKI", "KOSI", "MOKI", "SMOK", "SKOM", "SOKI", "MIKO", "SMOKI"]
     },
     {
         letters: ['B', 'R', 'A', 'K', 'I'],
         words: ["BAK", "KAB", "BAR", "RAB", "ARB", "RAK", "AKR", "KAR", "KRA", "IRA", "KIR", "BIK", "BARK", "KRAB", "BRAK", "BAKI", "KARI", "RAKI", "KIRA", "BARI", "BIRA", "BRAKI"]
+    },
+    {
+        letters: ['P', 'Y', 'T', 'A', 'N', 'I', 'E'],
+        words: ["ANT", "ENT", "ETA", "ETAN", "ETAP", "ITA", "NAP", "NAT", "NEP", "NET", "NIE", "NIP", "NIT", "PAN", "PANI", "PAT", "PEN", "PET", "PIAN", "PIN", "PIT", "PITA", "TAI", "TAP", "TEN", "TYP", "PYTANIE"]
+    },
+    {
+        letters: ['K', 'W', 'I', 'A', 'T'],
+        words: ["AKT", "KAT", "KIWA", "KWIT", "TAI", "TIK", "WAT", "WIK", "WIT", "KWIAT"]
     },
     {
         letters: ['E', 'K', 'R', 'A', 'N'],
@@ -31,6 +59,10 @@ const gameLevels = [
     {
         letters: ['T', 'R', 'A', 'W', 'A'],
         words: ["RAT", "TAR", "WAR", "ARA", "ARTA", "RATA", "TARA", "WATA", "WARA", "TRWA", "TAWA", "TRAWA"]
+    },
+    {
+        letters: ['P', 'R', 'E', 'Z', 'E', 'N', 'T'],
+        words: ["ENT", "NEP", "NET", "PEN", "PER", "PERT", "PET", "PRE", "RENT", "REP", "RET", "TERN", "TEZ", "ZET", "PREZENT"]
     },
     {
         letters: ['M', 'A', 'R', 'K', 'A'],
