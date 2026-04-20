@@ -90,15 +90,15 @@ const gameLevels = [
     },
     {
         letters: ['M', 'I', 'E', 'J', 'S', 'C', 'E'],
-        words: ["CESI", "EMIS", "JECI", "MECI", "MISE", "SEJM", "SIEC", "SMEC", "EMSIJ", "MIESC", "SEJMI", "MIEJSCE"]
+        words: ["MIEJSCE", "MIEJSC", "EMISJE", "SEJMIE", "CESJE", "CESJI", "JECIE", "MISJE", "CISEM", "MECIE", "MISCE", "SIEJE", "ESICE", "MESIE", "SECIE", "SEMIE", "SJPJMIE", "MIEJ", "SEJM", "CIEM", "EMCE", "ESEJ", "MICE", "SIEJ", "ECIE", "ESCE", "ESEM", "ESIC", "SICE", "SIEC", "ESIE", "JEM", "MEJ", "CES", "CIE", "CIS", "MEE", "MES", "MIS", "SEC", "SEM", "SIC", "SIM", "EIS", "SIE", "EJ", "JE", "CE", "CI", "EM", "IM", "ME", "MI", "EE", "ES", "SE", "SI"
     },
     {
         letters: ['W', 'O', 'L', 'N', 'O', 'Ś', 'Ć'],
-        words: ["ŁOŃ", "NOŚ", "WOŃ", "OŁO", "WOLN", "WONO", "ŁOWO", "NOWO", "WOLNO", "WOLNOŚĆ"]
+        words: ["WOLNOŚĆ", "NOWOŚĆ", "WOLNOĆ", "WOLNO", "WNOŚ", "WOLO", "NOWO", "OŚĆ", "NOŚ", "ONO", "OWO", "WON", "OŚ", "NO", "ON", "OO"]
     },
     {
         letters: ['S', 'T', 'O', 'P', 'A'],
-        words: ["PAS", "PAT", "POT", "STO", "TAP", "OSTA", "OPAT", "PASO", "POST", "POTA", "STOP", "TOPA", "STOPA"]
+        words: ["PASTO", "PATOS", "POSTA", "POTAS", "PSOTA", "SJPSAPOT", "SPOTA", "STOPA", "OPAT", "PAST", "POST", "PSOT", "SPAT", "SPOT", "STOP", "OPAS", "OSPA", "SAPO", "STOA", "TOSA", "PAT", "POT", "PST", "TOP", "OPA", "OSP", "PAS", "PSA", "SAP", "SPA", "STO", "TAO", "TAS", "TOS", "OSA", "AT", "OP", "OT", "PA", "PO", "TA", "TO", "TS", "AS", "OS"]
     }
 
 ];
