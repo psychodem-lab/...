@@ -1,8 +1,8 @@
 
 const gameLevels = [
     {
-        letters: ['A', 'K', 'O', 'T', 'R'],
-        words: ["AKT", "KAT", "KOT", "KTO", "OKA", "TAK", "TOK", "KOTA", "RAK", "ROK", "TOR", "ORT", "KOR", "TAR", "ART", "TRA", "KORA", "ROTA", "TARO", "KART", "TORA", "TROK", "AKTOR"]
+        letters: ['A', 'K', 'T', 'O', 'R'],
+        words: ["AKTOR", "KAROT", "KARTO", "KORAT", "KOTAR", "KRATO", "RATKO", "TARKO", "TAROK", "TROKA", "KART", "KATO", "KORT", "KOTA", "KRAT", "TAKO", "TRAK", "TROK", "AORT", "ARKO", "KARO", "KORA", "OKAR", "OKRA", "ORKA", "ORTA", "RATO", "ROTA", "TARO", "TORA", "AKT", "KAT", "KOT", "KTO", "TAK", "TKA", "TOK", "AKR", "ARK", "KAR", "KOR", "KRA", "KRO", "OKA", "OKR", "ORK", "ORT", "RAK", "RAT", "ROK", "ROT", "TAO", "TAR", "TOR", "TRA", "ARO", "ORA", "AT", "KA", "KO", "OK", "OT", "TA", "TO", "AR", "OR", "RO"]
     },
     {
     letters: ['P', 'L', 'A', 'N', 'E', 'T', 'A'],
@@ -10,7 +10,7 @@ const gameLevels = [
     },
     {
         letters: ['E', 'K', 'R', 'A', 'N'],
-        words: ["ERA", "RAK", "AKR", "KAR", "KRA", "NAR", "RAN", "REN", "NER", "EKA", "AREK", "KARE", "RENA", "KERA", "EKRAN"]
+        words: ["EKRAN", "KARNE", "NERKA", "RANEK", "ANKR", "AREK", "ERKA", "KARE", "KRAN", "RANK", "AREN", "NERA", "RENA", "AKR", "ARK", "KAN", "KAR", "KEA", "KER", "KRA", "NEK", "RAK", "REK", "ERA", "NAR", "NER", "RAN", "REA", "REN", "NA"]
     },
     {
         letters: ['K', 'R', 'O', 'S', 'T','I','K'],
