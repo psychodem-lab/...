@@ -18,15 +18,15 @@ const gameLevels = [
     },
     {
         letters: ['S', 'Z', 'K', 'O', 'Ł', 'A'],
-        words: ["KOS", "KOSZ", "KOZA", "KOŁA", "OSŁA", "SOK", "SZOK", "ŁOZA", "SZKOŁA"]
+        words: ["ŁOSZAK", "SZKOŁA", "KŁOSA", "KOZŁA", "ŁASKO", "ŁKASZ", "SKAŁO", "SZKŁA", "SZKŁO", "ŁASZO", "ŁOSZA", "KASZO", "KOSZA", "OKSZA", "SKAZO", "ZAKOS", "KŁOS", "KOŁA", "ŁASK", "SKAŁ", "ŁASZ", "ŁOSZ", "ŁOZA", "OSŁA", "SZAŁ", "SZŁA", "SZŁO", "SZOŁ", "KASO", "KASZ", "KOSA", "KOSZ", "KOZA", "OKAZ", "OKSZ", "OSKA", "SAKO", "SKAZ", "SZOK", "SZOA", "KAŁ", "KŁA", "KOŁ", "ŁKA", "ŁZA", "ŁZO", "SAŁ", "ZŁA", "ZŁO", "KAS", "KOS", "OKA", "SAK", "SKA", "SOK", "OAZ", "OSA", "SAZ", "SZA", "KA", "KO", "OK", "AS", "OS", "OZ", "ZA"]
     },
     {
         letters: ['L', 'A', 'P', 'T', 'O', 'P'],
-        words: ["LOT", "PAL", "PAT", "PLOT", "POL", "POP", "POT", "LAPTOP"]
+        words: ["LAPTOP", "PALTO", "PAPLO", "PATOL", "PLOTA", "POPAL", "PALT", "PLOT", "TOPL", "APLO", "ATOL", "LATO", "LOTA", "OPAL", "OPAT", "PAPO", "POLA", "POPA", "ALP", "ALT", "LAT", "LOT", "PAL", "PAP", "PAT", "POP", "POT", "TAL", "TOP", "ALO", "OPA", "TAO", "AL", "AT", "LA", "OP", "OT", "PA", "PO", "TA", "TO"]
     },
     {
         letters: ['M', 'I', 'A', 'S', 'T', 'O'],
-        words: ["MAT", "MIT", "MOST", "OST", "SAM", "SIM", "SIT", "SITO", "SOM", "SOMA", "STO", "TAM", "TOM", "MIASTO"]
+        words: ["MIASTO", "OSTAMI", "SIAMTO", "SIATOM", "STOAMI", "STOMIA", "TOSAMI", "ASTMO", "MIAST", "MIOTA", "MOTIA", "OMAST", "SITOM", "SOMIT", "STOMA", "OSAMI", "OSTIA", "SIATO", "ASTM", "ATOM", "ISTM", "MATO", "MIOT", "MOST", "MOTA", "TAMO", "TOMI", "AMIO", "ASOM", "MAIS", "MASO", "MISA", "MISO", "MOAI", "OSIM", "SAMI", "SAMO", "SATI", "SIAM", "SIAT", "SIMA", "SIMO", "SITA", "SITO", "SOMA", "STAI", "STOA", "STOI", "TOSA", "OSIA", "MAT", "MIT", "TAM", "TOM", "IMA", "MAI", "MAS", "MIS", "MOA", "MOI", "OMA", "OSM", "SAM", "SIM", "SIT", "SOM", "STO", "TAI", "TAO", "TAS", "TOI", "TOS", "AIS", "OSA", "OSI", "SIA", "SIO", "SOI", "AM", "AT", "IM", "MA", "MI", "OM", "OT", "TA", "TO", "TS", "AS", "OS", "SI"]
     },
     {
         letters: ['O', 'B', 'R', 'A', 'Z'],
