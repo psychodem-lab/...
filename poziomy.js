@@ -57,44 +57,40 @@ const gameLevels = [
         words: ["KAN", "ŁAN", "NAŁ", "AKA", "KAŁA", "KANA", "NAŁA", "ŁANA", "KANAŁ"]
     },
     {
-        letters: ['D', 'I', 'A', 'G', 'N', 'O', 'Z', 'A'],
-        words: ["DANIA", "DIODA", "GANDA", "GONIA", "NAGDA", "ZADAN", "ZAGON", "ZGODA", "ZNOI", "DAGO", "DINA", "DOZA", "GANI", "GNAJ", "NOGA", "Oaza", "ZNAI", "DIAGNOZA"]
+        letters: ['P', 'R', 'O', 'C', 'E', 'N', 'T'],
+        words: ["CENT", "PERT", "PRET", "NERO", "NETO", "TREN", "TECO", "TENOR", "TRONE", "CREDO", "ORNET", "PROCENT"]
     },
     {
-        letters: ['H', 'I', 'S', 'T', 'O', 'R', 'I', 'A'],
-        words: ["ASTIR", "HAITI", "HISTO", "IIRSI", "IRASI", "OSTRA", "ROTAS", "SITRI", "STORA", "TRAIS", "TRIAS", "AHIR", "HART", "HISA", "HOST", "IOTA", "SITA", "TRIA", "HISTORIA"]
+        letters: ['P', 'R', 'E', 'Z', 'E', 'N', 'T'],
+        words: ["PRZEN", "PENT", "RETE", "TEZE", "TREP", "ZETP", "PEEN", "NERZ", "PRZEZ", "TEZEN", "TRZEN", "PREZENT"]
     },
     {
-        letters: ['K', 'O', 'N', 'T', 'R', 'A', 'K', 'T'],
-        words: ["AKTOR", "KARTKA", "KONTRA", "KOTAR", "KRATA", "KRTOK", "TARKO", "TOKKA", "TRAKT", "TART", "AKOR", "KANT", "KOKA", "KORA", "KORT", "KROK", "RONA", "TRON", "KONTRAKT"]
+        letters: ['B', 'U', 'T', 'E', 'L', 'K', 'A'],
+        words: ["BULA", "BUTA", "ETAL", "KALE", "KULA", "LUTE", "TAKE", "TULE", "BELKA", "BUŁKA", "LUTEK", "BUTELKA"]
     },
     {
-        letters: ['P', 'R', 'Ogram', 'A', 'M', 'O', 'W', 'A'],
-        words: ["MAPA", "MORA", "PARA", "PORA", "RAMA", "ROPA", "WAGA", "WARA", "WORM", "AGAR", "GRAM", "GRAPA", "MARA", "MOPR", "PROM", "RAMA", "ROMA", "WAGI", "PROGRAMA"]
+        letters: ['K', 'U', 'C', 'H', 'N', 'I', 'A'],
+        words: ["ACHI", "CHIN", "HUKI", "INCA", "KANI", "KUNA", "NACI", "UNIA", "CHUNA", "KUCHI", "UNICA", "KUCHNIA"]
     },
     {
-        letters: ['S', 'P', 'R', 'Z', 'E', 'D', 'A', 'Ż'],
-        words: ["DARZ", "DRES", "PADS", "PARA", "PRAD", "PRAS", "REDA", "SPRA", "SZAD", "ZEDA", "ZERA", "ZEPS", "ZRAD", "ŻADE", "ŻREB", "SPRZEDAŻ"]
+        letters: ['D', 'R', 'Z', 'E', 'W', 'K', 'O'],
+        words: ["DREW", "KREW", "KRED", "KROZ", "KODER", "DREKO", "DREWO", "KREDO", "WODEK", "WOREK", "ZREDO", "DRZEWKO"]
     },
     {
-        letters: ['T', 'R', 'A', 'N', 'S', 'P', 'O', 'R'],
-        words: ["APORT", "ASTRO", "OPART", "ORANT", "PANTO", "PASTR", "PORTA", "PRANO", "PROST", "ROANT", "SOPRA", "SPORT", "STANO", "STRON", "TORAN", "TRANPO", "TRANSPORT"]
+        letters: ['M', 'I', 'E', 'J', 'S', 'C', 'E'],
+        words: ["CESI", "EMIS", "JECI", "MECI", "MISE", "SEJM", "SIEC", "SMEC", "EMSIJ", "MIESC", "SEJMI", "MIEJSCE"]
     },
     {
-        letters: ['W', 'A', 'R', 'S', 'Z', 'T', 'A', 'T'],
-        words: ["ASTRAT", "STARTA", "TARAWA", "TATARA", "TRAWA", "WARSZT", "WARSZA", "WARTA", "ZWARA", "ZWARAT", "SATA", "SWAT", "TARA", "TRAT", "WATA", "WARSZTAT"]
+        letters: ['P', 'L', 'A', 'N', 'E', 'T', 'A'],
+        words: ["ALAT", "ALEN", "ELAN", "LANT", "NAPA", "PALE", "PANA", "TELA", "APELT", "PANEL", "PLANT", "PLANETA"]
     },
     {
-        letters: ['Z', 'B', 'I', 'O', 'R', 'N', 'I', 'K'],
-        words: ["BIORNI", "BRONIK", "IKONII", "KORNII", "ROBNIK", "ZBIORN", "ZBROIK", "BIOR", "BOKI", "BORN", "IRON", "KINO", "KORB", "ORBI", "ZBIK", "ZBIORNIK"]
+        letters: ['B', 'R', 'A', 'M', 'K', 'A', 'R'],
+        words: ["ARAR", "BARA", "KAMA", "KARA", "MARA", "RAKA", "RAMA", "AMBRA", "BARKA", "KARMA", "MARKA", "BRAMKAR"]
     },
     {
-        letters: ['P', 'R', 'Z', 'Y', 'G', 'O', 'D', 'A'],
-        words: ["DROGA", "GRYPA", "ODRAP", "PAGOD", "PORADY", "PRODY", "PRZYDA", "ZAGRO", "ZGORA", "DARY", "GADY", "GORA", "GRYZ", "PARO", "PRZY", "RDZA", "RYZA", "PRZYGODA"]
-    },
-    {
-        letters: ['K', 'O', 'M', 'P', 'U', 'T', 'E', 'R'],
-        words: ["KOMER", "KOMPUT", "KORUM", "KREMP", "METRO", "MUREK", "POKER", "PRUTE", "REKOM", "RUMEK", "TEMPO", "TREKO", "RUTE", "TROM", "TRUM", "KOMPUTER"]
+        letters: ['W', 'O', 'L', 'N', 'O', 'Ś', 'Ć'],
+        words: ["ŁOŃ", "NOŚ", "WOŃ", "OŁO", "WOLN", "WONO", "ŁOWO", "NOWO", "WOLNO", "WOLNOŚĆ"]
     },
     {
         letters: ['S', 'T', 'O', 'P', 'A'],
