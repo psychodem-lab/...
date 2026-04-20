@@ -90,7 +90,7 @@ const gameLevels = [
     },
     {
         letters: ['M', 'I', 'E', 'J', 'S', 'C', 'E'],
-        words: ["MIEJSCE", "MIEJSC", "EMISJE", "SEJMIE", "CESJE", "CESJI", "JECIE", "MISJE", "CISEM", "MECIE", "MISCE", "SIEJE", "ESICE", "MESIE", "SECIE", "SEMIE", "JMIE", "MIEJ", "SEJM", "CIEM", "EMCE", "ESEJ", "MICE", "SIEJ", "ECIE", "ESCE", "ESEM", "ESIC", "SICE", "SIEC", "ESIE", "JEM", "MEJ", "CES", "CIE", "CIS", "MEE", "MES", "MIS", "SEC", "SEM", "SIC", "SIM", "EIS", "SIE", "EJ", "JE", "CE", "CI", "EM", "IM", "ME", "MI", "EE", "ES", "SE", "SI"
+        words: ["MIEJSCE", "MIEJSC", "EMISJE", "SEJMIE", "CESJE", "CESJI", "JECIE", "MISJE", "CISEM", "MECIE", "MISCE", "SIEJE", "ESICE", "MESIE", "SECIE", "SEMIE", "JMIE", "MIEJ", "SEJM", "CIEM", "EMCE", "ESEJ", "MICE", "SIEJ", "ECIE", "ESCE", "ESEM", "ESIC", "SICE", "SIEC", "ESIE", "JEM", "MEJ", "CES", "CIE", "CIS", "MEE", "MES", "MIS", "SEC", "SEM", "SIC", "SIM", "EIS", "SIE", "EJ", "JE", "CE", "CI", "EM", "IM", "ME", "MI", "EE", "ES", "SE", "SI"]
     },
     {
         letters: ['W', 'O', 'L', 'N', 'O', 'Ś', 'Ć'],
