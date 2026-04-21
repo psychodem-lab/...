@@ -6,34 +6,52 @@
     <title>Modern Sudoku Mobile-First</title>
     <style>
         :root {
-            --bg-color: #f8f9fa;
+            /* Nowoczesna, łagodna paleta kolorów wg standardów WCAG */
+            --bg-color: #f4f6f8;
             --container-bg: #ffffff;
-            --primary-color: #339af0;
-            --text-color: #212529;
-            --border-color: #dee2e6;
-            --error-color: #ff6b6b;
-            --fixed-bg: #f1f3f5;
-            --active-cell: #e7f5ff;
-            --highlight-cell: #d0ebff;
+            --primary-color: #0066cc;
+            --primary-hover: #0052a3;
+            --text-color: #1a1a1a;
+            --text-muted: #666666;
+            --border-light: #e2e8f0;
+            --border-dark: #2d3748;
+            --error-color: #dc2626;
+            --success-color: #16a34a;
+            --fixed-bg: #f8fafc;
+            --active-cell: #eff6ff;
+            --highlight-cell: #dbeafe;
             --board-size: 95vw;
             --max-board-size: 450px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* Dark Mode Variables */
+        /* Zoptymalizowany Tryb Ciemny - redukcja zmęczenia wzroku */
         [data-theme="dark"] {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --primary-color: #66b2ff;
-            --text-color: #e0e0e0;
-            --border-color: #333333;
-            --error-color: #ff8080;
-            --fixed-bg: #2a2a2a;
-            --active-cell: #004080;
-            --highlight-cell: #002b5e;
+            --bg-color: #0f172a;
+            --container-bg: #1e293b;
+            --primary-color: #3b82f6;
+            --primary-hover: #60a5fa;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+            --border-dark: #94a3b8;
+            --error-color: #f87171;
+            --success-color: #4ade80;
+            --fixed-bg: #0f172a;
+            --active-cell: #1e3a8a;
+            --highlight-cell: #172554;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -42,71 +60,135 @@
             align-items: center;
             min-height: 100vh;
             touch-action: manipulation;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .game-container {
             width: 100%;
             max-width: var(--max-board-size);
-            padding: 10px;
-            box-sizing: border-box;
-            text-align: center;
-            background: var(--container-bg);
-            transition: background-color 0.3s;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        h1 { margin: 10px 0; font-size: 1.5rem; color: var(--primary-color); }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
 
-        /* Board Styling */
+        h1 { 
+            margin: 0; 
+            font-size: 1.5rem; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--primary-color); 
+        }
+
+        .controls { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 8px; 
+        }
+
+        select, .action-btn {
+            padding: 12px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--container-bg);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            appearance: none; /* Ukrycie natywnej strzałki selecta dla czystszego UI */
+        }
+
+        select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+            background: var(--border-light);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary:active {
+            background: var(--primary-hover);
+        }
+
+        /* Board Styling - Czystość przestrzeni */
         #sudoku-board {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
-            width: var(--board-size);
-            height: var(--board-size);
-            max-width: var(--max-board-size);
-            max-height: var(--max-board-size);
-            border: 2px solid var(--text-color);
-            margin: 10px auto;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border: 2px solid var(--border-dark);
             background: var(--container-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
             user-select: none;
-            transition: border-color 0.3s, background-color 0.3s;
+            transition: background-color 0.3s;
         }
 
         .cell {
-            border: 0.5px solid var(--border-color);
+            border-right: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1.2rem, 5vw, 1.5rem);
+            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
             cursor: pointer;
-            transition: background 0.1s;
+            transition: background-color 0.1s ease, color 0.1s ease;
             position: relative;
         }
 
-        /* 4. Rozwiązanie - Efekt Wklęsłości (Neumorfizm lite) */
+        /* Czyste pogrubienie bloków 3x3 */
+        .cell:nth-child(3n) { border-right: 2px solid var(--border-dark); }
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-dark); }
+        .cell:nth-last-child(-n+9) { border-bottom: none; }
+
         .cell.fixed { 
             background-color: var(--fixed-bg); 
-            font-weight: bold; 
+            font-weight: 700; 
             color: var(--text-color); 
-            /* Cień wewnętrzny dający efekt "wgniecenia" w ekran */
-            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.08), inset -3px -3px 6px rgba(255, 255, 255, 0.8);
-        }
-        [data-theme="dark"] .cell.fixed {
-            /* Dostosowanie wklęsłości do ciemnego motywu */
-            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.6), inset -3px -3px 6px rgba(255, 255, 255, 0.03);
         }
 
-        .cell.active { background-color: var(--active-cell); outline: 2px solid var(--primary-color); z-index: 1; }
-        .cell.highlighted { background-color: var(--highlight-cell); }
-        .cell.error { color: var(--error-color); background-color: rgba(255, 107, 107, 0.1); }
+        .cell.active { 
+            background-color: var(--active-cell); 
+            box-shadow: inset 0 0 0 2px var(--primary-color); 
+            z-index: 1; 
+        }
+
+        .cell.highlighted:not(.active) { 
+            background-color: var(--highlight-cell); 
+        }
+
+        .cell.error { 
+            color: var(--error-color); 
+            background-color: rgba(220, 38, 38, 0.1); 
+            font-weight: 700;
+        }
         
-        /* 3x3 Grid Borders */
-        .cell:nth-child(3n) { border-right: 2px solid var(--text-color); }
-        .cell:nth-child(9n) { border-right: 0.5px solid var(--border-color); }
-        .cell:nth-child(n+19):nth-child(-n+27),
-        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--text-color); }
-
-        /* Notes Mode Grid */
+        /* Notes Mode Grid - Poprawa czytelności */
         .notes-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -114,9 +196,11 @@
             width: 100%;
             height: 100%;
             font-size: 0.35em;
-            color: gray;
-            pointer-events: none; /* Clicks bypass the inner grid */
+            color: var(--text-muted);
+            pointer-events: none;
+            padding: 2px;
         }
+
         .note {
             display: flex;
             justify-content: center;
@@ -124,60 +208,102 @@
             line-height: 1;
         }
 
-        /* Custom Number Pad */
+        /* Custom Number Pad - Ergonomia i Feedback */
         .numpad {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-            padding: 0 10px;
+            gap: 10px;
+            margin-top: 5px;
         }
 
         .numpad button {
-            padding: 15px 0;
-            font-size: 1.2rem;
-            border: 1px solid var(--border-color);
+            padding: 16px 0;
+            font-size: 1.4rem;
+            font-variant-numeric: tabular-nums;
+            border: 1px solid var(--border-light);
             background: var(--container-bg);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
             color: var(--primary-color);
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
+            transition: transform 0.1s, background-color 0.2s, color 0.2s;
         }
 
-        .numpad button:active { background: var(--primary-color); color: white; }
-        .numpad .clear-btn { color: var(--error-color); grid-column: span 5; }
-        .numpad #notes-btn { background-color: var(--container-bg); }
-        .numpad #notes-btn.active { background-color: var(--primary-color); color: white; }
+        .numpad button:active { 
+            transform: scale(0.92);
+            background: var(--primary-hover); 
+            color: white; 
+        }
 
-        .controls { margin: 10px 0; display: flex; justify-content: space-between; gap: 5px; flex-wrap: wrap; }
-        select, .action-btn {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        .numpad .clear-btn { 
+            grid-column: span 3; 
+            color: var(--error-color); 
+            font-size: 1.1rem;
+        }
+
+        .numpad #notes-btn { 
+            grid-column: span 2;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .numpad #notes-btn.active { 
+            background-color: var(--primary-color); 
+            color: white; 
+            border-color: var(--primary-color);
+        }
+
+        /* Zintegrowany system powiadomień (zamiast alert) */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
             background: var(--container-bg);
             color: var(--text-color);
-            font-size: 0.9rem;
-            flex: 1;
-            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { border-left: 4px solid var(--success-color); }
+        .toast.error { border-left: 4px solid var(--error-color); }
+        .toast.warning { border-left: 4px solid #f59e0b; }
+
     </style>
 </head>
 <body>
 
+<div class="toast" id="feedback-toast">Powiadomienie</div>
+
 <div class="game-container">
-    <h1>SUDOKU</h1>
+    <div class="header-row">
+        <h1>SUDOKU</h1>
+        <button class="action-btn" onclick="toggleDarkMode()" style="width: auto; padding: 8px 12px;" aria-label="Zmień motyw">
+            <span id="theme-icon">🌙</span>
+        </button>
+    </div>
     
     <div class="controls">
-        <select id="difficulty">
+        <select id="difficulty" onchange="newGame()">
             <option value="easy">Łatwy</option>
-            <option value="medium">Średni</option>
+            <option value="medium" selected>Średni</option>
             <option value="hard">Trudny</option>
         </select>
-        <button class="action-btn" onclick="newGame()">Nowa Gra</button>
-        <button class="action-btn" onclick="checkSolution()">Sprawdź</button>
-        <button class="action-btn" onclick="toggleDarkMode()">🌙/☀️</button>
+        <button class="action-btn" onclick="newGame()">Od nowa</button>
+        <button class="action-btn primary" onclick="checkSolution()">Sprawdź</button>
     </div>
 
     <div id="sudoku-board"></div>
@@ -193,9 +319,10 @@
         <button onclick="inputValue(7)">7</button>
         <button onclick="inputValue(8)">8</button>
         <button onclick="inputValue(9)">9</button>
-        <button id="notes-btn" onclick="toggleNotes()">✏️</button>
+        <button onclick="inputValue('')">✕</button>
         
-        <button class="clear-btn" onclick="inputValue('')">✕ Wyczyść</button>
+        <button id="notes-btn" onclick="toggleNotes()">✏️ Notatki (Wył)</button>
+        <button class="clear-btn" onclick="clearBoard()">🗑️ Czyść błędy</button>
     </div>
 </div>
 
@@ -204,23 +331,41 @@
     let board = [];
     let selectedCell = null;
     let notesMode = false;
+    let toastTimeout;
 
-    // Dark Mode Toggle
+    function showToast(message, type = 'warning') {
+        const toast = document.getElementById('feedback-toast');
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
     function toggleDarkMode() {
         const body = document.documentElement;
+        const icon = document.getElementById('theme-icon');
         if (body.getAttribute('data-theme') === 'dark') {
             body.removeAttribute('data-theme');
+            icon.textContent = '🌙';
         } else {
             body.setAttribute('data-theme', 'dark');
+            icon.textContent = '☀️';
         }
     }
 
-    // Notes Toggle
     function toggleNotes() {
         notesMode = !notesMode;
         const btn = document.getElementById('notes-btn');
-        if(notesMode) btn.classList.add('active');
-        else btn.classList.remove('active');
+        if(notesMode) {
+            btn.classList.add('active');
+            btn.innerHTML = '✏️ Notatki (Wł)';
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '✏️ Notatki (Wył)';
+        }
     }
 
     function generateSudoku(difficulty) {
@@ -232,9 +377,10 @@
             Array.from({length: 9}, (_, c) => nums[pattern(r, c)])
         );
 
+        // Ustalenie prawidłowego rozwiązania
         solution = JSON.parse(JSON.stringify(newBoard));
 
-        let attempts = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 45 : 55;
+        let attempts = difficulty === 'easy' ? 35 : difficulty === 'medium' ? 45 : 55;
         while(attempts > 0) {
             let r = Math.floor(Math.random() * 9);
             let c = Math.floor(Math.random() * 9);
@@ -246,7 +392,6 @@
         return newBoard;
     }
 
-    // Renderuje zawartość komórki (główna cyfra lub notatki)
     function renderCell(cell) {
         if (cell.dataset.val) {
             cell.innerHTML = cell.dataset.val;
@@ -288,7 +433,6 @@
         }
     }
 
-    // Podświetla wszystkie komórki z wybraną wartością
     function updateHighlights(val) {
         document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlighted'));
         if(val) {
@@ -304,15 +448,13 @@
         if(selectedCell) selectedCell.classList.remove('active');
         selectedCell = cell;
         selectedCell.classList.add('active');
-        
-        // Podświetl te same cyfry na całej planszy
         updateHighlights(cell.dataset.val);
     }
 
     function inputValue(val) {
         if(!selectedCell || selectedCell.classList.contains('fixed')) return;
 
-        if(val === '') { // Logika czyszczenia (✕)
+        if(val === '') {
             selectedCell.dataset.val = '';
             selectedCell.dataset.notes = '';
             selectedCell.classList.remove('error');
@@ -322,19 +464,19 @@
         }
 
         if(notesMode) {
-            if(selectedCell.dataset.val) return; // Nie można robić notatek w wypełnionym polu
+            if(selectedCell.dataset.val) return; 
             
             let notes = selectedCell.dataset.notes ? selectedCell.dataset.notes.split(',') : [];
             if(notes.includes(val.toString())) {
-                notes = notes.filter(n => n !== val.toString()); // Usuń notatkę, jeśli już jest
+                notes = notes.filter(n => n !== val.toString()); 
             } else {
-                notes.push(val.toString()); // Dodaj notatkę
+                notes.push(val.toString()); 
             }
             selectedCell.dataset.notes = notes.join(',');
             renderCell(selectedCell);
         } else {
             selectedCell.dataset.val = val;
-            selectedCell.dataset.notes = ''; // Wpisanie cyfry kasuje notatki
+            selectedCell.dataset.notes = ''; 
             selectedCell.classList.remove('error');
             renderCell(selectedCell);
             updateHighlights(val);
@@ -364,14 +506,38 @@
             } else if(val !== solution[r][c]) {
                 cell.classList.add('error');
                 isCorrect = false;
+            } else {
+                cell.classList.remove('error');
             }
         });
 
-        if(isComplete && isCorrect) alert("Gratulacje!");
-        else if(!isComplete) alert("Dokończ planszę.");
-        else alert("Masz błędy.");
+        if(isComplete && isCorrect) {
+            showToast("Rewelacja! Rozwiązałeś układankę 🎯", "success");
+        } else if(!isComplete && isCorrect) {
+            showToast("Jak dotąd wszystko poprawnie. Graj dalej!", "success");
+        } else if(!isComplete) {
+            showToast("Są błędy na planszy. Popraw je.", "error");
+        } else {
+            showToast("Plansza pełna, ale są błędy.", "error");
+        }
     }
 
+    function clearBoard() {
+        const cells = document.querySelectorAll('.cell.error');
+        if(cells.length === 0) {
+             showToast("Nie ma błędów do wyczyszczenia.", "warning");
+             return;
+        }
+        cells.forEach(cell => {
+            cell.dataset.val = '';
+            cell.classList.remove('error');
+            renderCell(cell);
+        });
+        showToast("Wyczyszczono błędne pola.", "success");
+        if(selectedCell) updateHighlights(selectedCell.dataset.val);
+    }
+
+    // Inicjalizacja gry po wczytaniu
     newGame();
 </script>
 
