@@ -2,11 +2,15 @@
 const gameLevels = [
     {
         letters: ['A', 'K', 'T', 'O', 'R'],
-        words: ["AKTOR", "KAROT", "KARTO", "KORAT", "KOTAR", "KRATO", "RATKO", "TARKO", "TAROK", "TROKA", "KART", "KATO", "KORT", "KOTA", "KRAT", "TAKO", "TRAK", "TROK", "AORT", "ARKO", "KARO", "KORA", "OKAR", "OKRA", "ORKA", "ORTA", "RATO", "ROTA", "TARO", "TORA", "AKT", "KAT", "KOT", "KTO", "TAK", "TKA", "TOK", "AKR", "ARK", "KAR", "KOR", "KRA", "KRO", "OKA", "OKR", "ORK", "ORT", "RAK", "RAT", "ROK", "ROT", "TAO", "TAR", "TOR", "TRA", "ARO", "ORA", "AT", "KA", "KO", "OK", "OT", "TA", "TO", "AR", "OR", "RO"]
+        words: ["AKTOR", "KAROT", "KARTO", "KORAT", "KOTAR", "KRATO", "RATKO", "TARKO", "TAROK", "TROKA", "KART", "KATO", "KORT", "KOTA", "KRAT", "TAKO", "TRAK", "TROK", "AORT", "ARKO", "KARO", "KORA", "OKAR", "OKRA", "ORKA", "ORTA", "RATO", "ROTA", "TARO", "TORA", "AKT", "KAT", "KOT", "KTO", "TAK", "TKA", "TOK", "AKR", "ARK", "KAR", "KOR", "KRA", "KRO", "OKA", "OKR", "ORK", "ORT", "RAK", "RAT", "ROK", "ROT", "TAO", "TAR", "TOR", "TRA", "ARO", "ORA", "OK", "OT", "TA", "TO", "AR"]
+    },
+    {
+        letters: ['A', 'K', 'T'],
+        words: ["AKT","KAT", "TAK"]
     },
     {
         letters: ['P', 'L', 'A', 'N', 'E', 'T', 'A'],
-        words: ["APELANT", "NAPLETA", "PLANETA", "TAPLANE", "NAPLET", "PALANT", "PALETA", "PLANET", "PLATAN", "ANTALE", "ETANAL", "NALEPA", "PANELA", "PATENA", "APLET", "LEPTA", "PALET", "PALTA", "PELTA", "PLANT", "TAPLA", "ALTAN", "APATE", "LENTA", "NALEP", "NAPAL", "PALNA", "PALNE", "PANEL", "PATEN", "PLENA", "TAELA", "ANALE", "ELANA", "ENATA", "LEPT", "PALT", "PELT", "ALPA", "ALTA", "APEL", "APLA", "APLE", "ETAP", "LAPA", "LATA", "LENT", "LEPA", "PALA", "PALE", "PANT", "PATA", "PELA", "PETA", "PLAN", "TAEL", "TALA", "TALE", "TLEN", "ANAL", "ANTA", "ELAN", "ENAT", "ENTA", "ETAN", "LANA", "LANE", "NAPA", "NATA", "NETA", "PANA", "PEAN", "PENA", "TANA", "ALP", "ALT", "LAT", "LEP", "PAL", "PAT", "PEL", "PET", "PLE", "TAL", "TLE", "ALA", "ALE", "ANT", "ATA", "PATE", "ENT", "ETA", "LEN", "NAP", "NAT", "NEP", "NET", "PAN", "PEN", "TAN", "TEN", "ANA", "AL", "AT", "EL", "ET", "LA", "PA", "PE", "TA", "TE", "AA", "EN", "NA"]
+        words: ["APELANT", "NAPLETA", "PLANETA", "TAPLANE", "NAPLET", "PALANT", "PALETA", "PLANET", "PLATAN", "ANTALE", "ETANAL", "NALEPA", "PANELA", "PATENA", "APLET", "LEPTA", "PALET", "PALTA", "PELTA", "PLANT", "TAPLA", "ALTAN", "APATE", "LENTA", "NALEP", "NAPAL", "PALNA", "PALNE", "PANEL", "PATEN", "PLENA", "TAELA", "ANALE", "ELANA", "ENATA", "LEPT", "PALT", "PELT", "ALPA", "ALTA", "APEL", "APLA", "APLE", "ETAP", "LAPA", "LATA", "LENT", "LEPA", "PALA", "PALE", "PANT", "PATA", "PELA", "PETA", "PLAN", "TAEL", "TALA", "TALE", "TLEN", "ANAL", "ANTA", "ELAN", "ENAT", "ENTA", "ETAN", "LANA", "LANE", "NAPA", "NATA", "NETA", "PANA", "PEAN", "PENA", "TANA", "ALP", "ALT", "LAT", "LEP", "PAL", "PAT", "PEL", "PET", "PLE", "TAL", "TLE", "ALA", "ALE", "ANT", "ATA", "PATE", "ENT", "ETA", "LEN", "NAP", "NAT", "NEP", "NET", "PAN", "PEN", "TAN", "TEN", "ANA", "LA", "PA", "TA", "NA"]
     },
     {
         letters: ['E', 'K', 'R', 'A', 'N'],
@@ -14,7 +18,7 @@ const gameLevels = [
     },
     {
         letters: ['K', 'R', 'O', 'S', 'T', 'K', 'I'],
-        words: ["KROSTKI", "KOSTKI", "KROTKI", "OSTRKI", "SKORKI", "STROIK", "STROKI", "TROSKI", "KITKO", "KOTIK", "KOTKI", "KIOSK", "KIRKO", "KORKI", "KROKI", "KROKS", "KROST", "OSTKI", "ROKIT", "SITKO", "SKOKI", "STOIK", "STOKI", "STROK", "TROKI", "TROSK", "IKSOR", "ISKRO", "ISTRO", "ORSKI", "SIKOR", "SIROT", "SKROI", "SORKI", "SROKI", "STROI", "KIKS", "KITO", "KOKI", "KOKS", "KORT", "KROK", "SKIT", "SKOK", "SKOT", "STOK", "TIKO", "TOKI", "TRIK", "TROK", "IKOS", "IKRO", "ISTR", "KORS", "KOSI", "KRIS", "KROI", "KROS", "ORKI", "OSIK", "OSKI", "ROIK", "ROKI", "SIKO", "SITO", "SKIR", "SKRO", "SOKI", "SORT", "SROK", "STOI", "STOR", "TORS", "TRIO", "TROI", "ROSI", "SIOR", "IKT", "KIT", "KOK", "KOT", "KTO", "TIK", "TOK", "IKR", "IKS", "ISK", "ITR", "KIR", "KOI", "KOR", "KOS", "KRO", "KSI", "OKI", "OKR", "ORK", "ORT", "ROK", "ROT", "SIK", "SIT", "SKI", "SOK", "STO", "TIR", "TOI", "TOR", "TOS", "TRI", "OSI", "ROI", "ROS", "SIO", "SIR", "SOI", "KI", "KO", "OK", "OT", "TO", "TS", "OR", "OS", "RO", "SI"]
+        words: ["KROSTKI", "KOSTKI", "KROTKI", "OSTRKI", "SKORKI", "STROIK", "STROKI", "TROSKI", "KITKO", "KOTIK", "KOTKI", "KIOSK", "KIRKO", "KORKI", "KROKI", "KROKS", "KROST", "OSTKI", "ROKIT", "SITKO", "SKOKI", "STOIK", "STOKI", "STROK", "TROKI", "TROSK", "IKSOR", "ISKRO", "ISTRO", "ORSKI", "SIKOR", "SIROT", "SKROI", "SORKI", "SROKI", "STROI", "KIKS", "KITO", "KOKI", "KOKS", "KORT", "KROK", "SKIT", "SKOK", "SKOT", "STOK", "TIKO", "TOKI", "TRIK", "TROK", "IKOS", "IKRO", "ISTR", "KORS", "KOSI", "KRIS", "KROI", "KROS", "ORKI", "OSIK", "OSKI", "ROIK", "ROKI", "SIKO", "SITO", "SKIR", "SKRO", "SOKI", "SORT", "SROK", "STOI", "STOR", "TORS", "TRIO", "TROI", "ROSI", "SIOR", "IKT", "KIT", "KOK", "KOT", "KTO", "TIK", "TOK", "IKR", "IKS", "ISK", "ITR", "KIR", "KOI", "KOR", "KOS", "KRO", "KSI", "OKI", "OKR", "ORK", "ORT", "ROK", "ROT", "SIK", "SIT", "SKI", "SOK", "STO", "TIR", "TOI", "TOR", "TOS", "TRI", "OSI", "ROI", "ROS", "SIO", "SIR", "SOI", "OK", "TO"]
     },
     {
         letters: ['S', 'Z', 'K', 'O', 'Ł', 'A'],
