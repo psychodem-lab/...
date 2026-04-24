@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gra Słowna - Znajdź jak najwięcej słów</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -40,7 +43,6 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #4a4a75 #1a1a2e;
-            
         }
 
         .word-chip {
@@ -52,12 +54,12 @@
             font-weight: bold;
             letter-spacing: 1px;
             animation: popIn 0.3s ease-out;
-            cursor: pointer; /* Dodano zmianę kursora dla lepszego UX */
+            cursor: pointer;
             transition: background-color 0.2s;
         }
 
         .word-chip:hover {
-            background-color: #ff5e78; /* Opcjonalny efekt najechania dla klikalnego elementu */
+            background-color: #ff5e78;
         }
 
         @keyframes popIn {
@@ -171,7 +173,8 @@
         .btn-new-level:active {
             transform: scale(0.95);
         }
-                /* Przycisk losowania na środku koła */
+        
+        /* Przycisk losowania na środku koła */
         .shuffle-btn {
             position: absolute;
             top: 50%;
@@ -183,7 +186,7 @@
             border: none;
             border-radius: 50%;
             cursor: pointer;
-            z-index: 20; /* Wyżej niż litery i linie */
+            z-index: 20;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -205,6 +208,42 @@
         
         .shuffle-btn:active svg {
             transform: rotate(180deg);
+        }
+
+        /* --- MODAL GRATULACJI --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(26, 26, 46, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            background-color: #2b2b45;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #e94560;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: popIn 0.5s ease-out;
+            max-width: 80%;
+        }
+
+        .modal-content h2 {
+            color: #e94560;
+            font-size: 32px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 25px;
         }
     </style>
 </head>
@@ -234,6 +273,14 @@
 
     <button class="btn-new-level" onclick="loadRandomLevel()">Zmień zestaw liter</button>
 
+    <div id="victory-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Gratulacje! 🎉</h2>
+            <p>Niesamowite! Znalazłeś wszystkie możliwe słowa z tego zestawu!</p>
+            <button class="btn-new-level" onclick="closeModalAndNext()">Kolejny poziom</button>
+        </div>
+    </div>
+
     <script src="poziomy.js"></script>
 
     <script>
@@ -241,7 +288,7 @@
         let guessedWords = [];
         let currentWord = "";
         let currentLevelIndex = -1;
-
+        
         // Zmienne do rysowania
         let isDragging = false;
         let selectedNodes = [];
@@ -266,7 +313,7 @@
             }
             currentLevelIndex = newIndex;
             currentLevel = gameLevels[currentLevelIndex];
-
+            
             // Resetowanie stanu gry
             guessedWords = [];
             currentWord = "";
@@ -312,9 +359,9 @@
             });
             updateStats();
         }
-            function shuffleCurrentLetters() {
+
+        function shuffleCurrentLetters() {
             if (!currentLevel) return;
-        
             // Usuwamy tylko wizualne elementy liter z koła (nie ruszamy canvasu ani stanu gry)
             const oldLetters = wheelContainer.querySelectorAll('.wheel-letter');
             oldLetters.forEach(l => l.remove());
@@ -322,7 +369,6 @@
             // Ponownie inicjalizujemy koło z tymi samymi literami poziomu
             // Funkcja initWheel automatycznie wymiesza je przy tworzeniu (shuffledLetters)
             initWheel();
-            
             // Krótki komunikat dla gracza (opcjonalnie)
             messageElement.innerText = "Pomieszano!";
             messageElement.style.color = "#a0a0c0";
@@ -447,8 +493,9 @@
                 messageElement.innerText = "Świetnie!";
                 messageElement.style.color = "#4CAF50";
                 
+                // Sprawdzenie warunku wygranej
                 if (guessedWords.length === currentLevel.words.length) {
-                    setTimeout(() => alert("Niesamowite! Znalazłeś wszystkie możliwe słowa z tego zestawu! Możesz wylosować nowy."), 300);
+                    setTimeout(() => triggerVictory(), 300);
                 }
             } else {
                 messageElement.innerText = "Brak słowa w słowniku.";
@@ -470,7 +517,6 @@
             chip.className = 'word-chip';
             chip.innerText = word;
             chip.title = "Kliknij, aby sprawdzić znaczenie w sjp.pl";
-            
             // --- DODANA FUNKCJONALNOŚĆ SJP.PL ---
             chip.addEventListener('click', function() {
                 // Używamy encodeURIComponent na wypadek polskich znaków w adresie URL
@@ -490,6 +536,44 @@
 
         function updateStats() {
             statsElement.innerText = `Odgadnięto: ${guessedWords.length} / ${currentLevel.words.length}`;
+        }
+
+        // --- FUNKCJE ZWYCIĘSTWA I FANFAR ---
+
+        function triggerVictory() {
+            // Odtworzenie dźwięku wiwatów
+            const victoryAudio = new Audio('https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg');
+            victoryAudio.play().catch(err => console.log('Przeglądarka zablokowała autoodtwarzanie dźwięku:', err));
+
+            // Efekt konfetti z wykorzystaniem canvas-confetti
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                // Konfetti z dwóch stron ekranu
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+
+            // Wyświetlenie modalu
+            document.getElementById('victory-modal').style.display = 'flex';
+        }
+
+        function closeModalAndNext() {
+            document.getElementById('victory-modal').style.display = 'none';
+            loadRandomLevel();
         }
 
         // --- PODPIĘCIE EVENTÓW ---
