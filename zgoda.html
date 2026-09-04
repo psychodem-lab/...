@@ -8,6 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Firebase SDK (v9 Modułowe w wersji kompatybilnej CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --primary: #1e293b;
@@ -53,7 +59,6 @@
             margin-bottom: 24px;
         }
 
-        /* Print Container (used to render PDF nicely) */
         #document-content {
             background: #fff;
         }
@@ -134,7 +139,6 @@
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        /* Zmiana: Standardowy wygląd oświadczenia - bez wyróżnień tła i ramek */
         .statement-text {
             font-size: 14px;
             text-align: justify;
@@ -160,6 +164,7 @@
             display: flex;
             flex-direction: column;
             gap: 32px;
+            page-break-inside: avoid;
         }
 
         .signature-box {
@@ -239,7 +244,6 @@
             font-weight: 500;
         }
 
-        /* Action Buttons */
         .action-container {
             display: flex;
             flex-direction: column;
@@ -292,7 +296,6 @@
             line-height: 1.5;
         }
 
-        /* Loading Spinner */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -328,7 +331,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
         @media (min-width: 768px) {
             body { padding: 32px 16px; }
             .card { padding: 48px; }
@@ -340,22 +342,28 @@
             .btn { width: auto; min-width: 240px; }
         }
 
-        /* PDF specific overrides */
+        .pdf-mode {
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
         .pdf-mode .form-control {
             border: none !important;
             border-bottom: 1px solid #000 !important;
             border-radius: 0 !important;
             background: transparent !important;
-            padding: 8px 0 !important;
+            padding: 4px 0 !important;
             box-shadow: none !important;
             color: #000 !important;
         }
+
         .pdf-mode .canvas-container {
             border: none !important;
             border-bottom: 1px solid #000 !important;
             border-radius: 0 !important;
             background: transparent !important;
         }
+
         .pdf-mode .input-place-date {
             border-bottom: 1px solid #000 !important;
             color: #000 !important;
@@ -366,7 +374,7 @@
 
     <div class="loading-overlay" id="loading">
         <span class="spinner"></span>
-        <div class="loading-text">Przetwarzanie dokumentu...</div>
+        <div class="loading-text" id="loading-text">Przetwarzanie dokumentu...</div>
     </div>
 
     <div class="container">
@@ -408,7 +416,6 @@
                     </div>
                 </div>
 
-                <!-- Oświadczenie - zmiana: ujednolicona stylizacja z resztą tekstu -->
                 <div class="statement-text">
                     <strong>Niniejszym oświadczam, że:</strong><br>
                     Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (4.5.2016 L 19/38 Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych (Dz.U. 2018 poz. 1000) wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
@@ -435,7 +442,7 @@
                             <canvas id="signature-pad" class="signature-canvas"></canvas>
                             <button type="button" class="clear-btn" id="clear-signature-btn" onclick="clearSignature()">Wyczyść</button>
                         </div>
-                        <div class="signature-label">(Podpis)</div>
+                        <div class="signature-label">(czytelnie: imię i nazwisko)</div>
                     </div>
                 </div>
 
@@ -458,7 +465,7 @@
                     <li>Psycholog może zlecić dodatkowe konsultacje u specjalisty lub badania lekarskie w celu dogłębnej diagnozy i jak najlepszych efektów terapii. Współpracując z innymi specjalistami, np. psychiatrą, udostępnia tylko niezbędne informacje za wiedzą klienta.</li>
                     <li>Psycholog zastrzega sobie prawo do dokonywania zmian regulaminu, jak również wprowadzania modyfikacji cen za świadczone usługi psychologiczne, o czym klienci będą poinformowani.</li>
                     <li>Usługi psychologiczne mogą być świadczone poprzez rozmowę internetową za pośrednictwem komunikatora GoogleMeet. Klient dokonując wyboru tej formy świadczenia usług psychologicznych potwierdza zapoznanie się z warunkami technicznymi umożliwiającymi prawidłowe skorzystanie z wybranej formy komunikacji.</li>
-                    <li>Klient ma prawo do zwrotu pieniędzy za odwołaną wizytę w ciągu 30 dni, od dnia odwołania umówionej sesji, pod warunkiem odwołania jej co najmniej 24 godziny przed ustalonym terminem. Opłata za sesję nieodwołaną przez klienta nie podlega zwrotowi.</li>
+                    <li>Klient ma prawo do zwrotu pieniędzy za odwołaną wizytę w ciągu 30 dni, od dnia odwołania umówionej sesji, pod warunkiem odwołania jej co najmniej 24 godziny przed ustalonym terminem. Opłata za sesję nieodwołaną przez klienta nie podlegają zwrotowi.</li>
                 </ol>
             </form>
         </div>
@@ -468,19 +475,35 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 Pobierz PDF
             </button>
-            <button type="button" class="btn btn-email" onclick="processDocument('email')">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                Wyślij do terapeuty
+            <button type="button" class="btn btn-email" onclick="processDocument('cloud')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                Wyślij do terapeuty (Zapis w chmurze)
             </button>
         </div>
         <p class="help-text" data-html2canvas-ignore="true">
-            <strong>"Pobierz PDF"</strong> zapisuje dokument na urządzeniu.<br>
-            <strong>"Wyślij do terapeuty"</strong> dodatkowo otwiera aplikację pocztową. Pamiętaj o ręcznym dodaniu pobranego pliku jako załącznika.
+            <strong>"Pobierz PDF"</strong> zapisuje dokument na Twoim urządzeniu.<br>
+            <strong>"Wyślij do terapeuty"</strong> bezpiecznie przesyła podpisany dokument bezpośrednio na serwer terapeuty.
         </p>
     </div>
 
     <script>
-        // --- Signature Pad Logic Fixes ---
+        // --- KONFIGURACJA FIREBASE ---
+        // Zastąp poniższy obiekt danymi podanymi w konsoli Firebase
+        const firebaseConfig = {
+            apiKey: "TWÓJ_API_KEY",
+            authDomain: "TWOJA_DOMENA.firebaseapp.com",
+            projectId: "TWÓJ_PROJECT_ID",
+            storageBucket: "TWOJA_DOMENA.appspot.com",
+            messagingSenderId: "TWÓJ_SENDER_ID",
+            appId: "TWÓJ_APP_ID"
+        };
+
+        // Inicjalizacja Firebase
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const db = firebase.firestore();
+
+        // --- Obsługa Podpisu / Signature Logic ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -488,7 +511,6 @@
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
-                // Save content if any exists
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = canvas.width;
                 tempCanvas.height = canvas.height;
@@ -548,13 +570,11 @@
             }
         }
 
-        // Pointer Events
         canvas.addEventListener('pointerdown', startDrawing);
         canvas.addEventListener('pointermove', draw);
         canvas.addEventListener('pointerup', stopDrawing);
         canvas.addEventListener('pointercancel', stopDrawing);
 
-        // Touch Fallback for mobile devices
         canvas.addEventListener('touchstart', startDrawing, { passive: false });
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
@@ -570,7 +590,7 @@
             return c.toDataURL() === blank.toDataURL();
         }
 
-        // --- Document Processing Logic ---
+        // --- Generowanie PDF i wysyłanie do Firebase Storage ---
         function processDocument(action) {
             const form = document.getElementById('consent-form');
             if(!form.checkValidity()) {
@@ -584,11 +604,16 @@
             }
 
             const fullName = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
             const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text');
+
+            loadingText.innerText = action === 'cloud' ? "Wysyłanie do chmury..." : "Generowanie pliku PDF...";
             loading.style.display = 'flex';
 
             const docContent = document.getElementById('document-content');
-            
+
             const inputs = document.querySelectorAll('input:not([type="button"])');
             inputs.forEach(input => {
                 input.setAttribute('value', input.value);
@@ -597,31 +622,71 @@
             document.getElementById('clear-signature-btn').style.display = 'none';
             docContent.classList.add('pdf-mode');
 
-            const fileName = 'Zgoda_na_terapie_' + fullName.replace(/\s+/g, '_') + '.pdf';
+            const timestamp = new Date().getTime();
+            const fileName = 'Zgoda_' + fullName.trim().replace(/\s+/g, '_') + '_' + timestamp + '.pdf';
 
             const opt = {
-                margin:       [12, 12, 12, 12],
+                margin:       [10, 10, 10, 10],
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, windowWidth: 800 }, 
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, windowWidth: 800 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(docContent).save().then(() => {
-                docContent.classList.remove('pdf-mode');
-                document.getElementById('clear-signature-btn').style.display = 'block';
-                loading.style.display = 'none';
-
-                if (action === 'email') {
-                    const email = 'psychologdemenczuk@gmail.com';
-                    const subject = encodeURIComponent('Zgoda na terapię - ' + fullName);
-                    const body = encodeURIComponent('Dzień dobry,\n\nW załączniku przesyłam wypełnioną i wygenerowaną zgodę na terapię.\n\nPozdrawiam,\n' + fullName);
+            if (action === 'download') {
+                html2pdf().set(opt).from(docContent).save().then(() => {
+                    docContent.classList.remove('pdf-mode');
+                    document.getElementById('clear-signature-btn').style.display = 'block';
+                    loading.style.display = 'none';
+                });
+            } else if (action === 'cloud') {
+                // Wygenerowanie pliku jako obiekt Blob (bez automatycznego zapisywania na dysku klienta)
+                html2pdf().set(opt).from(docContent).output('blob').then(function(pdfBlob) {
                     
-                    setTimeout(() => {
-                        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-                    }, 500);
-                }
-            });
+                    // 1. Zapis pliku PDF w Firebase Storage
+                    const storageRef = storage.ref('zgody/' + fileName);
+                    const uploadTask = storageRef.put(pdfBlob);
+
+                    uploadTask.on('state_changed', 
+                        null, 
+                        function(error) {
+                            // Błąd przy wysyłaniu
+                            docContent.classList.remove('pdf-mode');
+                            document.getElementById('clear-signature-btn').style.display = 'block';
+                            loading.style.display = 'none';
+                            alert("Błąd podczas wysyłania do chmury: " + error.message);
+                        }, 
+                        function() {
+                            // 2. Sukces wysyłania - pobieramy adres URL do pobrania pliku
+                            uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
+                                
+                                // 3. Zapisujemy dane pacjenta wraz z linkiem do pliku w bazie danych Firestore
+                                db.collection("zgody").add({
+                                    fullname: fullName,
+                                    email: email,
+                                    phone: phone,
+                                    pdfUrl: downloadURL,
+                                    fileName: fileName,
+                                    created_at: firebase.firestore.FieldValue.serverTimestamp()
+                                })
+                                .then(function() {
+                                    docContent.classList.remove('pdf-mode');
+                                    document.getElementById('clear-signature-btn').style.display = 'block';
+                                    loading.style.display = 'none';
+                                    alert("Dziękujemy! Twoja zgoda została pomyślnie podpisana i wysłana do terapeuty.");
+                                })
+                                .catch(function(error) {
+                                    docContent.classList.remove('pdf-mode');
+                                    document.getElementById('clear-signature-btn').style.display = 'block';
+                                    loading.style.display = 'none';
+                                    alert("Błąd zapisu danych w bazie: " + error.message);
+                                });
+                            });
+                        }
+                    );
+                });
+            }
         }
     </script>
 </body>
