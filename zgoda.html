@@ -55,7 +55,7 @@
 
         /* Print Container (used to render PDF nicely) */
         #document-content {
-            background: #fff; /* For PDF */
+            background: #fff;
         }
 
         .header {
@@ -120,7 +120,7 @@
             padding: 14px 16px;
             border: 1.5px solid var(--border);
             border-radius: 8px;
-            font-size: 16px; /* 16px prevents iOS zoom */
+            font-size: 16px;
             font-family: inherit;
             color: var(--text-main);
             background-color: var(--bg-color);
@@ -134,15 +134,13 @@
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .clause {
+        /* Zmiana: Standardowy wygląd oświadczenia - bez wyróżnień tła i ramek */
+        .statement-text {
             font-size: 14px;
             text-align: justify;
             margin-bottom: 24px;
-            background-color: #eff6ff;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
             color: var(--secondary);
+            line-height: 1.6;
         }
 
         .info-list, .regulations-list {
@@ -197,6 +195,7 @@
             border-radius: 8px;
             overflow: hidden;
             transition: border-color 0.2s;
+            touch-action: none;
         }
         
         .canvas-container:hover {
@@ -207,7 +206,7 @@
             width: 100%;
             height: 100%;
             display: block;
-            touch-action: none; /* VERY IMPORTANT for mobile */
+            touch-action: none;
             cursor: crosshair;
         }
 
@@ -225,6 +224,7 @@
             cursor: pointer;
             backdrop-filter: blur(4px);
             transition: background 0.2s;
+            z-index: 10;
         }
 
         .clear-btn:hover {
@@ -340,7 +340,7 @@
             .btn { width: auto; min-width: 240px; }
         }
 
-        /* PDF specific overrides (hidden during normal view) */
+        /* PDF specific overrides */
         .pdf-mode .form-control {
             border: none !important;
             border-bottom: 1px solid #000 !important;
@@ -408,8 +408,9 @@
                     </div>
                 </div>
 
-                <div class="clause">
-                    <strong style="color: var(--primary); display: block; margin-bottom: 8px;">Niniejszym oświadczam, że:</strong>
+                <!-- Oświadczenie - zmiana: ujednolicona stylizacja z resztą tekstu -->
+                <div class="statement-text">
+                    <strong>Niniejszym oświadczam, że:</strong><br>
                     Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (4.5.2016 L 19/38 Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych (Dz.U. 2018 poz. 1000) wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
                     Zgadzam się również na zapisy zawarte w Regulaminie.
                 </div>
@@ -431,8 +432,7 @@
                     </div>
                     <div class="signature-box">
                         <div class="canvas-container" id="canvas-container">
-                            <!-- Internal high-res canvas for smooth drawing -->
-                            <canvas id="signature-pad" width="600" height="250" class="signature-canvas"></canvas>
+                            <canvas id="signature-pad" class="signature-canvas"></canvas>
                             <button type="button" class="clear-btn" id="clear-signature-btn" onclick="clearSignature()">Wyczyść</button>
                         </div>
                         <div class="signature-label">(czytelnie: imię i nazwisko)</div>
@@ -480,50 +480,84 @@
     </div>
 
     <script>
-        // --- Signature Pad Logic (UPDATED for better mobile support using Pointer Events) ---
+        // --- Signature Pad Logic Fixes ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        // Styling for the pen
-        ctx.lineWidth = 4;
-        ctx.lineJoin = ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0f172a'; // dark slate for realistic ink
-
-        // Get accurate coordinates regardless of scaling
-        function getCoords(evt) {
+        function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                // Save content if any exists
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(canvas, 0, 0);
+
+                canvas.width = rect.width * 2;
+                canvas.height = rect.height * 2;
+                ctx.scale(2, 2);
+
+                ctx.lineWidth = 3;
+                ctx.lineJoin = ctx.lineCap = 'round';
+                ctx.strokeStyle = '#0f172a';
+
+                ctx.drawImage(tempCanvas, 0, 0, rect.width, rect.height);
+            }
+        }
+
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+
             return {
-                x: (evt.clientX - rect.left) * (canvas.width / rect.width),
-                y: (evt.clientY - rect.top) * (canvas.height / rect.height)
+                x: clientX - rect.left,
+                y: clientY - rect.top
             };
         }
 
-        // Pointer events handle both Mouse and Touch simultaneously and reliably
-        canvas.addEventListener('pointerdown', function(e) {
+        function startDrawing(e) {
             e.preventDefault();
             isDrawing = true;
-            const pos = getCoords(e);
+            const pos = getPos(e);
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
-            // Draw a dot on simple tap
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
             ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-        });
+        }
 
-        canvas.addEventListener('pointermove', function(e) {
+        function stopDrawing(e) {
             if (isDrawing) {
-                e.preventDefault();
-                const pos = getCoords(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
+                isDrawing = false;
             }
-        });
+        }
 
-        canvas.addEventListener('pointerup', () => isDrawing = false);
-        canvas.addEventListener('pointerout', () => isDrawing = false);
-        canvas.addEventListener('pointercancel', () => isDrawing = false);
+        // Pointer Events
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', draw);
+        canvas.addEventListener('pointerup', stopDrawing);
+        canvas.addEventListener('pointercancel', stopDrawing);
 
+        // Touch Fallback for mobile devices
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
 
         function clearSignature() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -555,21 +589,16 @@
 
             const docContent = document.getElementById('document-content');
             
-            // Set input values as attributes so html2pdf captures them
             const inputs = document.querySelectorAll('input:not([type="button"])');
             inputs.forEach(input => {
                 input.setAttribute('value', input.value);
             });
 
-            // Hide clear button
             document.getElementById('clear-signature-btn').style.display = 'none';
-
-            // Add CSS class for PDF specific overrides (removes borders, shadows)
             docContent.classList.add('pdf-mode');
 
             const fileName = 'Zgoda_na_terapie_' + fullName.replace(/\s+/g, '_') + '.pdf';
 
-            // windowWidth: 800 forces the PDF to render as if viewed on a desktop (keeps layout clean)
             const opt = {
                 margin:       [12, 12, 12, 12],
                 filename:     fileName,
@@ -579,25 +608,18 @@
             };
 
             html2pdf().set(opt).from(docContent).save().then(() => {
-                // Restore UI state
                 docContent.classList.remove('pdf-mode');
                 document.getElementById('clear-signature-btn').style.display = 'block';
                 loading.style.display = 'none';
 
                 if (action === 'email') {
-                    // Open mailto link
                     const email = 'psychologdemenczuk@gmail.com';
                     const subject = encodeURIComponent('Zgoda na terapię - ' + fullName);
-                    const body = encodeURIComponent('Dzień dobry,
-
-W załączniku przesyłam wypełnioną i wygenerowaną zgodę na terapię.
-
-Pozdrawiam,
-' + fullName);
+                    const body = encodeURIComponent('Dzień dobry,\n\nW załączniku przesyłam wypełnioną i wygenerowaną zgodę na terapię.\n\nPozdrawiam,\n' + fullName);
                     
                     setTimeout(() => {
                         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-                    }, 500); // small delay to ensure download starts first
+                    }, 500);
                 }
             });
         }
