@@ -207,7 +207,7 @@
             width: 100%;
             height: 100%;
             display: block;
-            touch-action: none;
+            touch-action: none; /* VERY IMPORTANT for mobile */
             cursor: crosshair;
         }
 
@@ -414,7 +414,7 @@
                     Zgadzam się również na zapisy zawarte w Regulaminie.
                 </div>
 
-                <p style="font-weight: 600; font-size: 14px; margin-bottom: 12px; color: var(--primary);">Jednocześnie oświadczam, że zostałem poinformowany o tym, że:</p>
+                <p style="font-size: 14px; margin-bottom: 12px; color: var(--secondary);">Jednocześnie oświadczam, że zostałem poinformowany o tym, że:</p>
                 <ol class="info-list">
                     <li>Administratorem Pani/Pana danych osobowych jest firma PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK zwany dalej Administratorem.</li>
                     <li>Pani/Pana dane osobowe przetwarzane będą w celu realizacji procesu pomocy psychologicznej zgodnie z obowiązującymi przepisami prawa.</li>
@@ -480,7 +480,7 @@
     </div>
 
     <script>
-        // --- Signature Pad Logic ---
+        // --- Signature Pad Logic (UPDATED for better mobile support using Pointer Events) ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -490,53 +490,40 @@
         ctx.lineJoin = ctx.lineCap = 'round';
         ctx.strokeStyle = '#0f172a'; // dark slate for realistic ink
 
-        function getMousePos(canvas, evt) {
-            var rect = canvas.getBoundingClientRect();
-            // Scale mouse coordinates to canvas internal resolution (600x250)
+        // Get accurate coordinates regardless of scaling
+        function getCoords(evt) {
+            const rect = canvas.getBoundingClientRect();
             return {
                 x: (evt.clientX - rect.left) * (canvas.width / rect.width),
                 y: (evt.clientY - rect.top) * (canvas.height / rect.height)
             };
         }
 
-        // Mouse events
-        canvas.addEventListener('mousedown', function(e) {
+        // Pointer events handle both Mouse and Touch simultaneously and reliably
+        canvas.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
             isDrawing = true;
-            const pos = getMousePos(canvas, e);
+            const pos = getCoords(e);
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
+            // Draw a dot on simple tap
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
         });
-        canvas.addEventListener('mousemove', function(e) {
+
+        canvas.addEventListener('pointermove', function(e) {
             if (isDrawing) {
-                const pos = getMousePos(canvas, e);
+                e.preventDefault();
+                const pos = getCoords(e);
                 ctx.lineTo(pos.x, pos.y);
                 ctx.stroke();
             }
         });
-        canvas.addEventListener('mouseup', () => isDrawing = false);
-        canvas.addEventListener('mouseout', () => isDrawing = false);
 
-        // Touch events for mobile
-        canvas.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const touch = e.touches[0];
-            const pos = getMousePos(canvas, touch);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }, {passive: false});
+        canvas.addEventListener('pointerup', () => isDrawing = false);
+        canvas.addEventListener('pointerout', () => isDrawing = false);
+        canvas.addEventListener('pointercancel', () => isDrawing = false);
 
-        canvas.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-            if (isDrawing) {
-                const touch = e.touches[0];
-                const pos = getMousePos(canvas, touch);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            }
-        }, {passive: false});
-
-        canvas.addEventListener('touchend', () => isDrawing = false, {passive: false});
 
         function clearSignature() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
