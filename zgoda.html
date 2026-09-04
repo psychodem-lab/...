@@ -13,15 +13,16 @@
         :root {
             --primary: #1e293b;
             --secondary: #475569;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --bg-color: #f8fafc;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-color: #f1f5f9;
             --card-bg: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #334155;
-            --text-light: #64748b;
+            --border: #cbd5e1;
+            --border-light: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
             --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
         }
 
         * {
@@ -32,15 +33,15 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            line-height: 1.6;
+            line-height: 1.5;
             color: var(--text-main);
             background-color: var(--bg-color);
-            padding: 16px;
+            padding: 24px 16px;
             -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 820px;
             margin: 0 auto;
         }
 
@@ -48,51 +49,66 @@
             background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 24px;
+            padding: 36px 40px;
             margin-bottom: 24px;
         }
 
+        /* NAGŁÓWEK DOKUMENTU */
         .header {
             text-align: center;
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 2px solid var(--border);
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .header h1 {
-            color: var(--primary);
-            font-size: 22px;
-            font-weight: 700;
-            line-height: 1.3;
+        .header .logo-title {
+            color: #1e293b;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle-main {
+            font-size: 13px;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             margin-bottom: 8px;
         }
 
-        .header p {
-            font-size: 14px;
-            color: var(--secondary);
+        .header .contact-info {
+            font-size: 12px;
+            color: #64748b;
             font-weight: 500;
         }
 
-        h2 {
-            font-size: 18px;
-            color: var(--primary);
-            margin: 32px 0 16px;
+        /* TYTUŁY SEKCJI */
+        .doc-title {
+            font-size: 17px;
+            color: #0f172a;
+            margin: 24px 0 6px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
-        .subtitle {
+        .doc-subtitle {
             text-align: center;
-            margin-bottom: 32px;
-            font-size: 15px;
-            color: var(--secondary);
+            margin-bottom: 28px;
+            font-size: 13.5px;
+            color: #475569;
+            font-weight: 500;
         }
 
+        /* SIATKA FORMULARZA */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .form-group {
@@ -102,22 +118,22 @@
 
         label {
             font-weight: 600;
-            margin-bottom: 6px;
-            font-size: 13px;
-            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 11px;
+            color: #334155;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .form-control {
             width: 100%;
-            padding: 14px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
             font-family: inherit;
             color: var(--text-main);
-            background-color: var(--bg-color);
+            background-color: #f8fafc;
             transition: all 0.2s ease;
         }
 
@@ -125,29 +141,57 @@
             outline: none;
             border-color: var(--accent);
             background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .statement-text, .info-list, .regulations-list {
-            font-size: 14px;
-            text-align: justify;
-            color: var(--secondary);
+        /* TREŚĆ OŚWIADCZEŃ I INFOGRAFIKA */
+        .statement-box {
+            background-color: #f8fafc;
+            border-left: 3px solid var(--accent);
+            padding: 16px 18px;
+            border-radius: 0 6px 6px 0;
             margin-bottom: 24px;
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: #334155;
+            text-align: justify;
+        }
+
+        .info-header {
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e293b;
         }
 
         .info-list, .regulations-list {
-            padding-left: 20px;
+            font-size: 12.5px;
+            line-height: 1.6;
+            text-align: justify;
+            color: #334155;
+            padding-left: 18px;
+            margin-bottom: 24px;
         }
 
         .info-list li, .regulations-list li {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
+        .bank-details {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+
+        /* SEKCJA PODPISÓW */
         .signature-section {
-            margin-top: 40px;
+            margin-top: 36px;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 24px;
         }
 
         .signature-box {
@@ -159,23 +203,23 @@
         .input-place-date {
             width: 100%;
             border: none;
-            border-bottom: 2px solid var(--primary);
+            border-bottom: 1.5px solid #1e293b;
             outline: none;
             font-style: italic;
-            font-size: 16px;
-            padding: 12px 0;
+            font-size: 14px;
+            padding: 10px 0;
             background: transparent;
             text-align: center;
-            color: var(--primary);
+            color: var(--text-main);
             border-radius: 0;
         }
 
         .canvas-container {
             position: relative;
             width: 100%;
-            height: 180px;
+            height: 140px;
             background: #fff;
-            border: 2px dashed var(--border);
+            border: 1.5px dashed var(--border);
             border-radius: 8px;
             overflow: hidden;
             touch-action: none;
@@ -191,31 +235,38 @@
 
         .clear-btn {
             position: absolute;
-            bottom: 12px;
-            right: 12px;
-            background: rgba(100, 116, 139, 0.9);
+            bottom: 8px;
+            right: 8px;
+            background: #64748b;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             z-index: 10;
         }
 
-        .signature-label {
-            font-size: 13px;
-            color: var(--text-light);
-            text-align: center;
-            margin-top: 8px;
-            font-weight: 500;
+        .clear-btn:hover {
+            background: #475569;
         }
 
+        .signature-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 6px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* PRZYCISKI */
         .action-container {
             display: flex;
             justify-content: center;
-            margin-top: 16px;
+            margin-top: 20px;
         }
 
         .btn {
@@ -224,15 +275,15 @@
             align-items: center;
             gap: 8px;
             width: 100%;
-            padding: 16px 24px;
-            font-size: 16px;
+            padding: 14px 28px;
+            font-size: 15px;
             font-weight: 600;
             border: none;
             border-radius: var(--radius);
             cursor: pointer;
             transition: all 0.2s ease;
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
 
         .btn-download {
@@ -241,8 +292,10 @@
 
         .btn-download:hover {
             background-color: var(--accent-hover);
+            transform: translateY(-1px);
         }
 
+        /* OVERLAY ŁADOWANIA */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -256,9 +309,9 @@
         }
 
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 5px solid var(--border);
+            width: 44px;
+            height: 44px;
+            border: 4px solid var(--border-light);
             border-bottom-color: var(--accent);
             border-radius: 50%;
             animation: rotation 1s linear infinite;
@@ -270,44 +323,142 @@
         }
 
         @media (min-width: 768px) {
-            body { padding: 32px 16px; }
-            .card { padding: 48px; }
+            body { padding: 40px 16px; }
+            .card { padding: 48px 56px; }
             .form-grid { grid-template-columns: 1fr 1fr; }
             .form-group.full-width { grid-column: span 2; }
-            .signature-section { flex-direction: row; align-items: flex-end; }
-            .signature-box { width: 48%; }
-            .btn { width: auto; min-width: 280px; }
+            .signature-section { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+            .signature-box { width: 46%; }
+            .btn { width: auto; min-width: 300px; }
         }
 
-        .pdf-mode { padding: 0 !important; box-shadow: none !important; }
-        .pdf-mode .form-control { border: none !important; border-bottom: 1px solid #000 !important; border-radius: 0 !important; background: transparent !important; padding: 4px 0 !important; color: #000 !important; }
-        .pdf-mode .canvas-container { border: none !important; border-bottom: 1px solid #000 !important; border-radius: 0 !important; background: transparent !important; }
-        .pdf-mode .input-place-date { border-bottom: 1px solid #000 !important; color: #000 !important; }
+        /* --- STYLIZACJA SPECJALNA POD WYDRUK/PDF --- */
+        .pdf-mode {
+            padding: 0 !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+        }
+
+        .pdf-mode .header {
+            margin-bottom: 20px !important;
+            padding-bottom: 12px !important;
+            border-bottom: 2px solid #1e293b !important;
+        }
+
+        .pdf-mode .doc-title {
+            margin-top: 16px !important;
+            font-size: 15px !important;
+        }
+
+        .pdf-mode .doc-subtitle {
+            margin-bottom: 20px !important;
+            font-size: 12px !important;
+        }
+
+        .pdf-mode .form-grid {
+            gap: 10px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .pdf-mode label {
+            font-size: 9.5px !important;
+            color: #475569 !important;
+            margin-bottom: 2px !important;
+        }
+
+        .pdf-mode .form-control {
+            border: none !important;
+            border-bottom: 1.5px solid #0f172a !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            padding: 2px 0 4px 0 !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+        }
+
+        .pdf-mode .statement-box {
+            background-color: #f8fafc !important;
+            border-left: 3px solid #1e293b !important;
+            padding: 10px 12px !important;
+            font-size: 11px !important;
+            line-height: 1.45 !important;
+            margin-bottom: 16px !important;
+        }
+
+        .pdf-mode .info-header, 
+        .pdf-mode .info-list, 
+        .pdf-mode .regulations-list {
+            font-size: 11px !important;
+            line-height: 1.45 !important;
+        }
+
+        .pdf-mode .info-list li, 
+        .pdf-mode .regulations-list li {
+            margin-bottom: 6px !important;
+        }
+
+        .pdf-mode .bank-details {
+            padding: 6px 10px !important;
+            margin: 6px 0 !important;
+            font-size: 10.5px !important;
+        }
+
+        .pdf-mode .signature-section {
+            margin-top: 24px !important;
+            gap: 20px !important;
+        }
+
+        .pdf-mode .canvas-container {
+            border: none !important;
+            border-bottom: 1.5px solid #0f172a !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            height: 100px !important;
+        }
+
+        .pdf-mode .input-place-date {
+            border-bottom: 1.5px solid #0f172a !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+            padding: 4px 0 !important;
+            font-size: 13px !important;
+        }
+
+        .pdf-mode .signature-label {
+            font-size: 9.5px !important;
+            margin-top: 4px !important;
+        }
+
+        .pdf-page-break {
+            page-break-before: always;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
     <div class="loading-overlay" id="loading">
         <div class="spinner"></div>
-        <div style="margin-top:20px; font-weight:600;" id="loading-text">Generowanie pliku PDF...</div>
+        <div style="margin-top:16px; font-weight:600; font-size:14px; color:#1e293b;" id="loading-text">Generowanie estetycznego pliku PDF...</div>
     </div>
 
     <div class="container">
         <!-- FORMULARZ PACJENTA -->
         <div class="card" id="document-content">
             <div class="header">
-                <h1>PSYCHODEM</h1>
-                <p>Psychoterapia Poznawczo-Behawioralna<br>ŁUKASZ DEMEŃCZUK</p>
-                <p style="margin-top: 8px; font-size: 13px;">tel. 791 788 947 | email: psychologdemenczuk@gmail.com</p>
+                <div class="logo-title">PSYCHODEM</div>
+                <div class="subtitle-main">Psychoterapia Poznawczo-Behawioralna • Łukasz Demeńczuk</div>
+                <div class="contact-info">tel. 791 788 947 | email: psychologdemenczuk@gmail.com</div>
             </div>
 
-            <h2>ZGODA NA UDZIELENIE POMOCY PSYCHOLOGICZNEJ</h2>
-            <p class="subtitle">Wyrażam zgodę na objęcie oddziaływaniem psychologicznym przez firmę PSYCHODEM</p>
+            <div class="doc-title">ZGODA NA UDZIELENIE POMOCY PSYCHOLOGICZNEJ</div>
+            <div class="doc-subtitle">Wyrażam zgodę na objęcie oddziaływaniem psychologicznym przez firmę PSYCHODEM</div>
 
             <form id="consent-form">
                 <div class="form-grid">
                     <div class="form-group full-width">
-                        <label>IMIĘ I NAZWISKO KLIENTA</label>
+                        <label>Imię i Nazwisko Klienta</label>
                         <input type="text" id="fullname" class="form-control" required placeholder="Wpisz imię i nazwisko">
                     </div>
                     <div class="form-group">
@@ -327,18 +478,18 @@
                         <input type="tel" id="phone" class="form-control" required placeholder="+48 ...">
                     </div>
                     <div class="form-group">
-                        <label>Adres email</label>
+                        <label>Adres e-mail</label>
                         <input type="email" id="email" class="form-control" required placeholder="twoj@email.pl">
                     </div>
                 </div>
 
-                <div class="statement-text">
+                <div class="statement-box">
                     <strong>Niniejszym oświadczam, że:</strong><br>
-                    Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
+                    Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (RODO) i wymogami ustawy o ochronie danych osobowych wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
                     Zgadzam się również na zapisy zawarte w Regulaminie.
                 </div>
 
-                <p style="font-size: 14px; margin-bottom: 12px; color: var(--secondary);">Jednocześnie oświadczam, że zostałem poinformowany o tym, że:</p>
+                <div class="info-header">Jednocześnie oświadczam, że zostałem poinformowany o tym, że:</div>
                 <ol class="info-list">
                     <li>Administratorem Pani/Pana danych osobowych jest firma PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK zwany dalej Administratorem.</li>
                     <li>Pani/Pana dane osobowe przetwarzane będą w celu realizacji procesu pomocy psychologicznej zgodnie z obowiązującymi przepisami prawa.</li>
@@ -351,30 +502,33 @@
                 <div class="signature-section">
                     <div class="signature-box">
                         <input type="text" id="place_and_date" class="input-place-date" placeholder="np. Warszawa, 04.09.2026" required>
-                        <div class="signature-label">(miejsce i data)</div>
+                        <div class="signature-label">Miejscowość i data</div>
                     </div>
                     <div class="signature-box">
                         <div class="canvas-container">
                             <canvas id="signature-pad" class="signature-canvas"></canvas>
                             <button type="button" class="clear-btn" id="clear-signature-btn" onclick="clearSignature()">Wyczyść</button>
                         </div>
-                        <div class="signature-label">(czytelnie: imię i nazwisko)</div>
+                        <div class="signature-label">Czytelny podpis pacjenta</div>
                     </div>
                 </div>
 
-                <div class="html2pdf__page-break"></div>
+                <div class="pdf-page-break"></div>
 
-                <h2>REGULAMIN ŚWIADCZENIA USŁUG PSYCHOLOGICZNYCH</h2>
+                <div class="doc-title" style="margin-top: 10px;">REGULAMIN ŚWIADCZENIA USŁUG PSYCHOLOGICZNYCH</div>
+                <div style="height: 16px;"></div>
                 <ol class="regulations-list">
                     <li>Z usług psychologicznych mogą korzystać osoby zgłaszające się z własnej woli i inicjatywy. W przypadku osób poniżej 18 r. podczas pierwszego spotkania wymagana jest obecność rodzica/ prawnego opiekuna, zaś podczas kolejnych spotkań ustalana jest indywidualnie według potrzeb. Usługi świadczone są przez firmę: PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK zwany dalej Psycholog.</li>
                     <li>Przed pierwszą wizytą klient zapoznaje się z regulaminem oraz zgodą na udzielenie pomocy psychologicznej. Korzystanie z usług jest poprzedzone wyrażeniem zgody poprzez przesłanie podpisanego oświadczenia w formie elektronicznej na adres email: psychologdemenczuk@gmail.com</li>
                     <li>Spotkania, zarówno pierwsze jak i kolejne, odbywają się po wcześniejszym uzgodnieniu terminu telefonicznie przez numer 791 788 947 lub mailowo: psychologdemenczuk@gmail.com</li>
-                    <li>Usługi świadczone są odpłatnie. Płatności należy dokonać przelewem lub gotówką przed wizytą. Możliwe jest również wystawienie faktury. Przedsiębiorca nie jest płatnikiem VAT.<br>
-                    <strong style="color: var(--primary); display: block; margin-top: 8px;">Dane do przelewu:</strong>
-                    PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK<br>
-                    Małkowice 137, 37-716 Orły<br>
-                    Numer rachunku bankowego: 06 1240 2568 1111 0010 3515 7165<br>
-                    Tytuł przelewu: imię oraz nazwisko, usługa psychologiczna</li>
+                    <li>Usługi świadczone są odpłatnie. Płatności należy dokonać przelewem lub gotówką przed wizytą. Możliwe jest również wystawienie faktury. Przedsiębiorca nie jest płatnikiem VAT.
+                        <div class="bank-details">
+                            <strong style="color: var(--primary); display: block; margin-bottom: 2px;">Dane do przelewu:</strong>
+                            PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK<br>
+                            Małkowice 137, 37-716 Orły | Bank: 06 1240 2568 1111 0010 3515 7165<br>
+                            <em>Tytuł przelewu: imię oraz nazwisko, usługa psychologiczna</em>
+                        </div>
+                    </li>
                     <li>Klient jest zobowiązany poinformować o odwołaniu wizyty najszybciej jak jest to możliwe, najpóźniej 24 godziny przed planowaną wizytą. Nieodwołanie wizyty i niestawienie się na niej powyżej 2 nieobecności skutkuje przerwaniem procesu oraz oczekiwaniem na kolejny termin. Psycholog jest również zobowiązany do poinformowania o odwołaniu wizyty i jak najszybszym ustaleniu nowego terminu.</li>
                     <li>Spotkanie trwa 50 minut. Jeżeli nastąpi spóźnienie z winy psychologa, spotkanie jest przedłużane o czas spóźnienia w tym samym dniu konsultacji lub przy następnej wizycie. Jeśli spóźnienie nastąpi z winy klienta, spotkanie nie będzie przedłużone.</li>
                     <li>Psycholog jest zobowiązany do zachowania w tajemnicy wszystkich informacji otrzymanych od klienta (również klienta poniżej 18 r.) oraz faktu korzystania przez klienta z usług psychologicznych wobec osób trzecich. Wyjątkiem są sytuacje zagrożenia życia, zdrowia klienta lub osób trzecich albo sytuacje określone przepisami prawa. Świadczone usługi objęte są tzw. tajemnicą zawodową zgodnie z Kodeksem Etycznym Psychologa oraz Kodeksem Etycznym Psychoterapeuty Polskiego Towarzystwa Terapii Poznawczej i Behawioralnej.</li>
@@ -405,7 +559,7 @@
                 canvas.width = rect.width * 2;
                 canvas.height = rect.height * 2;
                 ctx.scale(2, 2);
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2.5;
                 ctx.lineJoin = ctx.lineCap = 'round';
                 ctx.strokeStyle = '#0f172a';
             }
@@ -440,7 +594,7 @@
             return c.toDataURL() === blank.toDataURL();
         }
 
-        // --- GENEROWANIE I POBIERANIE PDF ---
+        // --- GENEROWANIE I POBIERANIE OPTYMALIZOWANEGO PDF ---
         function downloadPDF() {
             const form = document.getElementById('consent-form');
             if(!form.checkValidity()) { form.reportValidity(); return; }
@@ -452,15 +606,17 @@
             loading.style.display = 'flex';
 
             const docContent = document.getElementById('document-content');
+            
+            // Zachowaj wpisane wartości dla generowania obrazu
             document.querySelectorAll('input:not([type="button"])').forEach(input => input.setAttribute('value', input.value));
             document.getElementById('clear-signature-btn').style.display = 'none';
             docContent.classList.add('pdf-mode');
 
             const timestamp = new Date().getTime();
-            const fileName = 'Zgoda_' + fullName.trim().replace(/\s+/g, '_') + '_' + timestamp + '.pdf';
+            const fileName = 'Zgoda_' + fullName.trim().replace(/\s+/g, '_') + '.pdf';
 
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [12, 14, 12, 14],
                 filename: fileName,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
