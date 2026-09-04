@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zgoda na Terapię - PSYCHODEM</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        h2 {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-top: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .clause {
+            font-size: 13px;
+            text-align: justify;
+            margin-bottom: 20px;
+            background-color: #f1f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
+        }
+        .info-list, .regulations-list {
+            font-size: 13px;
+            text-align: justify;
+            padding-left: 20px;
+        }
+        .info-list li, .regulations-list li {
+            margin-bottom: 8px;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+            height: 30px;
+            display: flex;
+            align-items: flex-end;
+            font-style: italic;
+            font-size: 16px;
+        }
+        .signature-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .action-container {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-submit {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-submit:hover {
+            background-color: #2980b9;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Print/PDF Specific Styles */
+        .pdf-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; font-weight: bold;">Generowanie PDF i przygotowywanie wiadomości e-mail...</p>
+    </div>
+
+    <div class="wrapper" id="document-content">
+        <div class="header">
+            <h1>PSYCHODEM Psychoterapia Poznawczo-Behawioralna</h1>
+            <h1>ŁUKASZ DEMEŃCZUK</h1>
+            <p>tel. 791 788 947 | email: psychologdemenczuk@gmail.com</p>
+        </div>
+
+        <h2>ZGODA NA UDZIELENIE POMOCY PSYCHOLOGICZNEJ</h2>
+        <p style="text-align: center; margin-bottom: 30px; font-size: 14px;">Wyrażam zgodę na objęcie oddziaływaniem psychologicznym przez firmę PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK</p>
+
+        <form id="consent-form">
+            <div class="form-group">
+                <label>IMIĘ I NAZWISKO KLIENTA:</label>
+                <input type="text" id="fullname" required>
+            </div>
+            <div class="form-group">
+                <label>Data i miejsce urodzenia:</label>
+                <input type="text" id="birth_details" required>
+            </div>
+            <div class="form-group">
+                <label>PESEL:</label>
+                <input type="text" id="pesel" required pattern="\d{11}" title="Wprowadź 11 cyfr">
+            </div>
+            <div class="form-group">
+                <label>Adres zamieszkania:</label>
+                <input type="text" id="address" required>
+            </div>
+            <div class="form-group">
+                <label>Telefon kontaktowy:</label>
+                <input type="tel" id="phone" required>
+            </div>
+            <div class="form-group">
+                <label>Adres email:</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="clause">
+                <strong>Niniejszym oświadczam, że</strong><br>
+                Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (4.5.2016 L 19/38 Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych (Dz.U. 2018 poz. 1000) wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
+                Zgadzam się również na zapisy zawarte w Regulaminie.
+            </div>
+
+            <p style="font-weight: bold; font-size: 14px;">Jednocześnie oświadczam, że zostałem poinformowany o tym, że:</p>
+            <ol class="info-list">
+                <li>Administratorem Pani/Pana danych osobowych jest firma PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK zwany dalej Administratorem.</li>
+                <li>Pani/Pana dane osobowe przetwarzane będą w celu realizacji procesu pomocy psychologicznej zgodnie z obowiązującymi przepisami prawa.</li>
+                <li>Podanie danych jest dobrowolne, lecz niezbędne do realizacji celu określonego w punkcie 2.</li>
+                <li>Posiada Pani/Pan prawo do dostępu do swoich danych osobowych, ich sprostowania, usunięcia lub ograniczenia przetwarzania danych osobowych, wniesienia sprzeciwu wobec takiego przetwarzania, przenoszenia danych, niesienia skargi do organu nadzorczego, cofnięcia zgody na przetwarzanie danych osobowych.</li>
+                <li>Pani/Pana dane osobowe nie podlegają zautomatyzowanemu podejmowaniu decyzji, w tym profilowaniu.</li>
+                <li>Dane osobowe będą przechowywane przez okres określony przepisami prawa oraz niezbędny do realizacji celu określonego w punkcie 2.</li>
+            </ol>
+
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line" id="print-date"></div>
+                    <div class="signature-label">(miejsce i data)</div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line" id="print-name"></div>
+                    <div class="signature-label">(czytelnie: imię i nazwisko)</div>
+                </div>
+            </div>
+
+            <div class="html2pdf__page-break"></div> <!-- Page break for PDF -->
+
+            <h2>REGULAMIN ŚWIADCZENIA USŁUG PSYCHOLOGICZNYCH</h2>
+            <ol class="regulations-list">
+                <li>Z usług psychologicznych mogą korzystać osoby zgłaszające się z własnej woli i inicjatywy. W przypadku osób poniżej 18 r. podczas pierwszego spotkania wymagana jest obecność rodzica/ prawnego opiekuna, zaś podczas kolejnych spotkań ustalana jest indywidualnie według potrzeb. Usługi świadczone są przez firmę: PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK zwany dalej Psycholog.</li>
+                <li>Przed pierwszą wizytą klient zapoznaje się z regulaminem oraz zgodą na udzielenie pomocy psychologicznej. Korzystanie z usług jest poprzedzone wyrażeniem zgody poprzez przesłanie podpisanego oświadczenia w formie elektronicznej na adres email: psychologdemenczuk@gmail.com</li>
+                <li>Spotkania, zarówno pierwsze jak i kolejne, odbywają się po wcześniejszym uzgodnieniu terminu telefonicznie przez numer 791 788 947 lub mailowo: psychologdemenczuk@gmail.com</li>
+                <li>Usługi świadczone są odpłatnie. Płatności należy dokonać przelewem lub gotówką przed wizytą. Możliwe jest również wystawienie faktury. Przedsiębiorca nie jest płatnikiem VAT.<br>
+                <strong>Dane do przelewu:</strong><br>
+                PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK<br>
+                Małkowice 137, 37-716 Orły<br>
+                Numer rachunku bankowego: 06 1240 2568 1111 0010 3515 7165<br>
+                Tytuł przelewu: imię oraz nazwisko, usługa psychologiczna</li>
+                <li>Klient jest zobowiązany poinformować o odwołaniu wizyty najszybciej jak jest to możliwe, najpóźniej 24 godziny przed planowaną wizytą. Nieodwołanie wizyty i niestawienie się na niej powyżej 2 nieobecności skutkuje przerwaniem procesu oraz oczekiwaniem na kolejny termin. Psycholog jest również zobowiązany do poinformowania o odwołaniu wizyty i jak najszybszym ustaleniu nowego terminu.</li>
+                <li>Spotkanie trwa 50 minut. Jeżeli nastąpi spóźnienie z winy psychologa, spotkanie jest przedłużane o czas spóźnienia w tym samym dniu konsultacji lub przy następnej wizycie. Jeśli spóźnienie nastąpi z winy klienta, spotkanie nie będzie przedłużone.</li>
+                <li>Psycholog jest zobowiązany do zachowania w tajemnicy wszystkich informacji otrzymanych od klienta (również klienta poniżej 18 r.) oraz faktu korzystania przez klienta z usług psychologicznych wobec osób trzecich. Wyjątkiem są sytuacje zagrożenia życia, zdrowia klienta lub osób trzecich albo sytuacje określone przepisami prawa. Świadczone usługi objęte są tzw. tajemnicą zawodową zgodnie z Kodeksem Etycznym Psychologa oraz Kodeksem Etycznym Psychoterapeuty Polskiego Towarzystwa Terapii Poznawczej i Behawioralnej.</li>
+                <li>Psycholog może zlecić dodatkowe konsultacje u specjalisty lub badania lekarskie w celu dogłębnej diagnozy i jak najlepszych efektów terapii. Współpracując z innymi specjalistami, np. psychiatrą, udostępnia tylko niezbędne informacje za wiedzą klienta.</li>
+                <li>Psycholog zastrzega sobie prawo do dokonywania zmian regulaminu, jak również wprowadzania modyfikacji cen za świadczone usługi psychologiczne, o czym klienci będą poinformowani.</li>
+                <li>Usługi psychologiczne mogą być świadczone poprzez rozmowę internetową za pośrednictwem komunikatora GoogleMeet. Klient dokonując wyboru tej formy świadczenia usług psychologicznych potwierdza zapoznanie się z warunkami technicznymi umożliwiającymi prawidłowe skorzystanie z wybranej formy komunikacji.</li>
+                <li>Klient ma prawo do zwrotu pieniędzy za odwołaną wizytę w ciągu 30 dni, od dnia odwołania umówionej sesji, pod warunkiem odwołania jej co najmniej 24 godziny przed ustalonym terminem. Opłata za sesję nieodwołaną przez klienta nie podlega zwrotowi.</li>
+            </ol>
+        </form>
+    </div>
+
+    <div class="wrapper" style="margin-top: 20px; box-shadow: none; background: transparent; padding: 0;">
+        <div class="action-container" data-html2canvas-ignore="true">
+            <button type="button" class="btn-submit" onclick="generatePDFAndEmail()">Wyślij do terapeuty</button>
+            <p style="font-size: 12px; color: #7f8c8d; margin-top: 15px;">
+                Kliknięcie przycisku spowoduje wygenerowanie pliku PDF. Z powodów bezpieczeństwa przeglądarek, 
+                plik PDF zostanie pobrany na Twój komputer, a następnie otworzy się Twój program pocztowy. 
+                <strong>Pamiętaj, aby dodać pobrany plik jako załącznik do wiadomości.</strong>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function generatePDFAndEmail() {
+            const form = document.getElementById('consent-form');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const fullName = document.getElementById('fullname').value;
+            const loading = document.getElementById('loading');
+            loading.style.display = 'flex';
+
+            // Prepare inputs for PDF rendering
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.setAttribute('value', input.value);
+                input.style.border = 'none';
+                input.style.borderBottom = '1px solid #000';
+                input.style.borderRadius = '0';
+                input.style.paddingLeft = '0';
+                input.style.backgroundColor = 'transparent';
+            });
+
+            // Fill signature fields dynamically for PDF
+            const today = new Date().toLocaleDateString('pl-PL');
+            document.getElementById('print-date').innerText = today;
+            document.getElementById('print-name').innerText = fullName;
+
+            const element = document.getElementById('document-content');
+            const fileName = 'Zgoda_na_terapie_' + fullName.replace(/\s+/g, '_') + '.pdf';
+
+            const opt = {
+                margin:       [15, 15, 15, 15],
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore inputs
+                inputs.forEach(input => {
+                    input.style.border = '1px solid #ddd';
+                    input.style.borderBottom = '1px solid #ddd';
+                    input.style.borderRadius = '4px';
+                    input.style.paddingLeft = '10px';
+                });
+                
+                loading.style.display = 'none';
+
+                // Open mailto link
+                const email = 'psychologdemenczuk@gmail.com';
+                const subject = encodeURIComponent('Zgoda na terapię - ' + fullName);
+                const body = encodeURIComponent('Dzień dobry,
+
+W załączniku przesyłam wypełnioną i wygenerowaną zgodę na terapię.
+
+Pozdrawiam,
+' + fullName);
+                
+                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            });
+        }
+    </script>
+</body>
+</html>
