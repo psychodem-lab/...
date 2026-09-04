@@ -9,21 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Firebase SDK v9 (wersja kompatybilna CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
             --primary: #1e293b;
             --secondary: #475569;
             --accent: #3b82f6;
             --accent-hover: #2563eb;
-            --success: #10b981;
-            --success-hover: #059669;
-            --danger: #ef4444;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --border: #e2e8f0;
@@ -223,8 +214,7 @@
 
         .action-container {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            justify-content: center;
             margin-top: 16px;
         }
 
@@ -246,14 +236,10 @@
         }
 
         .btn-download {
-            background-color: var(--secondary);
-        }
-
-        .btn-email {
             background-color: var(--accent);
         }
 
-        .btn-email:hover {
+        .btn-download:hover {
             background-color: var(--accent-hover);
         }
 
@@ -283,55 +269,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- STREFA TERAPEUTY --- */
-        .therapist-nav {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 16px;
-        }
-
-        .btn-therapist-toggle {
-            background: transparent;
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: var(--text-light);
-            cursor: pointer;
-        }
-
-        .therapist-panel {
-            display: none;
-            margin-top: 24px;
-        }
-
-        .patient-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-
-        .patient-table th, .patient-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .patient-table th {
-            background-color: var(--bg-color);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
         @media (min-width: 768px) {
             body { padding: 32px 16px; }
             .card { padding: 48px; }
@@ -339,8 +276,7 @@
             .form-group.full-width { grid-column: span 2; }
             .signature-section { flex-direction: row; align-items: flex-end; }
             .signature-box { width: 48%; }
-            .action-container { flex-direction: row; justify-content: center; }
-            .btn { width: auto; min-width: 240px; }
+            .btn { width: auto; min-width: 280px; }
         }
 
         .pdf-mode { padding: 0 !important; box-shadow: none !important; }
@@ -353,53 +289,10 @@
 
     <div class="loading-overlay" id="loading">
         <div class="spinner"></div>
-        <div style="margin-top:20px; font-weight:600;" id="loading-text">Przetwarzanie...</div>
+        <div style="margin-top:20px; font-weight:600;" id="loading-text">Generowanie pliku PDF...</div>
     </div>
 
     <div class="container">
-        <!-- Przycisk przejścia do panelu terapeuty -->
-        <div class="therapist-nav" data-html2canvas-ignore="true">
-            <button type="button" class="btn-therapist-toggle" onclick="toggleTherapistView()">Strefa Terapeuty 🔒</button>
-        </div>
-
-        <!-- PANEL TERAPEUTY (ZABEZPIECZONY) -->
-        <div class="card therapist-panel" id="therapist-panel" data-html2canvas-ignore="true">
-            <div id="login-form-container">
-                <h2>Logowanie dla Terapeuty</h2>
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label>E-mail</label>
-                    <input type="email" id="auth-email" class="form-control" placeholder="terapeuta@domena.pl">
-                </div>
-                <div class="form-group" style="margin-bottom:16px;">
-                    <label>Hasło</label>
-                    <input type="password" id="auth-password" class="form-control" placeholder="••••••••">
-                </div>
-                <button type="button" class="btn btn-email" onclick="loginTherapist()">Zaloguj się</button>
-            </div>
-
-            <div id="dashboard-container" style="display: none;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2>Odebrane Zgody Pacjentów</h2>
-                    <button type="button" class="btn-sm" style="background:var(--danger); color:white; border:none; cursor:pointer;" onclick="logoutTherapist()">Wyloguj</button>
-                </div>
-                <div style="overflow-x:auto;">
-                    <table class="patient-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Pacjent</th>
-                                <th>Telefon</th>
-                                <th>Dokument</th>
-                            </tr>
-                        </thead>
-                        <tbody id="patient-list-tbody">
-                            <tr><td colspan="4" style="text-align:center;">Ładowanie danych...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
         <!-- FORMULARZ PACJENTA -->
         <div class="card" id="document-content">
             <div class="header">
@@ -494,32 +387,13 @@
         </div>
 
         <div class="action-container" data-html2canvas-ignore="true">
-            <button type="button" class="btn btn-download" onclick="processDocument('download')">
-                Pobierz kopię (PDF)
-            </button>
-            <button type="button" class="btn btn-email" onclick="processDocument('cloud')">
-                Wyślij do terapeuty
+            <button type="button" class="btn btn-download" onclick="downloadPDF()">
+                Pobierz wypełnioną zgodę (PDF)
             </button>
         </div>
     </div>
 
     <script>
-        // --- KONFIGURACJA FIREBASE ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyDUiNZA5aHoq0mB4eX6Gkg0FoWxBiECO68",
-          authDomain: "psychodem-zgody.firebaseapp.com",
-          projectId: "psychodem-zgody",
-          storageBucket: "psychodem-zgody.firebasestorage.app",
-          messagingSenderId: "196037412078",
-          appId: "1:196037412078:web:4e18d5f4740bbc115f9fff",
-          measurementId: "G-1M6VYPRZ7X"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-        const db = firebase.firestore();
-
         // --- OBSŁUGA SIGNATURE CANVAS ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
@@ -566,72 +440,15 @@
             return c.toDataURL() === blank.toDataURL();
         }
 
-        // --- STREFA TERAPEUTY (LOGOWANIE & LISTA) ---
-        function toggleTherapistView() {
-            const panel = document.getElementById('therapist-panel');
-            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function loginTherapist() {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Błąd logowania: " + err.message));
-        }
-
-        function logoutTherapist() {
-            auth.signOut();
-        }
-
-        auth.onAuthStateChanged(user => {
-            const loginForm = document.getElementById('login-form-container');
-            const dashboard = document.getElementById('dashboard-container');
-            if (user) {
-                loginForm.style.display = 'none';
-                dashboard.style.display = 'block';
-                loadPatientData();
-            } else {
-                loginForm.style.display = 'block';
-                dashboard.style.display = 'none';
-            }
-        });
-
-        function loadPatientData() {
-            const tbody = document.getElementById('patient-list-tbody');
-            db.collection("zgody").orderBy("created_at", "desc").onSnapshot(snapshot => {
-                tbody.innerHTML = "";
-                if(snapshot.empty) {
-                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Brak odebranych dokumentów.</td></tr>";
-                    return;
-                }
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const dateStr = data.created_at ? new Date(data.created_at.toDate()).toLocaleString('pl-PL') : 'Brak daty';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${dateStr}</td>
-                        <td><strong>${data.fullname}</strong><br><small>${data.email}</small></td>
-                        <td>${data.phone}</td>
-                        <td><a href="${data.pdfUrl}" target="_blank" class="btn-sm" style="background:var(--accent); color:white;">Pobierz PDF</a></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }, err => {
-                tbody.innerHTML = `<tr><td colspan='4' style='color:red;'>Brak uprawnień do odczytu danych.</td></tr>`;
-            });
-        }
-
-        // --- GENEROWANIE I WYSYŁANIE PDF ---
-        function processDocument(action) {
+        // --- GENEROWANIE I POBIERANIE PDF ---
+        function downloadPDF() {
             const form = document.getElementById('consent-form');
             if(!form.checkValidity()) { form.reportValidity(); return; }
             if (isCanvasEmpty(canvas)) { alert("Proszę złożyć czytelny podpis w wyznaczonym polu."); return; }
 
             const fullName = document.getElementById('fullname').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
             const loading = document.getElementById('loading');
             
-            document.getElementById('loading-text').innerText = action === 'cloud' ? "Przesyłanie do bezpiecznej chmury..." : "Generowanie pliku...";
             loading.style.display = 'flex';
 
             const docContent = document.getElementById('document-content');
@@ -650,42 +467,11 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            if (action === 'download') {
-                html2pdf().set(opt).from(docContent).save().then(() => {
-                    docContent.classList.remove('pdf-mode');
-                    document.getElementById('clear-signature-btn').style.display = 'block';
-                    loading.style.display = 'none';
-                });
-            } else if (action === 'cloud') {
-                html2pdf().set(opt).from(docContent).output('blob').then(pdfBlob => {
-                    const storageRef = storage.ref('zgody/' + fileName);
-                    
-                    storageRef.put(pdfBlob).then(snapshot => {
-                        return snapshot.ref.getDownloadURL();
-                    }).then(downloadURL => {
-                        return db.collection("zgody").add({
-                            fullname: fullName,
-                            email: email,
-                            phone: phone,
-                            pdfUrl: downloadURL,
-                            fileName: fileName,
-                            created_at: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }).then(() => {
-                        docContent.classList.remove('pdf-mode');
-                        document.getElementById('clear-signature-btn').style.display = 'block';
-                        loading.style.display = 'none';
-                        alert("Dziękujemy! Dokument został bezpiecznie wysłany do terapeuty.");
-                        form.reset();
-                        clearSignature();
-                    }).catch(error => {
-                        docContent.classList.remove('pdf-mode');
-                        document.getElementById('clear-signature-btn').style.display = 'block';
-                        loading.style.display = 'none';
-                        alert("Błąd podczas przesyłania: " + error.message);
-                    });
-                });
-            }
+            html2pdf().set(opt).from(docContent).save().then(() => {
+                docContent.classList.remove('pdf-mode');
+                document.getElementById('clear-signature-btn').style.display = 'block';
+                loading.style.display = 'none';
+            });
         }
     </script>
 </body>
