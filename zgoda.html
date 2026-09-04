@@ -9,6 +9,7 @@
         :root {
             --primary-color: #2c3e50;
             --accent-color: #3498db;
+            --success-color: #27ae60;
             --bg-color: #f8f9fa;
             --text-color: #333;
             --border-color: #ddd;
@@ -89,23 +90,48 @@
             margin-top: 40px;
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
         }
         .signature-box {
             width: 45%;
-        }
-        .signature-line {
-            border-bottom: 1px solid #000;
-            margin-bottom: 5px;
-            height: 30px;
             display: flex;
-            align-items: flex-end;
+            flex-direction: column;
+            align-items: center;
+        }
+        .input-place-date {
+            width: 100%;
+            border: none !important;
+            border-bottom: 1px solid #000 !important;
+            outline: none;
             font-style: italic;
             font-size: 16px;
+            padding: 5px 0 !important;
+            background: transparent;
+            text-align: center;
+            border-radius: 0 !important;
+        }
+        .signature-canvas {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: crosshair;
+            background-color: #fff;
+            touch-action: none; /* Zapobiega przewijaniu podczas rysowania na ekranach dotykowych */
+        }
+        .clear-btn {
+            font-size: 11px;
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            margin-top: 5px;
         }
         .signature-label {
             font-size: 12px;
             color: #666;
             text-align: center;
+            margin-top: 5px;
         }
         .action-container {
             text-align: center;
@@ -123,9 +149,16 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin: 5px;
         }
         .btn-submit:hover {
             background-color: #2980b9;
+        }
+        .btn-download {
+            background-color: var(--success-color);
+        }
+        .btn-download:hover {
+            background-color: #219653;
         }
         .loading-overlay {
             display: none;
@@ -146,16 +179,13 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Print/PDF Specific Styles */
-        .pdf-only { display: none; }
     </style>
 </head>
 <body>
 
     <div class="loading-overlay" id="loading">
         <div class="spinner"></div>
-        <p style="margin-top: 15px; font-weight: bold;">Generowanie PDF i przygotowywanie wiadomości e-mail...</p>
+        <p style="margin-top: 15px; font-weight: bold;">Przetwarzanie dokumentu...</p>
     </div>
 
     <div class="wrapper" id="document-content">
@@ -212,16 +242,17 @@
 
             <div class="signature-section">
                 <div class="signature-box">
-                    <div class="signature-line" id="print-date"></div>
+                    <input type="text" id="place_and_date" class="input-place-date" placeholder="np. Warszawa, 04.09.2026" required>
                     <div class="signature-label">(miejsce i data)</div>
                 </div>
                 <div class="signature-box">
-                    <div class="signature-line" id="print-name"></div>
+                    <canvas id="signature-pad" width="300" height="100" class="signature-canvas"></canvas>
+                    <button type="button" class="clear-btn" id="clear-signature-btn" onclick="clearSignature()">Wyczyść podpis</button>
                     <div class="signature-label">(czytelnie: imię i nazwisko)</div>
                 </div>
             </div>
 
-            <div class="html2pdf__page-break"></div> <!-- Page break for PDF -->
+            <div class="html2pdf__page-break"></div>
 
             <h2>REGULAMIN ŚWIADCZENIA USŁUG PSYCHOLOGICZNYCH</h2>
             <ol class="regulations-list">
@@ -247,20 +278,99 @@
 
     <div class="wrapper" style="margin-top: 20px; box-shadow: none; background: transparent; padding: 0;">
         <div class="action-container" data-html2canvas-ignore="true">
-            <button type="button" class="btn-submit" onclick="generatePDFAndEmail()">Wyślij do terapeuty</button>
+            <button type="button" class="btn-submit btn-download" onclick="processDocument('download')">Pobierz zgodę (PDF)</button>
+            <button type="button" class="btn-submit" onclick="processDocument('email')">Wyślij do terapeuty</button>
             <p style="font-size: 12px; color: #7f8c8d; margin-top: 15px;">
-                Kliknięcie przycisku spowoduje wygenerowanie pliku PDF. Z powodów bezpieczeństwa przeglądarek, 
-                plik PDF zostanie pobrany na Twój komputer, a następnie otworzy się Twój program pocztowy. 
-                <strong>Pamiętaj, aby dodać pobrany plik jako załącznik do wiadomości.</strong>
+                "Pobierz zgodę" zapisze plik PDF na Twoim komputerze. <br>
+                "Wyślij do terapeuty" pobierze plik i otworzy Twój program pocztowy. <strong>Pamiętaj o dodaniu pobranego pliku jako załącznika do wiadomości.</strong>
             </p>
         </div>
     </div>
 
     <script>
-        function generatePDFAndEmail() {
+        // --- Signature Pad Logic ---
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        // Stroke styling
+        ctx.lineWidth = 2;
+        ctx.lineJoin = ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: (evt.clientX - rect.left) * (canvas.width / rect.width),
+                y: (evt.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            const pos = getMousePos(canvas, e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        });
+        canvas.addEventListener('mousemove', function(e) {
+            if (isDrawing) {
+                const pos = getMousePos(canvas, e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            }
+        });
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent("mousedown", {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent("mousemove", {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, {passive: false});
+
+        canvas.addEventListener('touchend', function(e) {
+            const mouseEvent = new MouseEvent("mouseup", {});
+            canvas.dispatchEvent(mouseEvent);
+        }, {passive: false});
+
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasEmpty(c) {
+            const blank = document.createElement('canvas');
+            blank.width = c.width;
+            blank.height = c.height;
+            return c.toDataURL() === blank.toDataURL();
+        }
+
+        // --- Document Processing Logic ---
+        function processDocument(action) {
             const form = document.getElementById('consent-form');
             if(!form.checkValidity()) {
                 form.reportValidity();
+                return;
+            }
+
+            if (isCanvasEmpty(canvas)) {
+                alert("Proszę złożyć czytelny podpis w wyznaczonym polu przed wygenerowaniem dokumentu.");
                 return;
             }
 
@@ -268,9 +378,15 @@
             const loading = document.getElementById('loading');
             loading.style.display = 'flex';
 
-            // Prepare inputs for PDF rendering
-            const inputs = document.querySelectorAll('input');
+            // Prepare text inputs for PDF rendering (remove borders)
+            const inputs = document.querySelectorAll('input:not([type="button"]):not(.input-place-date)');
             inputs.forEach(input => {
+                input.dataset.oldBorder = input.style.border || '';
+                input.dataset.oldBorderBottom = input.style.borderBottom || '';
+                input.dataset.oldBorderRadius = input.style.borderRadius || '';
+                input.dataset.oldPadding = input.style.paddingLeft || '';
+                input.dataset.oldBackground = input.style.backgroundColor || '';
+                
                 input.setAttribute('value', input.value);
                 input.style.border = 'none';
                 input.style.borderBottom = '1px solid #000';
@@ -278,11 +394,15 @@
                 input.style.paddingLeft = '0';
                 input.style.backgroundColor = 'transparent';
             });
+            
+            // Set value for place and date specifically
+            const placeAndDate = document.getElementById('place_and_date');
+            placeAndDate.setAttribute('value', placeAndDate.value);
 
-            // Fill signature fields dynamically for PDF
-            const today = new Date().toLocaleDateString('pl-PL');
-            document.getElementById('print-date').innerText = today;
-            document.getElementById('print-name').innerText = fullName;
+            // Hide clear button and canvas border for PDF
+            const clearBtn = document.getElementById('clear-signature-btn');
+            clearBtn.style.display = 'none';
+            canvas.style.border = 'none';
 
             const element = document.getElementById('document-content');
             const fileName = 'Zgoda_na_terapie_' + fullName.replace(/\s+/g, '_') + '.pdf';
@@ -296,27 +416,33 @@
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
-                // Restore inputs
+                // Restore text inputs styles
                 inputs.forEach(input => {
-                    input.style.border = '1px solid #ddd';
-                    input.style.borderBottom = '1px solid #ddd';
-                    input.style.borderRadius = '4px';
-                    input.style.paddingLeft = '10px';
+                    input.style.border = input.dataset.oldBorder || '1px solid #ddd';
+                    input.style.borderBottom = input.dataset.oldBorderBottom || '1px solid #ddd';
+                    input.style.borderRadius = input.dataset.oldBorderRadius || '4px';
+                    input.style.paddingLeft = input.dataset.oldPadding || '10px';
+                    input.style.backgroundColor = input.dataset.oldBackground || '';
                 });
                 
+                // Restore signature pad styles
+                clearBtn.style.display = 'block';
+                canvas.style.border = '1px solid #ccc';
                 loading.style.display = 'none';
 
-                // Open mailto link
-                const email = 'psychologdemenczuk@gmail.com';
-                const subject = encodeURIComponent('Zgoda na terapię - ' + fullName);
-                const body = encodeURIComponent('Dzień dobry,
+                if (action === 'email') {
+                    // Open mailto link
+                    const email = 'psychologdemenczuk@gmail.com';
+                    const subject = encodeURIComponent('Zgoda na terapię - ' + fullName);
+                    const body = encodeURIComponent('Dzień dobry,
 
 W załączniku przesyłam wypełnioną i wygenerowaną zgodę na terapię.
 
 Pozdrawiam,
 ' + fullName);
-                
-                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+                    
+                    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+                }
             });
         }
     </script>
