@@ -9,8 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Firebase SDK (v9 Modułowe w wersji kompatybilnej CDN) -->
+    <!-- Firebase SDK v9 (wersja kompatybilna CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -22,6 +23,7 @@
             --accent-hover: #2563eb;
             --success: #10b981;
             --success-hover: #059669;
+            --danger: #ef4444;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --border: #e2e8f0;
@@ -57,10 +59,6 @@
             box-shadow: var(--shadow);
             padding: 24px;
             margin-bottom: 24px;
-        }
-
-        #document-content {
-            background: #fff;
         }
 
         .header {
@@ -139,20 +137,15 @@
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .statement-text {
+        .statement-text, .info-list, .regulations-list {
             font-size: 14px;
             text-align: justify;
-            margin-bottom: 24px;
             color: var(--secondary);
-            line-height: 1.6;
+            margin-bottom: 24px;
         }
 
         .info-list, .regulations-list {
-            font-size: 14px;
-            text-align: justify;
             padding-left: 20px;
-            color: var(--secondary);
-            margin-bottom: 24px;
         }
 
         .info-list li, .regulations-list li {
@@ -164,7 +157,6 @@
             display: flex;
             flex-direction: column;
             gap: 32px;
-            page-break-inside: avoid;
         }
 
         .signature-box {
@@ -187,10 +179,6 @@
             border-radius: 0;
         }
 
-        .input-place-date:focus {
-            border-bottom-color: var(--accent);
-        }
-
         .canvas-container {
             position: relative;
             width: 100%;
@@ -199,12 +187,7 @@
             border: 2px dashed var(--border);
             border-radius: 8px;
             overflow: hidden;
-            transition: border-color 0.2s;
             touch-action: none;
-        }
-        
-        .canvas-container:hover {
-            border-color: var(--text-light);
         }
 
         .signature-canvas {
@@ -227,13 +210,7 @@
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: background 0.2s;
             z-index: 10;
-        }
-
-        .clear-btn:hover {
-            background: var(--primary);
         }
 
         .signature-label {
@@ -265,19 +242,11 @@
             cursor: pointer;
             transition: all 0.2s ease;
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .btn-download {
-            background-color: var(--success);
-        }
-
-        .btn-download:hover {
-            background-color: var(--success-hover);
+            background-color: var(--secondary);
         }
 
         .btn-email {
@@ -286,14 +255,6 @@
 
         .btn-email:hover {
             background-color: var(--accent-hover);
-        }
-
-        .help-text {
-            font-size: 13px;
-            color: var(--text-light);
-            text-align: center;
-            margin-top: 16px;
-            line-height: 1.5;
         }
 
         .loading-overlay {
@@ -314,21 +275,61 @@
             border: 5px solid var(--border);
             border-bottom-color: var(--accent);
             border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
             animation: rotation 1s linear infinite;
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 16px;
         }
 
         @keyframes rotation {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* --- STREFA TERAPEUTY --- */
+        .therapist-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .btn-therapist-toggle {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .therapist-panel {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .patient-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .patient-table th, .patient-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .patient-table th {
+            background-color: var(--bg-color);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
         }
 
         @media (min-width: 768px) {
@@ -342,42 +343,64 @@
             .btn { width: auto; min-width: 240px; }
         }
 
-        .pdf-mode {
-            padding: 0 !important;
-            box-shadow: none !important;
-        }
-
-        .pdf-mode .form-control {
-            border: none !important;
-            border-bottom: 1px solid #000 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-            padding: 4px 0 !important;
-            box-shadow: none !important;
-            color: #000 !important;
-        }
-
-        .pdf-mode .canvas-container {
-            border: none !important;
-            border-bottom: 1px solid #000 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-        }
-
-        .pdf-mode .input-place-date {
-            border-bottom: 1px solid #000 !important;
-            color: #000 !important;
-        }
+        .pdf-mode { padding: 0 !important; box-shadow: none !important; }
+        .pdf-mode .form-control { border: none !important; border-bottom: 1px solid #000 !important; border-radius: 0 !important; background: transparent !important; padding: 4px 0 !important; color: #000 !important; }
+        .pdf-mode .canvas-container { border: none !important; border-bottom: 1px solid #000 !important; border-radius: 0 !important; background: transparent !important; }
+        .pdf-mode .input-place-date { border-bottom: 1px solid #000 !important; color: #000 !important; }
     </style>
 </head>
 <body>
 
     <div class="loading-overlay" id="loading">
-        <span class="spinner"></span>
-        <div class="loading-text" id="loading-text">Przetwarzanie dokumentu...</div>
+        <div class="spinner"></div>
+        <div style="margin-top:20px; font-weight:600;" id="loading-text">Przetwarzanie...</div>
     </div>
 
     <div class="container">
+        <!-- Przycisk przejścia do panelu terapeuty -->
+        <div class="therapist-nav" data-html2canvas-ignore="true">
+            <button type="button" class="btn-therapist-toggle" onclick="toggleTherapistView()">Strefa Terapeuty 🔒</button>
+        </div>
+
+        <!-- PANEL TERAPEUTY (ZABEZPIECZONY) -->
+        <div class="card therapist-panel" id="therapist-panel" data-html2canvas-ignore="true">
+            <div id="login-form-container">
+                <h2>Logowanie dla Terapeuty</h2>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label>E-mail</label>
+                    <input type="email" id="auth-email" class="form-control" placeholder="terapeuta@domena.pl">
+                </div>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>Hasło</label>
+                    <input type="password" id="auth-password" class="form-control" placeholder="••••••••">
+                </div>
+                <button type="button" class="btn btn-email" onclick="loginTherapist()">Zaloguj się</button>
+            </div>
+
+            <div id="dashboard-container" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Odebrane Zgody Pacjentów</h2>
+                    <button type="button" class="btn-sm" style="background:var(--danger); color:white; border:none; cursor:pointer;" onclick="logoutTherapist()">Wyloguj</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="patient-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Pacjent</th>
+                                <th>Telefon</th>
+                                <th>Dokument</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patient-list-tbody">
+                            <tr><td colspan="4" style="text-align:center;">Ładowanie danych...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARZ PACJENTA -->
         <div class="card" id="document-content">
             <div class="header">
                 <h1>PSYCHODEM</h1>
@@ -418,7 +441,7 @@
 
                 <div class="statement-text">
                     <strong>Niniejszym oświadczam, że:</strong><br>
-                    Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (4.5.2016 L 19/38 Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych (Dz.U. 2018 poz. 1000) wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
+                    Zgodnie z art. 13 oraz 14 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (Dziennik Urzędowy Unii Europejskiej PL) i wymogami ustawy o ochronie danych osobowych wyrażam zgodę na przetwarzanie moich danych przez PSYCHODEM Psychoterapia Poznawczo-Behawioralna ŁUKASZ DEMEŃCZUK, w zakresie niezbędnym do prawidłowego wykonywania obowiązków w związku z realizowaniem usług psychologicznych na rzecz mojej osoby.<br><br>
                     Zgadzam się również na zapisy zawarte w Regulaminie.
                 </div>
 
@@ -438,7 +461,7 @@
                         <div class="signature-label">(miejsce i data)</div>
                     </div>
                     <div class="signature-box">
-                        <div class="canvas-container" id="canvas-container">
+                        <div class="canvas-container">
                             <canvas id="signature-pad" class="signature-canvas"></canvas>
                             <button type="button" class="clear-btn" id="clear-signature-btn" onclick="clearSignature()">Wyczyść</button>
                         </div>
@@ -472,23 +495,17 @@
 
         <div class="action-container" data-html2canvas-ignore="true">
             <button type="button" class="btn btn-download" onclick="processDocument('download')">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Pobierz PDF
+                Pobierz kopię (PDF)
             </button>
             <button type="button" class="btn btn-email" onclick="processDocument('cloud')">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                Wyślij do terapeuty (Zapis w chmurze)
+                Wyślij do terapeuty
             </button>
         </div>
-        <p class="help-text" data-html2canvas-ignore="true">
-            <strong>"Pobierz PDF"</strong> zapisuje dokument na Twoim urządzeniu.<br>
-            <strong>"Wyślij do terapeuty"</strong> bezpiecznie przesyła podpisany dokument bezpośrednio na serwer terapeuty.
-        </p>
     </div>
 
     <script>
         // --- KONFIGURACJA FIREBASE ---
-        // Zastąp poniższy obiekt danymi podanymi w konsoli Firebase
+        // Zastąp wartości ze swojego konta Firebase Console
         const firebaseConfig = {
             apiKey: "TWÓJ_API_KEY",
             authDomain: "TWOJA_DOMENA.firebaseapp.com",
@@ -498,12 +515,12 @@
             appId: "TWÓJ_APP_ID"
         };
 
-        // Inicjalizacja Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const storage = firebase.storage();
         const db = firebase.firestore();
 
-        // --- Obsługa Podpisu / Signature Logic ---
+        // --- OBSŁUGA SIGNATURE CANVAS ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -511,114 +528,114 @@
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.drawImage(canvas, 0, 0);
-
                 canvas.width = rect.width * 2;
                 canvas.height = rect.height * 2;
                 ctx.scale(2, 2);
-
                 ctx.lineWidth = 3;
                 ctx.lineJoin = ctx.lineCap = 'round';
                 ctx.strokeStyle = '#0f172a';
-
-                ctx.drawImage(tempCanvas, 0, 0, rect.width, rect.height);
             }
         }
-
         window.addEventListener('load', resizeCanvas);
         window.addEventListener('resize', resizeCanvas);
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            let clientX = e.clientX;
-            let clientY = e.clientY;
-
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
-
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
+            let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return { x: clientX - rect.left, y: clientY - rect.top };
         }
 
-        function startDrawing(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            const pos = getPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }
-
-        function stopDrawing(e) {
-            if (isDrawing) {
-                isDrawing = false;
-            }
-        }
+        function startDrawing(e) { e.preventDefault(); isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
+        function draw(e) { if (!isDrawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
+        function stopDrawing() { isDrawing = false; }
 
         canvas.addEventListener('pointerdown', startDrawing);
         canvas.addEventListener('pointermove', draw);
         canvas.addEventListener('pointerup', stopDrawing);
-        canvas.addEventListener('pointercancel', stopDrawing);
-
+        
         canvas.addEventListener('touchstart', startDrawing, { passive: false });
         canvas.addEventListener('touchmove', draw, { passive: false });
         canvas.addEventListener('touchend', stopDrawing);
 
-        function clearSignature() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
         function isCanvasEmpty(c) {
             const blank = document.createElement('canvas');
-            blank.width = c.width;
-            blank.height = c.height;
+            blank.width = c.width; blank.height = c.height;
             return c.toDataURL() === blank.toDataURL();
         }
 
-        // --- Generowanie PDF i wysyłanie do Firebase Storage ---
+        // --- STREFA TERAPEUTY (LOGOWANIE & LISTA) ---
+        function toggleTherapistView() {
+            const panel = document.getElementById('therapist-panel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function loginTherapist() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Błąd logowania: " + err.message));
+        }
+
+        function logoutTherapist() {
+            auth.signOut();
+        }
+
+        auth.onAuthStateChanged(user => {
+            const loginForm = document.getElementById('login-form-container');
+            const dashboard = document.getElementById('dashboard-container');
+            if (user) {
+                loginForm.style.display = 'none';
+                dashboard.style.display = 'block';
+                loadPatientData();
+            } else {
+                loginForm.style.display = 'block';
+                dashboard.style.display = 'none';
+            }
+        });
+
+        function loadPatientData() {
+            const tbody = document.getElementById('patient-list-tbody');
+            db.collection("zgody").orderBy("created_at", "desc").onSnapshot(snapshot => {
+                tbody.innerHTML = "";
+                if(snapshot.empty) {
+                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Brak odebranych dokumentów.</td></tr>";
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const dateStr = data.created_at ? new Date(data.created_at.toDate()).toLocaleString('pl-PL') : 'Brak daty';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td><strong>${data.fullname}</strong><br><small>${data.email}</small></td>
+                        <td>${data.phone}</td>
+                        <td><a href="${data.pdfUrl}" target="_blank" class="btn-sm" style="background:var(--accent); color:white;">Pobierz PDF</a></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }, err => {
+                tbody.innerHTML = `<tr><td colspan='4' style='color:red;'>Brak uprawnień do odczytu danych.</td></tr>`;
+            });
+        }
+
+        // --- GENEROWANIE I WYSYŁANIE PDF ---
         function processDocument(action) {
             const form = document.getElementById('consent-form');
-            if(!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            if (isCanvasEmpty(canvas)) {
-                alert("Proszę złożyć czytelny podpis w wyznaczonym polu (na dole formularza).");
-                return;
-            }
+            if(!form.checkValidity()) { form.reportValidity(); return; }
+            if (isCanvasEmpty(canvas)) { alert("Proszę złożyć czytelny podpis w wyznaczonym polu."); return; }
 
             const fullName = document.getElementById('fullname').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value;
             const loading = document.getElementById('loading');
-            const loadingText = document.getElementById('loading-text');
-
-            loadingText.innerText = action === 'cloud' ? "Wysyłanie do chmury..." : "Generowanie pliku PDF...";
+            
+            document.getElementById('loading-text').innerText = action === 'cloud' ? "Przesyłanie do bezpiecznej chmury..." : "Generowanie pliku...";
             loading.style.display = 'flex';
 
             const docContent = document.getElementById('document-content');
-
-            const inputs = document.querySelectorAll('input:not([type="button"])');
-            inputs.forEach(input => {
-                input.setAttribute('value', input.value);
-            });
-
+            document.querySelectorAll('input:not([type="button"])').forEach(input => input.setAttribute('value', input.value));
             document.getElementById('clear-signature-btn').style.display = 'none';
             docContent.classList.add('pdf-mode');
 
@@ -626,12 +643,11 @@
             const fileName = 'Zgoda_' + fullName.trim().replace(/\s+/g, '_') + '_' + timestamp + '.pdf';
 
             const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     fileName,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, windowWidth: 800 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                margin: [10, 10, 10, 10],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             if (action === 'download') {
@@ -641,50 +657,33 @@
                     loading.style.display = 'none';
                 });
             } else if (action === 'cloud') {
-                // Wygenerowanie pliku jako obiekt Blob (bez automatycznego zapisywania na dysku klienta)
-                html2pdf().set(opt).from(docContent).output('blob').then(function(pdfBlob) {
-                    
-                    // 1. Zapis pliku PDF w Firebase Storage
+                html2pdf().set(opt).from(docContent).output('blob').then(pdfBlob => {
                     const storageRef = storage.ref('zgody/' + fileName);
-                    const uploadTask = storageRef.put(pdfBlob);
-
-                    uploadTask.on('state_changed', 
-                        null, 
-                        function(error) {
-                            // Błąd przy wysyłaniu
-                            docContent.classList.remove('pdf-mode');
-                            document.getElementById('clear-signature-btn').style.display = 'block';
-                            loading.style.display = 'none';
-                            alert("Błąd podczas wysyłania do chmury: " + error.message);
-                        }, 
-                        function() {
-                            // 2. Sukces wysyłania - pobieramy adres URL do pobrania pliku
-                            uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-                                
-                                // 3. Zapisujemy dane pacjenta wraz z linkiem do pliku w bazie danych Firestore
-                                db.collection("zgody").add({
-                                    fullname: fullName,
-                                    email: email,
-                                    phone: phone,
-                                    pdfUrl: downloadURL,
-                                    fileName: fileName,
-                                    created_at: firebase.firestore.FieldValue.serverTimestamp()
-                                })
-                                .then(function() {
-                                    docContent.classList.remove('pdf-mode');
-                                    document.getElementById('clear-signature-btn').style.display = 'block';
-                                    loading.style.display = 'none';
-                                    alert("Dziękujemy! Twoja zgoda została pomyślnie podpisana i wysłana do terapeuty.");
-                                })
-                                .catch(function(error) {
-                                    docContent.classList.remove('pdf-mode');
-                                    document.getElementById('clear-signature-btn').style.display = 'block';
-                                    loading.style.display = 'none';
-                                    alert("Błąd zapisu danych w bazie: " + error.message);
-                                });
-                            });
-                        }
-                    );
+                    
+                    storageRef.put(pdfBlob).then(snapshot => {
+                        return snapshot.ref.getDownloadURL();
+                    }).then(downloadURL => {
+                        return db.collection("zgody").add({
+                            fullname: fullName,
+                            email: email,
+                            phone: phone,
+                            pdfUrl: downloadURL,
+                            fileName: fileName,
+                            created_at: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }).then(() => {
+                        docContent.classList.remove('pdf-mode');
+                        document.getElementById('clear-signature-btn').style.display = 'block';
+                        loading.style.display = 'none';
+                        alert("Dziękujemy! Dokument został bezpiecznie wysłany do terapeuty.");
+                        form.reset();
+                        clearSignature();
+                    }).catch(error => {
+                        docContent.classList.remove('pdf-mode');
+                        document.getElementById('clear-signature-btn').style.display = 'block';
+                        loading.style.display = 'none';
+                        alert("Błąd podczas przesyłania: " + error.message);
+                    });
                 });
             }
         }
