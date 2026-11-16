@@ -187,13 +187,17 @@
         .rating-group input[type="radio"]:checked + label:hover {
             background-color: var(--primary);
         }
-        tr.disabled-row {
-            opacity: 0.45;
+        tr.unchecked-row {
             background-color: #f8fafc;
+            color: #64748b;
         }
-        tr.disabled-row .rating-group label {
-            pointer-events: none;
-            background-color: #e2e8f0;
+        tr.unchecked-row .rating-group label {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+        tr.unchecked-row .rating-group label:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
         }
         .req-checkbox {
             width: 20px;
@@ -364,7 +368,7 @@
 
     <!-- CZĘŚĆ B -->
     <h2>B) UMIEJĘTNOŚCI CHARAKTERYSTYCZNE DLA TERAPII POZNAWCZO-BEHAWIORALNEJ, KTÓRE POWINNY UWIDACZNIAĆ SIĘ ZALEŻNIE OD ETAPU TERAPII I PROBLEMU PACJENTA</h2>
-    <p class="sub-instruction">(uwaga: jeśli uwzględniając etap terapii i problem pacjenta dana umiejętność powinna zostać uwidoczniona podczas ocenianej sesji należy to zaznaczyć w pierwszej kolumnie)</p>
+    <p class="sub-instruction">(uwaga: jeśli uwzględniając etap terapii i problem pacjenta dana umiejętność powinna zostać uwidoczniona podczas ocenianej sesji należy to zaznaczyć w pierwszej kolumnie — kliknięcie oceny 0–3 automatycznie zaznacza pozycję)</p>
     <table>
         <thead>
             <tr>
@@ -439,12 +443,14 @@
         "20. Wykazuje umiejętność zastosowania metod zapobiegania nawrotom i zakończenia terapii"
     ];
 
-    function createRatingHTML(name, disabled = false) {
+    function createRatingHTML(qNum, isPartB = false) {
+        const name = 'q' + qNum;
         let html = '<div class="rating-group">';
         for (let i = 0; i <= 3; i++) {
             const id = `${name}_${i}`;
+            const onChangeFn = isPartB ? `onScoreBChange(${qNum})` : `calculateScores()`;
             html += `
-                <input type="radio" id="${id}" name="${name}" value="${i}" ${disabled ? 'disabled' : ''} onchange="calculateScores()">
+                <input type="radio" id="${id}" name="${name}" value="${i}" onchange="${onChangeFn}">
                 <label for="${id}">${i}</label>
             `;
         }
@@ -459,7 +465,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${text}</td>
-                <td class="col-score">${createRatingHTML('q' + qNum)}</td>
+                <td class="col-score">${createRatingHTML(qNum, false)}</td>
                 <td class="col-comment"><textarea class="comment-box" placeholder="Uwagi..."></textarea></td>
             `;
             tbodyA.appendChild(tr);
@@ -470,17 +476,27 @@
             const qNum = idx + 12;
             const tr = document.createElement('tr');
             tr.id = `row-q${qNum}`;
-            tr.className = 'disabled-row';
+            tr.className = 'unchecked-row';
             tr.innerHTML = `
                 <td class="col-check">
                     <input type="checkbox" class="req-checkbox" id="chk-q${qNum}" onchange="toggleRowB(${qNum})">
                 </td>
                 <td>${text}</td>
-                <td class="col-score">${createRatingHTML('q' + qNum, true)}</td>
+                <td class="col-score">${createRatingHTML(qNum, true)}</td>
                 <td class="col-comment"><textarea class="comment-box" placeholder="Uwagi..."></textarea></td>
             `;
             tbodyB.appendChild(tr);
         });
+    }
+
+    function onScoreBChange(qNum) {
+        const checkbox = document.getElementById(`chk-q${qNum}`);
+        const row = document.getElementById(`row-q${qNum}`);
+        if (!checkbox.checked) {
+            checkbox.checked = true;
+            row.classList.remove('unchecked-row');
+        }
+        calculateScores();
     }
 
     function toggleRowB(qNum) {
@@ -489,14 +505,10 @@
         const radios = document.querySelectorAll(`input[name="q${qNum}"]`);
 
         if (checkbox.checked) {
-            row.classList.remove('disabled-row');
-            radios.forEach(r => r.disabled = false);
+            row.classList.remove('unchecked-row');
         } else {
-            row.classList.add('disabled-row');
-            radios.forEach(r => {
-                r.disabled = true;
-                r.checked = false;
-            });
+            row.classList.add('unchecked-row');
+            radios.forEach(r => r.checked = false);
         }
         calculateScores();
     }
