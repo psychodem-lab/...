@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skala Oceny Opisu Terapii (CBT)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #eff6ff;
+            --border: #cbd5e1;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --muted: #64748b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --star: #f59e0b;
+        }
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .authors {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        button.secondary {
+            background-color: #64748b;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+            background: var(--primary-light);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #bfdbfe;
+        }
+        .meta-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .meta-field label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .meta-field input {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        .context-bar {
+            background: var(--primary-light);
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        .context-bar > span.ctx-label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .context-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .context-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .context-options input[type="text"] {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.88rem;
+        }
+        .instructions {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--primary);
+        }
+        .instructions ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+        h2 {
+            font-size: 1.05rem;
+            background-color: var(--primary);
+            color: #fff;
+            padding: 9px 15px;
+            border-radius: 5px;
+            margin: 25px 0 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 0.92rem;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            text-align: left;
+        }
+        .col-score {
+            width: 195px;
+            text-align: center;
+        }
+        .col-comment {
+            width: 30%;
+        }
+        .rating-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+        .rating-group label.score-btn {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.15s;
+            background: #fff;
+            user-select: none;
+        }
+        .rating-group input[type="radio"] {
+            display: none;
+        }
+        .rating-group input[type="radio"]:checked + label.score-btn {
+            background-color: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .rating-group label.score-btn:hover {
+            background-color: var(--primary-light);
+        }
+        .rating-group input[type="radio"]:checked + label.score-btn:hover {
+            background-color: var(--primary);
+        }
+        .rating-group input[type="checkbox"].star-chk {
+            display: none;
+        }
+        .rating-group label.star-btn {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1.15rem;
+            color: #94a3b8;
+            background: #fff;
+            transition: all 0.15s;
+            user-select: none;
+            margin-left: 4px;
+        }
+        .rating-group label.star-btn:hover {
+            border-color: var(--star);
+            color: var(--star);
+        }
+        .rating-group input[type="checkbox"].star-chk:checked + label.star-btn {
+            background-color: #fef3c7;
+            border-color: var(--star);
+            color: var(--star);
+        }
+        textarea.comment-box {
+            width: 100%;
+            min-height: 42px;
+            padding: 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 0.85rem;
+        }
+        .summary-notes {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .note-box label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 0.92rem;
+        }
+        .note-box textarea {
+            width: 100%;
+            height: 75px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            resize: vertical;
+        }
+        .results-panel {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+        }
+        .results-panel h3 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .stat-title {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+        .stat-sub {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .badge.pass {
+            background-color: #dcfce7;
+            color: var(--success);
+        }
+        .badge.fail {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+        .decision-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.92rem;
+        }
+        .decision-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .decision-group input[type="text"] {
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            width: 110px;
+        }
+        .signature-row {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .signature-box {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+        .signature-box label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .signature-box input {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; }
+            .actions { display: none; }
+            h2 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .rating-group input[type="radio"]:checked + label.score-btn,
+            .rating-group input[type="checkbox"].star-chk:checked + label.star-btn {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        @media (max-width: 768px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .col-comment { width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>SKALA OCENY OPISU TERAPII</h1>
+            <p class="authors">A. Popiel & E. Pragłowska 2011</p>
+        </div>
+        <div class="actions">
+            <button type="button" class="secondary" onclick="resetForm()">Wyczyść formularz</button>
+            <button type="button" onclick="window.print()">Drukuj / Zapisz PDF</button>
+        </div>
+    </header>
+
+    <div class="meta-grid">
+        <div class="meta-field">
+            <label for="therapist">Terapeuta:</label>
+            <input type="text" id="therapist" placeholder="Imię i nazwisko">
+        </div>
+        <div class="meta-field">
+            <label for="evaluator">Osoba oceniająca:</label>
+            <input type="text" id="evaluator" placeholder="Imię i nazwisko">
+        </div>
+        <div class="meta-field">
+            <label for="case_id">Identyfikator opisu terapii (np. inicjały i wiek pacjenta):</label>
+            <input type="text" id="case_id" placeholder="np. A.K., 32 l.">
+        </div>
+        <div class="meta-field">
+            <label for="eval_date">Data:</label>
+            <input type="date" id="eval_date">
+        </div>
+    </div>
+
+    <div class="context-bar">
+        <span class="ctx-label">Kontekst oceny:</span>
+        <div class="context-options">
+            <label><input type="checkbox" name="context" value="superwizja"> superwizja</label>
+            <label><input type="checkbox" name="context" value="zaliczenie"> zaliczenie cząstkowe</label>
+            <label><input type="checkbox" name="context" value="egzamin"> egzamin</label>
+            <label><input type="checkbox" id="ctx_other_chk" name="context" value="inny"> inny, jaki: <input type="text" id="ctx_other_text" placeholder="..." oninput="document.getElementById('ctx_other_chk').checked = this.value.trim() !== ''"></label>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <strong>Instrukcja:</strong> Oceniając opis przypadku proszę zwrócić szczególną uwagę na informacje dotyczące poniższych pozycji. Każdą pozycję opisu proszę ocenić na skali od 0 do 2, gdzie:
+        <ul>
+            <li><strong>(0)</strong> = Brak - terapeuta nie podał informacji odnoszących się do danego punktu</li>
+            <li><strong>(1)</strong> = Obecny, ale niewystarczający - informacje na dany temat występują, ale są niekompletne lub nieadekwatne</li>
+            <li><strong>(2)</strong> = Obecny i adekwatny - opis zawiera wyczerpujące informacje na ten temat</li>
+            <li><strong>☆</strong> = Szczególne walory tej części opisu</li>
+        </ul>
+    </div>
+
+    <div id="sections-container"></div>
+
+    <!-- UWAGI KOŃCOWE -->
+    <div class="summary-notes">
+        <div class="note-box">
+            <label for="general_comment">KOMENTARZ OGÓLNY:</label>
+            <textarea id="general_comment" placeholder="Wpisz komentarz ogólny..."></textarea>
+        </div>
+        <div class="note-box">
+            <label for="strengths">MOCNE STRONY:</label>
+            <textarea id="strengths" placeholder="Wpisz mocne strony opisu terapii..."></textarea>
+        </div>
+        <div class="note-box">
+            <label for="formal_aspects">FORMALNE ASPEKTY OPISU:</label>
+            <textarea id="formal_aspects" placeholder="Uwagi dotyczące formalnych aspektów opisu..."></textarea>
+        </div>
+    </div>
+
+    <!-- PODSUMOWANIE -->
+    <div class="results-panel">
+        <h3>Podsumowanie</h3>
+        <div class="results-grid">
+            <div class="stat-card">
+                <div class="stat-title">Całkowity wynik</div>
+                <div class="stat-value">
+                    <span id="total-score">0</span> / 40 pkt (<span id="total-pct">0.0</span>%)
+                    <span id="pass-badge" class="badge fail">PONIŻEJ 75% (< 30 pkt)</span>
+                </div>
+                <div class="stat-sub">Maksymalna liczba punktów: 40 | Próg zaliczenia 75% = 30 pkt | Wyróżnienia (☆): <span id="star-count">0</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Decyzja</div>
+                <div class="decision-group">
+                    <label>
+                        <input type="radio" name="decision" value="pass">
+                        <span>zaliczam z oceną:</span>
+                        <input type="text" id="grade_input" placeholder="ocena" oninput="document.querySelector('input[name=decision][value=pass]').checked = true">
+                    </label>
+                    <label>
+                        <input type="radio" name="decision" value="conditional">
+                        <span>*zaliczam warunkowo po dodatkowych wyjaśnieniach</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="decision" value="fail">
+                        <span>Nie zaliczam</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="signature-row">
+            <div class="signature-box">
+                <label for="date_signature">DATA I PODPIS:</label>
+                <input type="text" id="date_signature" placeholder="Data i podpis osoby oceniającej">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const sections = [
+        {
+            title: "Informacje ogólne, wywiad i diagnoza kliniczna — OPIS ZAWIERA:",
+            items: [
+                { num: 1, text: "1. Informacje ogólne o pacjencie" },
+                { num: 2, text: "2. Lista problemów (zgłaszane problemy, z którym pacjent się zgłosił na terapię, wyodrębnienie głównych problemów)" },
+                { num: 3, text: "3. Badanie stanu psychicznego (diagnoza kliniczna, adekwatność, spójność z listą problemów)" },
+                { num: 4, text: "4. Ocena bieżącego funkcjonowania pacjenta w sferze interpersonalnej / rodzinnej; zawodowej/szkolnej; społecznej" }
+            ]
+        },
+        {
+            title: "Konceptualizacja problemu pacjenta",
+            items: [
+                { num: 5, text: "5. Czynniki wywołujące aktualne problemy lub zaburzenia" },
+                { num: 6, text: "6. Aktualne sposoby myślenia (myśli automatyczne, przekonania pośredniczące, przekonania kluczowe) oraz zachowania, które przyczyniają się do podtrzymywania problemów lub zaburzeń u pacjenta w ilustrujących problem sytuacjach (pierwszy poziom konceptualizacji)." },
+                { num: 7, text: "7. Schematy poznawcze, utrwalone wzorce reagowania emocjonalnego i zachowań oraz ich rola w podtrzymywaniu problemów lub zaburzeń (drugi poziom konceptualizacji)" },
+                { num: 8, text: "8. Profil rozwojowy uwzględnienie czynników, które mogły mieć wpływ na ukształtowanie się schematów poznawczych pacjenta. Przeszłość i związki z innymi, znaczące wydarzenia, czynniki mogące wpływać na proces terapii, czynniki wyzwalające zaburzenie. (drugi poziom konceptualizacji)" },
+                { num: 9, text: "9. Wyodrębnienie aktualnych mocnych stron pacjenta (drugi poziom konceptualizacji)" },
+                { num: 10, text: "10. Podsumowanie konceptualizacji" }
+            ]
+        },
+        {
+            title: "Plan terapii i jego realizacja",
+            items: [
+                { num: 11, text: "11. Cele terapeutyczne (zgodne z listą problemów, diagnozą, mierzalne, możliwe do realizacji, określone wspólnie z pacjentem)" },
+                { num: 12, text: "12. Plan terapii (w oparciu o jaki protokół, adekwatność wyboru)" },
+                { num: 13, text: "13. Zaplanowane procedury (adekwatność, kompletność, uzasadniona kolejność)" },
+                { num: 14, text: "14. Narzędzia oceny stanu psychicznego i/lub sposoby monitorowania zmian" },
+                { num: 15, text: "15. Realizacja planu: zastosowane procedury poznawcze i / lub behawioralne. Praca osobista" },
+                { num: 16, text: "16. Relacja terapeutyczna, współpraca w terapii" },
+                { num: 17, text: "17. Trudności w realizacji planu terapeutycznego i sposoby ich pokonania" },
+                { num: 18, text: "18. Zakończenie terapii, procedury „zapobiegania nawrotom”" }
+            ]
+        },
+        {
+            title: "Podsumowanie efektów terapii",
+            items: [
+                { num: 19, text: "19. Efekty terapii, opis zmian, które zaszły i ich odniesienie do mechanizmów podtrzymujących problem pacjenta" }
+            ]
+        },
+        {
+            title: "Korzystanie z dodatkowych źródeł informacji",
+            items: [
+                { num: 20, text: "20. Wiedza teoretyczna dotycząca psychoterapii poznawczo-behawioralnej w odniesieniu do problemu tego pacjenta - adekwatność źródeł, wnioskowanie na podstawie dostępnej literatury przedmiotu" }
+            ]
+        }
+    ];
+
+    function createRatingHTML(qNum) {
+        const name = 'q' + qNum;
+        let html = '<div class="rating-group">';
+        for (let i = 0; i <= 2; i++) {
+            const id = `${name}_${i}`;
+            html += `
+                <input type="radio" id="${id}" name="${name}" value="${i}" onchange="calculateScores()">
+                <label class="score-btn" for="${id}">${i}</label>
+            `;
+        }
+        const starId = `${name}_star`;
+        html += `
+            <input type="checkbox" class="star-chk" id="${starId}" onchange="calculateScores()">
+            <label class="star-btn" for="${starId}" title="Szczególne walory tej części opisu">☆</label>
+        `;
+        html += '</div>';
+        return html;
+    }
+
+    function renderForm() {
+        const container = document.getElementById('sections-container');
+        sections.forEach(sec => {
+            const h2 = document.createElement('h2');
+            h2.textContent = sec.title;
+            container.appendChild(h2);
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Kryterium oceny</th>
+                        <th class="col-score" style="text-align:center;">Ocena (0–2) i walory (☆)</th>
+                        <th class="col-comment">Komentarz / pytania do terapeutki/terapeuty</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+
+            sec.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.text}</td>
+                    <td class="col-score">${createRatingHTML(item.num)}</td>
+                    <td class="col-comment"><textarea class="comment-box" placeholder="Uwagi / pytania..."></textarea></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            container.appendChild(table);
+        });
+    }
+
+    function calculateScores() {
+        let totalScore = 0;
+        let starCount = 0;
+
+        for (let i = 1; i <= 20; i++) {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected) {
+                totalScore += parseInt(selected.value, 10);
+            }
+            const star = document.getElementById(`q${i}_star`);
+            if (star && star.checked) {
+                starCount++;
+            }
+        }
+
+        const maxScore = 40;
+        const pct = (totalScore / maxScore) * 100;
+
+        document.getElementById('total-score').textContent = totalScore;
+        document.getElementById('total-pct').textContent = pct.toFixed(1);
+        document.getElementById('star-count').textContent = starCount;
+
+        const badge = document.getElementById('pass-badge');
+        if (totalScore >= 30) {
+            badge.textContent = 'ZALICZONE (≥ 30 pkt / 75%)';
+            badge.className = 'badge pass';
+        } else {
+            badge.textContent = 'PONIŻEJ 75% (< 30 pkt)';
+            badge.className = 'badge fail';
+        }
+    }
+
+    function resetForm() {
+        if (!confirm('Czy na pewno chcesz wyczyścić cały formularz?')) return;
+        document.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(el => el.value = '');
+        document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(el => el.checked = false);
+        calculateScores();
+    }
+
+    renderForm();
+    calculateScores();
+</script>
+
+</body>
+</html>
