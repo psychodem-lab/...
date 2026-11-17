@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planer Sali Muzycznej i Ping-Ponga 2D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+        /* Własny pasek przewijania */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .canvas-bg-dark {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .canvas-bg-light {
+            background-color: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200" id="appBody">
+
+    <!-- Górny pasek narzędzi (Header) -->
+    <header class="h-14 bg-slate-900 border-b border-slate-800 px-3 flex items-center justify-between gap-2 shrink-0 z-20 shadow-md" id="topBar">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shadow-inner">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm sm:text-base leading-tight tracking-tight">Planer Sali 2D</h1>
+                <p class="text-[11px] text-slate-400 hidden sm:block">Projektowanie hybrydowej sali prób i ping-ponga</p>
+            </div>
+        </div>
+
+        <!-- Przełącznik trybu (Muzyka / Ping-Pong) -->
+        <div class="flex items-center bg-slate-800/90 p-1 rounded-xl border border-slate-700/70">
+            <button id="btnModeMusic" onclick="setRoomMode('music')" class="px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow">
+                <span>🎸</span> <span class="hidden md:inline">Tryb Próby</span><span class="md:hidden">Muzyka</span>
+            </button>
+            <button id="btnModePingPong" onclick="setRoomMode('pingpong')" class="px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+                <span>🏓</span> <span class="hidden md:inline">Tryb Ping-Ponga</span><span class="md:hidden">Ping-Pong</span>
+            </button>
+        </div>
+
+        <!-- Przyciski akcji (Zapisz, Wczytaj, Eksport PNG, Motyw) -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <button onclick="toggleRulerTool()" id="btnRuler" title="Miarka odległości (kliknij 2 punkty na planie)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <span class="hidden lg:inline">Miarka</span>
+            </button>
+
+            <button onclick="saveProjectJSON()" title="Zapisz projekt do pliku .JSON na dysku" class="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium flex items-center gap-1.5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span class="hidden sm:inline">Zapisz plik</span>
+            </button>
+
+            <label title="Wczytaj zapisany projekt z pliku .JSON" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium flex items-center gap-1.5 cursor-pointer transition">
+                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span class="hidden sm:inline">Wczytaj</span>
+                <input type="file" id="fileInput" accept=".json" class="hidden" onchange="loadProjectJSON(event)">
+            </label>
+
+            <button onclick="exportToPNG()" title="Pobierz rzut jako obrazek PNG" class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="hidden md:inline">Eksport PNG</span>
+            </button>
+
+            <button onclick="toggleTheme()" id="btnTheme" title="Przełącz jasny/ciemny motyw" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+                ☀️
+            </button>
+        </div>
+    </header>
+
+    <!-- Główny obszar roboczy -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+        <!-- Lewy panel: Wymiary pokoju i Biblioteka elementów -->
+        <aside class="w-full md:w-72 bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col shrink-0 max-h-[38vh] md:max-h-full z-10" id="leftSidebar">
+            
+            <!-- Konfiguracja pomieszczenia -->
+            <div class="p-3 border-b border-slate-800">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Wymiary sali (metry)</span>
+                    <button onclick="resetToDefaultLayout()" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline">Resetuj układ</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Szerokość (X)</label>
+                        <div class="relative">
+                            <input type="number" id="roomWidthInput" value="5.0" step="0.1" min="2.0" max="20.0" onchange="updateRoomDimensions()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-mono focus:outline-none focus:border-indigo-500">
+                            <span class="absolute right-2.5 top-1.5 text-xs text-slate-500">m</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Długość (Y)</label>
+                        <div class="relative">
+                            <input type="number" id="roomLengthInput" value="6.0" step="0.1" min="2.0" max="20.0" onchange="updateRoomDimensions()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-mono focus:outline-none focus:border-indigo-500">
+                            <span class="absolute right-2.5 top-1.5 text-xs text-slate-500">m</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-xs text-slate-400">
+                    <span>Powierzchnia: <strong id="roomAreaLabel" class="text-slate-200 font-mono">30.0 m²</strong></span>
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="checkbox" id="snapGridCheck" checked class="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0">
+                        <span>Przyciągaj (5 cm)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Biblioteka obiektów do dodania -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Dodaj wyposażenie (kliknij)</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-1 gap-1.5" id="catalogList">
+                        <!-- Generowane dynamicznie przez JS -->
+                    </div>
+                </div>
+
+                <!-- Kreator własnego obiektu -->
+                <div class="pt-2 border-t border-slate-800">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Własny element</h2>
+                    <div class="space-y-2 bg-slate-800/50 p-2.5 rounded-xl border border-slate-800">
+                        <input type="text" id="customName" placeholder="Nazwa (np. Kanapa, Regał)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-indigo-500">
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <div>
+                                <label class="text-[10px] text-slate-400">Szer. (m)</label>
+                                <input type="number" id="customW" value="1.2" step="0.05" min="0.1" max="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400">Głęb. (m)</label>
+                                <input type="number" id="customH" value="0.6" step="0.05" min="0.1" max="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="customColor" value="#8b5cf6" class="w-7 h-7 rounded cursor-pointer bg-transparent border-0">
+                            <button onclick="addCustomItem()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-1.5 rounded-lg transition">
+                                + Dodaj na plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Środkowy obszar: Płótno CAD / Canvas -->
+        <main class="flex-1 relative flex items-center justify-center canvas-bg-dark overflow-hidden" id="canvasContainer">
+            <canvas id="floorCanvas" class="block cursor-grab active:cursor-grabbing"></canvas>
+
+            <!-- Pływający pasek informacyjny (góra płótna) -->
+            <div class="absolute top-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                <div class="bg-slate-900/90 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs flex items-center gap-3 pointer-events-auto shadow-lg">
+                    <span id="statusModeBadge" class="font-semibold text-indigo-400">🎸 Tryb: Próba Muzyczna</span>
+                    <span class="text-slate-600">|</span>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                        <input type="checkbox" id="showClearanceCheck" checked onchange="draw()" class="rounded text-indigo-600 focus:ring-0">
+                        <span>Strefa gry ping-ponga (1.5m)</span>
+                    </label>
+                    <label class="hidden sm:flex items-center gap-1.5 cursor-pointer text-slate-300">
+                        <input type="checkbox" id="showWallDistCheck" checked onchange="draw()" class="rounded text-indigo-600 focus:ring-0">
+                        <span>Odległości od ścian</span>
+                    </label>
+                </div>
+
+                <!-- Podpowiedź narzędzia miarki -->
+                <div id="rulerBanner" class="hidden bg-amber-500 text-slate-950 font-semibold px-3 py-1.5 rounded-xl text-xs shadow-lg flex items-center gap-2 pointer-events-auto">
+                    <span>📏 Tryb miarki: Kliknij punkt początkowy i końcowy na planie</span>
+                    <button onclick="toggleRulerTool()" class="bg-slate-950/20 hover:bg-slate-950/30 px-2 py-0.5 rounded text-[11px]">Zamknij</button>
+                </div>
+            </div>
+
+            <!-- Kontrolki powiększenia (Zoom) prawy dół -->
+            <div class="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur border border-slate-700/80 p-1 rounded-xl flex items-center gap-1 shadow-lg">
+                <button onclick="changeZoom(-0.15)" class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center font-bold text-slate-300" title="Pomniejsz">−</button>
+                <span id="zoomLabel" class="text-xs font-mono px-2 text-slate-300">100%</span>
+                <button onclick="changeZoom(0.15)" class="w-8 h-8 rounded-lg hover:bg-slate-800 flex items-center justify-center font-bold text-slate-300" title="Powiększ">+</button>
+                <button onclick="fitRoomToScreen()" class="px-2 h-8 rounded-lg hover:bg-slate-800 text-[11px] font-medium text-indigo-400" title="Dopasuj widok">Dopasuj</button>
+            </div>
+        </main>
+
+        <!-- Prawy panel: Inspektor wybranego obiektu -->
+        <aside class="w-full md:w-64 bg-slate-900 border-t md:border-t-0 md:border-l border-slate-800 p-3 shrink-0 z-10 overflow-y-auto max-h-[30vh] md:max-h-full" id="rightSidebar">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Właściwości elementu</h2>
+
+            <!-- Stan gdy nic nie jest zaznaczone -->
+            <div id="noSelectionPanel" class="text-xs text-slate-400 space-y-2 py-4 text-center border border-dashed border-slate-800 rounded-xl p-3">
+                <p class="text-slate-300 font-medium">Kliknij dowolny obiekt na planie</p>
+                <p>Możesz go przesuwać myszką lub palcem, obracać o dowolny kąt, zmieniać wymiary oraz sprawdzać odległości od ścian.</p>
+                <div class="pt-2 text-[11px] text-slate-500">
+                    <p>Skróty klawiszowe:</p>
+                    <p><kbd class="bg-slate-800 px-1.5 py-0.5 rounded">R</kbd> Obróć o 45° | <kbd class="bg-slate-800 px-1.5 py-0.5 rounded">Del</kbd> Usuń</p>
+                </div>
+            </div>
+
+            <!-- Panel edycji zaznaczonego obiektu -->
+            <div id="inspectorPanel" class="hidden space-y-3">
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-0.5">Etykieta / Nazwa</label>
+                    <input type="text" id="propName" oninput="updateSelectedProp('name', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Szerokość (m)</label>
+                        <input type="number" id="propW" step="0.05" min="0.1" max="15" oninput="updateSelectedProp('w', parseFloat(this.value))" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Głębokość (m)</label>
+                        <input type="number" id="propH" step="0.05" min="0.1" max="15" oninput="updateSelectedProp('h', parseFloat(this.value))" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                    </div>
+                </div>
+
+                <!-- Pozycja X / Y -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Pozycja X (m)</label>
+                        <input type="number" id="propX" step="0.05" oninput="updateSelectedProp('x', parseFloat(this.value))" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-0.5">Pozycja Y (m)</label>
+                        <input type="number" id="propY" step="0.05" oninput="updateSelectedProp('y', parseFloat(this.value))" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono">
+                    </div>
+                </div>
+
+                <!-- Obrót -->
+                <div>
+                    <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Obrót (kąt)</span>
+                        <span id="propAngleLabel" class="font-mono text-slate-200">0°</span>
+                    </div>
+                    <input type="range" id="propAngle" min="0" max="359" value="0" oninput="updateSelectedProp('angle', parseInt(this.value))" class="w-full accent-indigo-500 cursor-pointer">
+                    <div class="grid grid-cols-4 gap-1 mt-1.5">
+                        <button onclick="rotateSelected(-45)" class="bg-slate-800 hover:bg-slate-700 py-1 rounded text-[11px] font-mono">-45°</button>
+                        <button onclick="rotateSelected(45)" class="bg-slate-800 hover:bg-slate-700 py-1 rounded text-[11px] font-mono">+45°</button>
+                        <button onclick="rotateSelected(90)" class="bg-slate-800 hover:bg-slate-700 py-1 rounded text-[11px] font-mono">+90°</button>
+                        <button onclick="setSelectedAngle(0)" class="bg-slate-800 hover:bg-slate-700 py-1 rounded text-[11px]">0°</button>
+                    </div>
+                </div>
+
+                <!-- Widoczność w trybach -->
+                <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-800 space-y-1.5">
+                    <span class="block text-[11px] font-semibold text-slate-300">Widoczność w trybach:</span>
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="propShowMusic" onchange="updateSelectedProp('showInMusic', this.checked)" class="rounded text-indigo-600">
+                        <span>🎸 Tryb Próby Muzycznej</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="propShowPingPong" onchange="updateSelectedProp('showInPingPong', this.checked)" class="rounded text-indigo-600">
+                        <span>🏓 Tryb Ping-Ponga</span>
+                    </label>
+                </div>
+
+                <!-- Kolor i akcje -->
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2 text-xs text-slate-400">
+                        <span>Kolor:</span>
+                        <input type="color" id="propColor" oninput="updateSelectedProp('color', this.value)" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                    </label>
+                    <div class="flex gap-1.5">
+                        <button onclick="duplicateSelected()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-200" title="Duplikuj">Kopiuj</button>
+                        <button onclick="deleteSelected()" class="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-medium" title="Usuń">Usuń</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Powiadomienie Toast (zamiast alert()) -->
+    <div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white border border-slate-700 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium flex items-center gap-2 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+        <span id="toastIcon">✅</span>
+        <span id="toastMsg">Zapisano projekt!</span>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. KONFIGURACJA I KATALOG OBIEKTÓW
+        // ==========================================
+        const CATALOG = [
+            { type: 'drums', name: 'Perkusja (dywan)', w: 2.0, h: 1.8, color: '#b45309', icon: '🥁' },
+            { type: 'keyboard', name: 'Klawisze + statyw', w: 1.4, h: 0.6, color: '#334155', icon: '🎹' },
+            { type: 'bass_amp', name: 'Wzmacniacz Basowy', w: 0.7, h: 0.5, color: '#1e293b', icon: '🔊' },
+            { type: 'guitar_amp', name: 'Wzmacniacz Gitarowy', w: 0.7, h: 0.4, color: '#78350f', icon: '🎸' },
+            { type: 'sax', name: 'Saksofon (strefa)', w: 1.1, h: 1.1, color: '#d97706', icon: '🎷' },
+            { type: 'pa_speaker', name: 'Kolumna PA', w: 0.5, h: 0.5, color: '#0f172a', icon: '📢' },
+            { type: 'mixer', name: 'Mikser / Rack', w: 0.8, h: 0.6, color: '#475569', icon: '🎛️' },
+            { type: 'pingpong_open', name: 'Stół Ping-Pong (rozłożony)', w: 1.525, h: 2.74, color: '#1d4ed8', icon: '🏓' },
+            { type: 'pingpong_folded', name: 'Stół Ping-Pong (złożony)', w: 1.525, h: 0.65, color: '#2563eb', icon: ' folded' },
+            { type: 'ac_unit', name: 'Klimatyzator 3.5 kW', w: 0.9, h: 0.3, color: '#e2e8f0', icon: '❄️' },
+            { type: 'door', name: 'Drzwi (90 cm)', w: 0.9, h: 0.15, color: '#92400e', icon: '🚪' },
+            { type: 'window', name: 'Okno (120 cm)', w: 1.2, h: 0.15, color: '#38bdf8', icon: '🪟' },
+            { type: 'acoustic_panel', name: 'Panel akustyczny', w: 1.0, h: 0.1, color: '#4f46e5', icon: '🔇' }
+        ];
+
+        // Stan aplikacji
+        let state = {
+            roomWidth: 5.0,   // metry
+            roomLength: 6.0,  // metry
+            mode: 'music',    // 'music' lub 'pingpong'
+            darkMode: true,
+            items: []
+        };
+
+        // Zmienne widoku i interakcji Canvas
+        const canvas = document.getElementById('floorCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+
+        let pixelsPerMeter = 95;
+        let zoom = 1.0;
+        let panX = 0;
+        let panY = 0;
+
+        let selectedItemId = null;
+        let isDraggingItem = false;
+        let isPanning = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let lastPointerX = 0;
+        let lastPointerY = 0;
+
+        // Narzędzie miarki
+        let rulerActive = false;
+        let rulerPoints = []; // [{x, y}, {x, y}] w metrach
+
+        // ==========================================
+        // 2. INICJALIZACJA I DOMYŚLNY UKŁAD (5x6m)
+        // ==========================================
+        function getDefaultItems() {
+            return [
+                // Sekcja muzyczna (widoczna zawsze lub w trybie próby)
+                { id: 'item_1', type: 'drums', name: 'Perkusja', x: 1.35, y: 1.45, w: 2.0, h: 1.8, angle: 0, color: '#b45309', showInMusic: true, showInPingPong: true },
+                { id: 'item_2', type: 'keyboard', name: 'Klawisze', x: 0.45, y: 3.3, w: 1.4, h: 0.6, angle: 90, color: '#334155', showInMusic: true, showInPingPong: true },
+                { id: 'item_3', type: 'guitar_amp', name: 'Wzmacniacz Gitara', x: 0.4, y: 4.6, w: 0.7, h: 0.4, angle: 90, color: '#78350f', showInMusic: true, showInPingPong: true },
+                { id: 'item_4', type: 'bass_amp', name: 'Wzmacniacz Bas', x: 1.4, y: 5.65, w: 0.7, h: 0.5, angle: 0, color: '#1e293b', showInMusic: true, showInPingPong: true },
+                { id: 'item_5', type: 'mixer', name: 'Mikser', x: 2.3, y: 5.6, w: 0.8, h: 0.6, angle: 0, color: '#475569', showInMusic: true, showInPingPong: true },
+                { id: 'item_6', type: 'sax', name: 'Saksofon', x: 2.1, y: 3.1, w: 1.1, h: 1.1, angle: 0, color: '#d97706', showInMusic: true, showInPingPong: false },
+                { id: 'item_7', type: 'pa_speaker', name: 'Kolumna PA L', x: 0.4, y: 0.4, w: 0.5, h: 0.5, angle: 45, color: '#0f172a', showInMusic: true, showInPingPong: true },
+                { id: 'item_8', type: 'pa_speaker', name: 'Kolumna PA P', x: 0.4, y: 5.6, w: 0.5, h: 0.5, angle: -45, color: '#0f172a', showInMusic: true, showInPingPong: true },
+
+                // Klimatyzacja i otwory
+                { id: 'item_9', type: 'ac_unit', name: 'Klimatyzator 3.5kW', x: 2.2, y: 0.18, w: 0.9, h: 0.3, angle: 0, color: '#e2e8f0', showInMusic: true, showInPingPong: true },
+                { id: 'item_10', type: 'door', name: 'Drzwi wejściowe', x: 4.5, y: 0.08, w: 0.9, h: 0.15, angle: 0, color: '#92400e', showInMusic: true, showInPingPong: true },
+                { id: 'item_11', type: 'window', name: 'Okno', x: 4.92, y: 3.0, w: 1.2, h: 0.15, angle: 90, color: '#38bdf8', showInMusic: true, showInPingPong: true },
+
+                // Stół do ping-ponga: wersja złożona (dla trybu muzycznego) oraz rozłożona (dla trybu ping-ponga)
+                { id: 'item_12', type: 'pingpong_folded', name: 'Stół złożony', x: 3.6, y: 0.4, w: 1.525, h: 0.65, angle: 0, color: '#2563eb', showInMusic: true, showInPingPong: false },
+                { id: 'item_13', type: 'pingpong_open', name: 'Stół do Ping-Ponga', x: 3.45, y: 3.1, w: 1.525, h: 2.74, angle: 0, color: '#1d4ed8', showInMusic: false, showInPingPong: true }
+            ];
+        }
+
+        function init() {
+            renderCatalog();
+            // Próba wczytania autozapisu z localStorage
+            const saved = localStorage.getItem('wiktorowo_sala_plan_v1');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.items && parsed.roomWidth) {
+                        state = parsed;
+                        document.getElementById('roomWidthInput').value = state.roomWidth;
+                        document.getElementById('roomLengthInput').value = state.roomLength;
+                    } else {
+                        state.items = getDefaultItems();
+                    }
+                } catch (e) {
+                    state.items = getDefaultItems();
+                }
+            } else {
+                state.items = getDefaultItems();
+            }
+
+            updateRoomAreaLabel();
+            updateModeButtons();
+            resizeCanvas();
+            fitRoomToScreen();
+        }
+
+        function renderCatalog() {
+            const list = document.getElementById('catalogList');
+            list.innerHTML = '';
+            CATALOG.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'flex items-center justify-between w-full px-2.5 py-2 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 text-left transition group';
+                btn.onclick = () => addCatalogItem(idx);
+                const iconDisplay = item.type === 'pingpong_folded' ? '🏓' : item.icon;
+                btn.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-base shrink-0">${iconDisplay}</span>
+                        <div class="truncate">
+                            <div class="text-xs font-medium text-slate-200 group-hover:text-white truncate">${item.name}</div>
+                            <div class="text-[10px] font-mono text-slate-400">${item.w.toFixed(2)}m × ${item.h.toFixed(2)}m</div>
+                        </div>
+                    </div>
+                    <span class="text-indigo-400 font-bold text-sm pl-1">+</span>
+                `;
+                list.appendChild(btn);
+            });
+        }
+
+        // ==========================================
+        // 3. ZARZĄDZANIE STANEM I OBIEKTAMI
+        // ==========================================
+        function saveAutoBackup() {
+            try {
+                localStorage.setItem('wiktorowo_sala_plan_v1', JSON.stringify(state));
+            } catch (e) { /* ignoruj błędy storage */ }
+        }
+
+        function addCatalogItem(catalogIdx) {
+            const template = CATALOG[catalogIdx];
+            const newItem = {
+                id: 'item_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                type: template.type,
+                name: template.name,
+                x: +(state.roomWidth / 2).toFixed(2),
+                y: +(state.roomLength / 2).toFixed(2),
+                w: template.w,
+                h: template.h,
+                angle: 0,
+                color: template.color,
+                showInMusic: true,
+                showInPingPong: true
+            };
+            state.items.push(newItem);
+            selectItem(newItem.id);
+            saveAutoBackup();
+            draw();
+            showToast(`Dodano: ${template.name}`, '➕');
+        }
+
+        function addCustomItem() {
+            const nameInput = document.getElementById('customName');
+            const wInput = document.getElementById('customW');
+            const hInput = document.getElementById('customH');
+            const colorInput = document.getElementById('customColor');
+
+            const name = nameInput.value.trim() || 'Własny obiekt';
+            const w = Math.max(0.1, parseFloat(wInput.value) || 1.0);
+            const h = Math.max(0.1, parseFloat(hInput.value) || 0.6);
+            const color = colorInput.value;
+
+            const newItem = {
+                id: 'custom_' + Date.now(),
+                type: 'custom',
+                name: name,
+                x: +(state.roomWidth / 2).toFixed(2),
+                y: +(state.roomLength / 2).toFixed(2),
+                w: w,
+                h: h,
+                angle: 0,
+                color: color,
+                showInMusic: true,
+                showInPingPong: true
+            };
+            state.items.push(newItem);
+            nameInput.value = '';
+            selectItem(newItem.id);
+            saveAutoBackup();
+            draw();
+            showToast(`Dodano własny element: ${name}`, '✨');
+        }
+
+        function updateRoomDimensions() {
+            const w = Math.max(2.0, Math.min(25.0, parseFloat(document.getElementById('roomWidthInput').value) || 5.0));
+            const l = Math.max(2.0, Math.min(25.0, parseFloat(document.getElementById('roomLengthInput').value) || 6.0));
+            state.roomWidth = w;
+            state.roomLength = l;
+            updateRoomAreaLabel();
+            fitRoomToScreen();
+            saveAutoBackup();
+        }
+
+        function updateRoomAreaLabel() {
+            const area = (state.roomWidth * state.roomLength).toFixed(1);
+            document.getElementById('roomAreaLabel').textContent = `${area} m²`;
+        }
+
+        function setRoomMode(mode) {
+            state.mode = mode;
+            updateModeButtons();
+            // Jeśli zaznaczony obiekt jest ukryty w nowym trybie, odznacz go
+            const sel = getSelectedItem();
+            if (sel && !isItemVisibleInCurrentMode(sel)) {
+                selectItem(null);
+            }
+            saveAutoBackup();
+            draw();
+        }
+
+        function updateModeButtons() {
+            const btnMusic = document.getElementById('btnModeMusic');
+            const btnPP = document.getElementById('btnModePingPong');
+            const badge = document.getElementById('statusModeBadge');
+
+            if (state.mode === 'music') {
+                btnMusic.className = 'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow';
+                btnPP.className = 'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white';
+                badge.textContent = '🎸 Tryb: Próba Muzyczna (stół złożony)';
+            } else {
+                btnPP.className = 'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 bg-emerald-600 text-white shadow';
+                btnMusic.className = 'px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white';
+                badge.textContent = '🏓 Tryb: Gra w Ping-Ponga (stół rozłożony)';
+            }
+        }
+
+        function isItemVisibleInCurrentMode(item) {
+            if (state.mode === 'music') return item.showInMusic !== false;
+            return item.showInPingPong !== false;
+        }
+
+        function resetToDefaultLayout() {
+            state.roomWidth = 5.0;
+            state.roomLength = 6.0;
+            document.getElementById('roomWidthInput').value = 5.0;
+            document.getElementById('roomLengthInput').value = 6.0;
+            state.items = getDefaultItems();
+            selectItem(null);
+            updateRoomAreaLabel();
+            fitRoomToScreen();
+            saveAutoBackup();
+            showToast('Przywrócono domyślny układ 5 × 6 m', '🔄');
+        }
+
+        // ==========================================
+        // 4. INSPEKTOR WŁAŚCIWOŚCI OBIEKTU
+        // ==========================================
+        function getSelectedItem() {
+            return state.items.find(i => i.id === selectedItemId) || null;
+        }
+
+        function selectItem(id) {
+            selectedItemId = id;
+            const item = getSelectedItem();
+            const noSel = document.getElementById('noSelectionPanel');
+            const insp = document.getElementById('inspectorPanel');
+
+            if (!item) {
+                noSel.classList.remove('hidden');
+                insp.classList.add('hidden');
+                return;
+            }
+
+            noSel.classList.add('hidden');
+            insp.classList.remove('hidden');
+
+            document.getElementById('propName').value = item.name;
+            document.getElementById('propW').value = item.w;
+            document.getElementById('propH').value = item.h;
+            document.getElementById('propX').value = item.x.toFixed(2);
+            document.getElementById('propY').value = item.y.toFixed(2);
+            document.getElementById('propAngle').value = item.angle;
+            document.getElementById('propAngleLabel').textContent = `${item.angle}°`;
+            document.getElementById('propColor').value = item.color;
+            document.getElementById('propShowMusic').checked = item.showInMusic !== false;
+            document.getElementById('propShowPingPong').checked = item.showInPingPong !== false;
+        }
+
+        function updateSelectedProp(prop, val) {
+            const item = getSelectedItem();
+            if (!item) return;
+            if (typeof val === 'number' && isNaN(val)) return;
+            item[prop] = val;
+            if (prop === 'angle') {
+                document.getElementById('propAngleLabel').textContent = `${val}°`;
+            }
+            saveAutoBackup();
+            draw();
+        }
+
+        function rotateSelected(delta) {
+            const item = getSelectedItem();
+            if (!item) return;
+            item.angle = (item.angle + delta + 360) % 360;
+            selectItem(item.id);
+            saveAutoBackup();
+            draw();
+        }
+
+        function setSelectedAngle(deg) {
+            const item = getSelectedItem();
+            if (!item) return;
+            item.angle = deg;
+            selectItem(item.id);
+            saveAutoBackup();
+            draw();
+        }
+
+        function duplicateSelected() {
+            const item = getSelectedItem();
+            if (!item) return;
+            const copy = JSON.parse(JSON.stringify(item));
+            copy.id = 'item_' + Date.now();
+            copy.x = Math.min(state.roomWidth - 0.2, item.x + 0.3);
+            copy.y = Math.min(state.roomLength - 0.2, item.y + 0.3);
+            copy.name = item.name + ' (kopia)';
+            state.items.push(copy);
+            selectItem(copy.id);
+            saveAutoBackup();
+            draw();
+            showToast('Zduplikowano element', '📋');
+        }
+
+        function deleteSelected() {
+            if (!selectedItemId) return;
+            state.items = state.items.filter(i => i.id !== selectedItemId);
+            selectItem(null);
+            saveAutoBackup();
+            draw();
+            showToast('Usunięto element', '🗑️');
+        }
+
+        // ==========================================
+        // 5. RYSOWANIE NA CANVAS (SILNIK 2D CAD)
+        // ==========================================
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function fitRoomToScreen() {
+            const margin = 90; // miejsce na wymiary zewnętrzne
+            const availW = Math.max(200, canvas.width - margin * 2);
+            const availH = Math.max(200, canvas.height - margin * 2);
+
+            const scaleX = availW / state.roomWidth;
+            const scaleY = availH / state.roomLength;
+            pixelsPerMeter = Math.min(scaleX, scaleY);
+            zoom = 1.0;
+
+            panX = (canvas.width - state.roomWidth * pixelsPerMeter) / 2;
+            panY = (canvas.height - state.roomLength * pixelsPerMeter) / 2;
+
+            updateZoomLabel();
+            draw();
+        }
+
+        function changeZoom(delta) {
+            const oldScale = pixelsPerMeter * zoom;
+            zoom = Math.max(0.4, Math.min(3.0, zoom + delta));
+            const newScale = pixelsPerMeter * zoom;
+
+            // Przybliżanie względem środka ekranu
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            panX = cx - (cx - panX) * (newScale / oldScale);
+            panY = cy - (cy - panY) * (newScale / oldScale);
+
+            updateZoomLabel();
+            draw();
+        }
+
+        function updateZoomLabel() {
+            document.getElementById('zoomLabel').textContent = `${Math.round(zoom * 100)}%`;
+        }
+
+        function screenToMeters(sx, sy) {
+            const scale = pixelsPerMeter * zoom;
+            return {
+                x: (sx - panX) / scale,
+                y: (sy - panY) / scale
+            };
+        }
+
+        function draw(targetCtx = ctx, customScale = null, customPanX = null, customPanY = null, isExport = false) {
+            const c = targetCtx;
+            const scale = customScale !== null ? customScale : (pixelsPerMeter * zoom);
+            const ox = customPanX !== null ? customPanX : panX;
+            const oy = customPanY !== null ? customPanY : panY;
+
+            const wPx = state.roomWidth * scale;
+            const lPx = state.roomLength * scale;
+
+            // Czyszczenie tła
+            if (isExport) {
+                c.fillStyle = '#ffffff';
+                c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+            } else {
+                c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+            }
+
+            c.save();
+            c.translate(ox, oy);
+
+            // 1. Podłoga pomieszczenia
+            c.fillStyle = (state.darkMode && !isExport) ? '#1e293b' : '#f8fafc';
+            c.fillRect(0, 0, wPx, lPx);
+
+            // 2. Siatka metryczna (co 0.1m drobna, co 0.5m i 1.0m główna)
+            drawGrid(c, scale, wPx, lPx, isExport);
+
+            // 3. Strefa bezpieczeństwa dla stołu do ping-ponga (jeśli włączona)
+            if (document.getElementById('showClearanceCheck').checked) {
+                state.items.forEach(item => {
+                    if (item.type === 'pingpong_open' && isItemVisibleInCurrentMode(item)) {
+                        drawPingPongClearance(c, item, scale);
+                    }
+                });
+            }
+
+            // 4. Rysowanie wszystkich widocznych obiektów
+            state.items.forEach(item => {
+                if (!isItemVisibleInCurrentMode(item)) return;
+                const isSelected = (!isExport && item.id === selectedItemId);
+                drawFloorItem(c, item, scale, isSelected, isExport);
+            });
+
+            // 5. Ściany zewnętrzne (grube obramowanie architektoniczne)
+            const wallThick = Math.max(6, scale * 0.14);
+            c.strokeStyle = (state.darkMode && !isExport) ? '#94a3b8' : '#1e293b';
+            c.lineWidth = wallThick;
+            c.strokeRect(-wallThick / 2, -wallThick / 2, wPx + wallThick, lPx + wallThick);
+
+            // 6. Linie wymiarowe pokoju (góra i lewa strona)
+            drawDimensionRulers(c, scale, wPx, lPx, wallThick, isExport);
+
+            // 7. Odległości zaznaczonego obiektu od ścian
+            if (!isExport && selectedItemId && document.getElementById('showWallDistCheck').checked) {
+                const sel = getSelectedItem();
+                if (sel && isItemVisibleInCurrentMode(sel)) {
+                    drawWallDistances(c, sel, scale);
+                }
+            }
+
+            // 8. Rysowanie miarki użytkownika
+            if (!isExport && rulerPoints.length > 0) {
+                drawUserRuler(c, scale);
+            }
+
+            c.restore();
+        }
+
+        function drawGrid(c, scale, wPx, lPx, isExport) {
+            const step10cm = 0.1 * scale;
+            const step50cm = 0.5 * scale;
+
+            // Drobna siatka co 10 cm (tylko gdy odpowiednio powiększone)
+            if (step10cm >= 8) {
+                c.beginPath();
+                c.strokeStyle = (state.darkMode && !isExport) ? 'rgba(148, 163, 184, 0.08)' : 'rgba(15, 23, 42, 0.06)';
+                c.lineWidth = 1;
+                for (let x = step10cm; x < wPx; x += step10cm) {
+                    c.moveTo(x, 0);
+                    c.lineTo(x, lPx);
+                }
+                for (let y = step10cm; y < lPx; y += step10cm) {
+                    c.moveTo(0, y);
+                    c.lineTo(wPx, y);
+                }
+                c.stroke();
+            }
+
+            // Główna siatka co 50 cm (0.5 m)
+            c.beginPath();
+            c.strokeStyle = (state.darkMode && !isExport) ? 'rgba(148, 163, 184, 0.22)' : 'rgba(15, 23, 42, 0.15)';
+            c.lineWidth = 1;
+            for (let x = step50cm; x < wPx; x += step50cm) {
+                c.moveTo(x, 0);
+                c.lineTo(x, lPx);
+            }
+            for (let y = step50cm; y < lPx; y += step50cm) {
+                c.moveTo(0, y);
+                c.lineTo(wPx, y);
+            }
+            c.stroke();
+        }
+
+        function drawPingPongClearance(c, item, scale) {
+            c.save();
+            c.translate(item.x * scale, item.y * scale);
+            c.rotate((item.angle * Math.PI) / 180);
+
+            // Strefa gry: +1.0m po bokach (w) i +1.5m za stołem (h)
+            const clearW = (item.w + 2.0) * scale;
+            const clearH = (item.h + 3.0) * scale;
+
+            c.fillStyle = 'rgba(16, 185, 129, 0.08)';
+            c.fillRect(-clearW / 2, -clearH / 2, clearW, clearH);
+
+            c.setLineDash([6, 6]);
+            c.strokeStyle = 'rgba(16, 185, 129, 0.65)';
+            c.lineWidth = 1.5;
+            c.strokeRect(-clearW / 2, -clearH / 2, clearW, clearH);
+
+            c.fillStyle = '#10b981';
+            c.font = '600 10px Inter, sans-serif';
+            c.textAlign = 'center';
+            c.fillText('Strefa gry (+1.5m za stołem / +1.0m boki)', 0, -clearH / 2 - 5);
+            c.restore();
+        }
+
+        function drawFloorItem(c, item, scale, isSelected, isExport) {
+            const w = item.w * scale;
+            const h = item.h * scale;
+
+            c.save();
+            c.translate(item.x * scale, item.y * scale);
+            c.rotate((item.angle * Math.PI) / 180);
+
+            // Cień pod obiektem
+            c.shadowColor = 'rgba(0, 0, 0, 0.25)';
+            c.shadowBlur = 6;
+            c.shadowOffsetY = 2;
+
+            // Rysowanie detali specyficznych dla typu obiektu
+            if (item.type === 'drums') {
+                // Dywan pod perkusję
+                c.fillStyle = '#475569';
+                c.beginPath();
+                c.roundRect(-w / 2, -h / 2, w, h, 8);
+                c.fill();
+                c.shadowColor = 'transparent';
+
+                // Centrala (stopa)
+                c.fillStyle = item.color;
+                c.fillRect(-w * 0.14, -h * 0.05, w * 0.28, h * 0.25);
+                // Werbel i tomy
+                c.fillStyle = '#f8fafc';
+                c.strokeStyle = '#1e293b';
+                c.lineWidth = 2;
+                [[-0.18, -0.05, 0.11], [0, -0.15, 0.1], [0.16, -0.1, 0.11], [0.22, 0.12, 0.13]].forEach(([dx, dy, r]) => {
+                    c.beginPath();
+                    c.arc(w * dx, h * dy, w * r, 0, Math.PI * 2);
+                    c.fill();
+                    c.stroke();
+                });
+                // Talerze (złote)
+                c.fillStyle = 'rgba(250, 204, 21, 0.85)';
+                [[-0.32, -0.15, 0.13], [0.32, -0.18, 0.15], [-0.28, 0.18, 0.12]].forEach(([dx, dy, r]) => {
+                    c.beginPath();
+                    c.arc(w * dx, h * dy, w * r, 0, Math.PI * 2);
+                    c.fill();
+                });
+                // Stołek perkusisty
+                c.fillStyle = '#0f172a';
+                c.beginPath();
+                c.arc(0, -h * 0.32, w * 0.09, 0, Math.PI * 2);
+                c.fill();
+
+            } else if (item.type === 'keyboard') {
+                c.fillStyle = item.color;
+                c.beginPath();
+                c.roundRect(-w / 2, -h / 2, w, h, 4);
+                c.fill();
+                c.shadowColor = 'transparent';
+                // Klawiatura (białe klawisze)
+                c.fillStyle = '#f8fafc';
+                c.fillRect(-w * 0.45, h * 0.05, w * 0.9, h * 0.35);
+
+            } else if (item.type === 'pingpong_open') {
+                c.fillStyle = item.color;
+                c.beginPath();
+                c.roundRect(-w / 2, -h / 2, w, h, 4);
+                c.fill();
+                c.shadowColor = 'transparent';
+                // Białe linie stołu i siatka
+                c.strokeStyle = '#ffffff';
+                c.lineWidth = 2;
+                c.strokeRect(-w / 2 + 3, -h / 2 + 3, w - 6, h - 6);
+                c.beginPath();
+                c.moveTo(0, -h / 2 + 3);
+                c.lineTo(0, h / 2 - 3);
+                c.stroke();
+                // Siatka na środku
+                c.strokeStyle = '#fbbf24';
+                c.lineWidth = 3;
+                c.beginPath();
+                c.moveTo(-w / 2 - 4, 0);
+                c.lineTo(w / 2 + 4, 0);
+                c.stroke();
+
+            } else if (item.type === 'door') {
+                c.fillStyle = item.color;
+                c.fillRect(-w / 2, -h / 2, w, h);
+                c.shadowColor = 'transparent';
+                // Łuk otwierania drzwi
+                c.beginPath();
+                c.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+                c.setLineDash([4, 4]);
+                c.lineWidth = 1.5;
+                c.arc(-w / 2, h / 2, w, 0, Math.PI / 2);
+                c.stroke();
+                c.setLineDash([]);
+                // Skrzydło drzwi
+                c.strokeStyle = item.color;
+                c.lineWidth = 3;
+                c.beginPath();
+                c.moveTo(-w / 2, h / 2);
+                c.lineTo(-w / 2, h / 2 + w);
+                c.stroke();
+
+            } else if (item.type === 'sax') {
+                c.fillStyle = 'rgba(217, 119, 6, 0.25)';
+                c.strokeStyle = item.color;
+                c.setLineDash([5, 4]);
+                c.lineWidth = 2;
+                c.beginPath();
+                c.arc(0, 0, Math.min(w, h) / 2, 0, Math.PI * 2);
+                c.fill();
+                c.stroke();
+                c.setLineDash([]);
+                c.shadowColor = 'transparent';
+
+            } else {
+                // Standardowy prostokątny mebel / wzmacniacz / klimatyzator
+                c.fillStyle = item.color;
+                c.beginPath();
+                c.roundRect(-w / 2, -h / 2, w, h, 5);
+                c.fill();
+                c.shadowColor = 'transparent';
+
+                c.strokeStyle = 'rgba(255,255,255,0.25)';
+                c.lineWidth = 1;
+                c.strokeRect(-w / 2, -h / 2, w, h);
+            }
+
+            // Podpis obiektu i wymiary
+            c.shadowColor = 'transparent';
+            const fontSize = Math.max(9, Math.min(12, scale * 0.13));
+            c.font = `600 ${fontSize}px Inter, sans-serif`;
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+
+            // Kontrastowy kolor tekstu
+            const isLightObj = (item.type === 'ac_unit' || item.type === 'window');
+            c.fillStyle = isLightObj ? '#0f172a' : '#ffffff';
+
+            // Tło pod tekst dla lepszej czytelności
+            const labelText = item.name;
+            const textMetrics = c.measureText(labelText);
+            if (item.type !== 'door' && item.type !== 'window' && item.type !== 'acoustic_panel') {
+                c.fillStyle = 'rgba(15, 23, 42, 0.65)';
+                c.beginPath();
+                c.roundRect(-textMetrics.width / 2 - 4, -fontSize / 2 - 2, textMetrics.width + 8, fontSize + 4, 4);
+                c.fill();
+
+                c.fillStyle = '#ffffff';
+                c.fillText(labelText, 0, 0);
+            }
+
+            // Ramka zaznaczenia (gdy obiekt aktywny)
+            if (isSelected) {
+                c.strokeStyle = '#38bdf8';
+                c.lineWidth = 2.5;
+                c.setLineDash([]);
+                c.strokeRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8);
+
+                // Uchwyt narożny
+                c.fillStyle = '#38bdf8';
+                c.beginPath();
+                c.arc(w / 2 + 4, -h / 2 - 4, 5, 0, Math.PI * 2);
+                c.fill();
+            }
+
+            c.restore();
+        }
+
+        function drawDimensionRulers(c, scale, wPx, lPx, wallThick, isExport) {
+            const textColor = (state.darkMode && !isExport) ? '#cbd5e1' : '#0f172a';
+            const lineColor = (state.darkMode && !isExport) ? '#64748b' : '#475569';
+
+            c.strokeStyle = lineColor;
+            c.fillStyle = textColor;
+            c.lineWidth = 1.5;
+            c.font = '600 12px "JetBrains Mono", monospace';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+
+            // Górny wymiar (Szerokość)
+            const topY = -wallThick - 22;
+            c.beginPath();
+            c.moveTo(0, topY);
+            c.lineTo(wPx, topY);
+            c.moveTo(0, topY - 6);
+            c.lineTo(0, topY + 6);
+            c.moveTo(wPx, topY - 6);
+            c.lineTo(wPx, topY + 6);
+            c.stroke();
+            c.fillText(`${state.roomWidth.toFixed(2)} m`, wPx / 2, topY - 12);
+
+            // Lewy wymiar (Długość)
+            const leftX = -wallThick - 24;
+            c.beginPath();
+            c.moveTo(leftX, 0);
+            c.lineTo(leftX, lPx);
+            c.moveTo(leftX - 6, 0);
+            c.lineTo(leftX + 6, 0);
+            c.moveTo(leftX - 6, lPx);
+            c.lineTo(leftX + 6, lPx);
+            c.stroke();
+
+            c.save();
+            c.translate(leftX - 14, lPx / 2);
+            c.rotate(-Math.PI / 2);
+            c.fillText(`${state.roomLength.toFixed(2)} m`, 0, 0);
+            c.restore();
+        }
+
+        function drawWallDistances(c, item, scale) {
+            // Oblicz obwiednię po obrocie
+            const rad = (item.angle * Math.PI) / 180;
+            const cos = Math.abs(Math.cos(rad));
+            const sin = Math.abs(Math.sin(rad));
+            const halfW = (item.w * cos + item.h * sin) / 2;
+            const halfH = (item.w * sin + item.h * cos) / 2;
+
+            const distLeft = Math.max(0, item.x - halfW);
+            const distRight = Math.max(0, state.roomWidth - (item.x + halfW));
+            const distTop = Math.max(0, item.y - halfH);
+            const distBottom = Math.max(0, state.roomLength - (item.y + halfH));
+
+            c.save();
+            c.strokeStyle = '#f59e0b';
+            c.fillStyle = '#fbbf24';
+            c.setLineDash([3, 3]);
+            c.lineWidth = 1.2;
+            c.font = '600 10px "JetBrains Mono", monospace';
+            c.textAlign = 'center';
+
+            // Linia do lewej ściany
+            if (distLeft > 0.05) {
+                c.beginPath();
+                c.moveTo(0, item.y * scale);
+                c.lineTo((item.x - halfW) * scale, item.y * scale);
+                c.stroke();
+                c.fillText(`${distLeft.toFixed(2)}m`, (distLeft / 2) * scale, item.y * scale - 6);
+            }
+            // Linia do prawej ściany
+            if (distRight > 0.05) {
+                c.beginPath();
+                c.moveTo((item.x + halfW) * scale, item.y * scale);
+                c.lineTo(state.roomWidth * scale, item.y * scale);
+                c.stroke();
+                c.fillText(`${distRight.toFixed(2)}m`, (state.roomWidth - distRight / 2) * scale, item.y * scale - 6);
+            }
+            // Linia do górnej ściany
+            if (distTop > 0.05) {
+                c.beginPath();
+                c.moveTo(item.x * scale, 0);
+                c.lineTo(item.x * scale, (item.y - halfH) * scale);
+                c.stroke();
+                c.fillText(`${distTop.toFixed(2)}m`, item.x * scale + 22, (distTop / 2) * scale);
+            }
+            // Linia do dolnej ściany
+            if (distBottom > 0.05) {
+                c.beginPath();
+                c.moveTo(item.x * scale, (item.y + halfH) * scale);
+                c.lineTo(item.x * scale, state.roomLength * scale);
+                c.stroke();
+                c.fillText(`${distBottom.toFixed(2)}m`, item.x * scale + 22, (state.roomLength - distBottom / 2) * scale);
+            }
+
+            c.restore();
+        }
+
+        function drawUserRuler(c, scale) {
+            c.save();
+            const p1 = rulerPoints[0];
+            c.fillStyle = '#f59e0b';
+            c.beginPath();
+            c.arc(p1.x * scale, p1.y * scale, 5, 0, Math.PI * 2);
+            c.fill();
+
+            if (rulerPoints.length === 2) {
+                const p2 = rulerPoints[1];
+                c.beginPath();
+                c.arc(p2.x * scale, p2.y * scale, 5, 0, Math.PI * 2);
+                c.fill();
+
+                c.strokeStyle = '#f59e0b';
+                c.lineWidth = 2.5;
+                c.beginPath();
+                c.moveTo(p1.x * scale, p1.y * scale);
+                c.lineTo(p2.x * scale, p2.y * scale);
+                c.stroke();
+
+                const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                const midX = ((p1.x + p2.x) / 2) * scale;
+                const midY = ((p1.y + p2.y) / 2) * scale;
+
+                c.fillStyle = '#0f172a';
+                c.beginPath();
+                c.roundRect(midX - 32, midY - 22, 64, 18, 4);
+                c.fill();
+
+                c.fillStyle = '#fbbf24';
+                c.font = 'bold 11px "JetBrains Mono", monospace';
+                c.textAlign = 'center';
+                c.fillText(`${dist.toFixed(2)} m`, midX, midY - 10);
+            }
+            c.restore();
+        }
+
+        // ==========================================
+        // 6. OBSŁUGA MYSZY, DOTYKU I KLAWIATURY
+        // ==========================================
+        function hitTestItem(mx, my) {
+            // Sprawdzamy od końca tablicy (obiekty na wierzchu)
+            for (let i = state.items.length - 1; i >= 0; i--) {
+                const item = state.items[i];
+                if (!isItemVisibleInCurrentMode(item)) continue;
+
+                // Przekształcenie punktu do lokalnego układu współrzędnych obiektu
+                const dx = mx - item.x;
+                const dy = my - item.y;
+                const rad = (-item.angle * Math.PI) / 180;
+                const localX = dx * Math.cos(rad) - dy * Math.sin(rad);
+                const localY = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+                if (Math.abs(localX) <= item.w / 2 && Math.abs(localY) <= item.h / 2) {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        function handlePointerDown(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = clientX - rect.left;
+            const sy = clientY - rect.top;
+            const mPos = screenToMeters(sx, sy);
+
+            // Tryb miarki
+            if (rulerActive) {
+                if (rulerPoints.length >= 2) {
+                    rulerPoints = [{ x: mPos.x, y: mPos.y }];
+                } else {
+                    rulerPoints.push({ x: mPos.x, y: mPos.y });
+                }
+                draw();
+                return;
+            }
+
+            const hit = hitTestItem(mPos.x, mPos.y);
+            if (hit) {
+                selectItem(hit.id);
+                isDraggingItem = true;
+                dragOffsetX = mPos.x - hit.x;
+                dragOffsetY = mPos.y - hit.y;
+            } else {
+                selectItem(null);
+                isPanning = true;
+                lastPointerX = sx;
+                lastPointerY = sy;
+            }
+            draw();
+        }
+
+        function handlePointerMove(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = clientX - rect.left;
+            const sy = clientY - rect.top;
+
+            if (isDraggingItem && selectedItemId) {
+                const item = getSelectedItem();
+                if (!item) return;
+                const mPos = screenToMeters(sx, sy);
+                let newX = mPos.x - dragOffsetX;
+                let newY = mPos.y - dragOffsetY;
+
+                // Przyciąganie do siatki co 5 cm (0.05 m)
+                if (document.getElementById('snapGridCheck').checked) {
+                    newX = Math.round(newX / 0.05) * 0.05;
+                    newY = Math.round(newY / 0.05) * 0.05;
+                }
+
+                // Ograniczenie do obszaru sali
+                newX = Math.max(0, Math.min(state.roomWidth, newX));
+                newY = Math.max(0, Math.min(state.roomLength, newY));
+
+                item.x = +newX.toFixed(2);
+                item.y = +newY.toFixed(2);
+
+                document.getElementById('propX').value = item.x.toFixed(2);
+                document.getElementById('propY').value = item.y.toFixed(2);
+                draw();
+            } else if (isPanning) {
+                panX += sx - lastPointerX;
+                panY += sy - lastPointerY;
+                lastPointerX = sx;
+                lastPointerY = sy;
+                draw();
+            }
+        }
+
+        function handlePointerUp() {
+            if (isDraggingItem) {
+                saveAutoBackup();
+            }
+            isDraggingItem = false;
+            isPanning = false;
+        }
+
+        // Zdarzenia myszy
+        canvas.addEventListener('mousedown', e => handlePointerDown(e.clientX, e.clientY));
+        window.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', handlePointerUp);
+
+        // Zoom kółkiem myszy
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            changeZoom(delta);
+        }, { passive: false });
+
+        // Zdarzenia dotykowe (Touch)
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                e.preventDefault();
+                handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches.length === 1) {
+                e.preventDefault();
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', handlePointerUp);
+
+        // Skróty klawiszowe
+        window.addEventListener('keydown', e => {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                deleteSelected();
+            } else if (e.key.toLowerCase() === 'r') {
+                rotateSelected(45);
+            } else if (e.key === 'Escape') {
+                selectItem(null);
+                if (rulerActive) toggleRulerTool();
+                draw();
+            }
+        });
+
+        function toggleRulerTool() {
+            rulerActive = !rulerActive;
+            rulerPoints = [];
+            const banner = document.getElementById('rulerBanner');
+            const btn = document.getElementById('btnRuler');
+            if (rulerActive) {
+                banner.classList.remove('hidden');
+                btn.classList.add('ring-2', 'ring-amber-400');
+                canvas.style.cursor = 'crosshair';
+            } else {
+                banner.classList.add('hidden');
+                btn.classList.remove('ring-2', 'ring-amber-400');
+                canvas.style.cursor = 'grab';
+            }
+            draw();
+        }
+
+        // ==========================================
+        // 7. ZAPIS DO PLIKU JSON, WCZYTYWANIE I EKSPORT PNG
+        // ==========================================
+        function saveProjectJSON() {
+            try {
+                const dataStr = JSON.stringify(state, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const dateTag = new Date().toISOString().slice(0, 10);
+                a.href = url;
+                a.download = `projekt_sali_${state.roomWidth}x${state.roomLength}m_${dateTag}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Pobrano plik projektu (.JSON) na dysk!', '💾');
+            } catch (err) {
+                showToast('Błąd podczas zapisywania pliku.', '❌');
+            }
+        }
+
+        function loadProjectJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loaded = JSON.parse(e.target.result);
+                    if (!loaded || typeof loaded.roomWidth !== 'number' || !Array.isArray(loaded.items)) {
+                        throw new Error('Nieprawidłowy format pliku');
+                    }
+                    state = loaded;
+                    document.getElementById('roomWidthInput').value = state.roomWidth;
+                    document.getElementById('roomLengthInput').value = state.roomLength;
+                    selectItem(null);
+                    updateRoomAreaLabel();
+                    updateModeButtons();
+                    fitRoomToScreen();
+                    saveAutoBackup();
+                    showToast('Wczytano projekt z pliku!', '📂');
+                } catch (err) {
+                    showToast('Nie udało się wczytać pliku (zły format).', '❌');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function exportToPNG() {
+            try {
+                const exportScale = 160; // wysoka rozdzielczość: 160 px na metr
+                const pad = 120;
+                const footerH = 70;
+
+                const offCanvas = document.createElement('canvas');
+                offCanvas.width = Math.round(state.roomWidth * exportScale + pad * 2);
+                offCanvas.height = Math.round(state.roomLength * exportScale + pad * 2 + footerH);
+                const offCtx = offCanvas.getContext('2d');
+
+                // Rysuj rzut w trybie jasnym do druku/podglądu
+                draw(offCtx, exportScale, pad, pad, true);
+
+                // Stopka z opisem projektu
+                const modeLabel = state.mode === 'music' ? 'TRYB PRÓBY MUZYCZNEJ' : 'TRYB PING-PONGA';
+                offCtx.fillStyle = '#0f172a';
+                offCtx.font = 'bold 18px Inter, sans-serif';
+                offCtx.textAlign = 'left';
+                offCtx.fillText(`Rzut Sali (${state.roomWidth.toFixed(1)}m × ${state.roomLength.toFixed(1)}m = ${(state.roomWidth * state.roomLength).toFixed(1)} m²) — ${modeLabel}`, pad, offCanvas.height - 42);
+
+                offCtx.fillStyle = '#64748b';
+                offCtx.font = '13px Inter, sans-serif';
+                offCtx.fillText(`Wygenerowano w Planerze Sali 2D • Data: ${new Date().toLocaleDateString('pl-PL')}`, pad, offCanvas.height - 18);
+
+                const link = document.createElement('a');
+                link.download = `rzut_sali_${state.mode}_${state.roomWidth}x${state.roomLength}m.png`;
+                link.href = offCanvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast('Wyeksportowano rzut jako obraz PNG!', '🖼️');
+            } catch (err) {
+                showToast('Błąd podczas generowania obrazu PNG.', '❌');
+            }
+        }
+
+        // ==========================================
+        // 8. MOTYW JASNY / CIEMNY I POWIADOMIENIA
+        // ==========================================
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            const container = document.getElementById('canvasContainer');
+            const btn = document.getElementById('btnTheme');
+            if (state.darkMode) {
+                container.classList.remove('canvas-bg-light');
+                container.classList.add('canvas-bg-dark');
+                btn.textContent = '☀️';
+            } else {
+                container.classList.remove('canvas-bg-dark');
+                container.classList.add('canvas-bg-light');
+                btn.textContent = '🌙';
+            }
+            draw();
+        }
+
+        let toastTimer = null;
+        function showToast(msg, icon = '✅') {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastMsg').textContent = msg;
+            document.getElementById('toastIcon').textContent = icon;
+            box.classList.remove('opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        // Start aplikacji po załadowaniu okna
+        window.onload = init;
+    </script>
+</body>
+</html>
